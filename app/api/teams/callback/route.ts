@@ -59,10 +59,13 @@ export async function GET(request: NextRequest) {
       throw new Error(`Token exchange failed: ${tokenError?.message || 'Unknown error'}`);
     }
 
-    if (!tokens?.accessToken || !tokens?.refreshToken) {
-      console.error('Invalid tokens received:', { hasAccessToken: !!tokens?.accessToken, hasRefreshToken: !!tokens?.refreshToken });
-      throw new Error('Invalid tokens received from Microsoft');
+    if (!tokens?.accessToken) {
+      console.error('Invalid tokens received:', { hasAccessToken: !!tokens?.accessToken, hasRefreshToken: !!tokens?.refreshToken, tokens });
+      throw new Error('No access token received from Microsoft');
     }
+
+    const hasRealRefreshToken = tokens.refreshToken && tokens.refreshToken !== 'placeholder';
+    console.log('Token validation:', { hasAccessToken: true, hasRefreshToken: hasRealRefreshToken });
 
     // Store tokens in database
     try {

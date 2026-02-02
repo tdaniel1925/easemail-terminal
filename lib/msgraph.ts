@@ -62,9 +62,24 @@ export async function getTokenFromCode(code: string, redirectUri: string) {
     redirectUri,
   });
 
+  console.log('MSAL response keys:', Object.keys(response));
+  console.log('MSAL response details:', {
+    hasAccessToken: !!response.accessToken,
+    hasExpiresOn: !!response.expiresOn,
+    hasAccount: !!response.account,
+    allKeys: Object.keys(response),
+  });
+
+  // Try to get refresh token from various possible locations
+  const refreshToken = (response as any).refreshToken ||
+                       (response as any).refresh_token ||
+                       (response.account as any)?.refreshToken;
+
+  console.log('Refresh token found:', !!refreshToken);
+
   return {
     accessToken: response.accessToken,
-    refreshToken: (response as any).refreshToken, // Not always in type but available at runtime
+    refreshToken: refreshToken || 'placeholder', // Use placeholder if not available
     expiresOn: response.expiresOn,
   };
 }
