@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -39,6 +42,17 @@ export default function TeamsPage() {
   const [loading, setLoading] = useState(true);
   const [connected, setConnected] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [scheduleForm, setScheduleForm] = useState({
+    subject: '',
+    startDate: '',
+    startTime: '',
+    duration: '60',
+    attendees: '',
+    description: '',
+  });
+  const [submittingMeeting, setSubmittingMeeting] = useState(false);
 
   useEffect(() => {
     // Check for OAuth callback status in URL
@@ -60,7 +74,11 @@ export default function TeamsPage() {
       const errorMsg = errorMessages[error] || 'Connection failed. Please try again.';
       const fullMsg = details ? `${errorMsg} Details: ${details}` : errorMsg;
       toast.error(fullMsg, { duration: 10000 });
-      console.error('MS Teams connection error:', { error, details });
+      console.error('MS Teams connection error:', {
+        errorCode: error,
+        errorDetails: details,
+        fullUrl: window.location.href
+      });
       // Clean URL
       window.history.replaceState({}, '', '/app/teams');
     }
@@ -138,6 +156,93 @@ export default function TeamsPage() {
     fetchMeetings();
   };
 
+  const handleInstantMeeting = async () => {
+    try {
+      const now = new Date();
+      const endTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
+
+      const response = await fetch('/api/teams/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: 'Instant Meeting',
+          startDateTime: now.toISOString(),
+          endDateTime: endTime.toISOString(),
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok && data.meeting?.onlineMeeting?.joinUrl) {
+        toast.success('Meeting created! Opening Teams...');
+        window.open(data.meeting.onlineMeeting.joinUrl, '_blank');
+        fetchMeetings(); // Refresh meetings list
+      } else {
+        toast.error('Failed to create instant meeting');
+      }
+    } catch (error) {
+      console.error('Instant meeting error:', error);
+      toast.error('Failed to create instant meeting');
+    }
+  };
+
+  const handleScheduleMeeting = () => {
+    setShowScheduleDialog(true);
+  };
+
+  const handleSendMessage = () => {
+    toast.info('Teams messaging integration coming soon!');
+    // TODO: Implement Teams chat integration
+  };
+
+  const handleSubmitSchedule = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingMeeting(true);
+
+    try {
+      const startDateTime = new Date(`${scheduleForm.startDate}T${scheduleForm.startTime}`);
+      const endDateTime = new Date(startDateTime.getTime() + parseInt(scheduleForm.duration) * 60 * 1000);
+
+      const attendeeEmails = scheduleForm.attendees
+        .split(',')
+        .map(email => email.trim())
+        .filter(email => email.length > 0);
+
+      const response = await fetch('/api/teams/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: scheduleForm.subject,
+          startDateTime: startDateTime.toISOString(),
+          endDateTime: endDateTime.toISOString(),
+          attendees: attendeeEmails,
+          content: scheduleForm.description,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success('Meeting scheduled successfully!');
+        setShowScheduleDialog(false);
+        setScheduleForm({
+          subject: '',
+          startDate: '',
+          startTime: '',
+          duration: '60',
+          attendees: '',
+          description: '',
+        });
+        fetchMeetings(); // Refresh meetings list
+      } else {
+        toast.error('Failed to schedule meeting');
+      }
+    } catch (error) {
+      console.error('Schedule meeting error:', error);
+      toast.error('Failed to schedule meeting');
+    } finally {
+      setSubmittingMeeting(false);
+    }
+  };
+
   const formatMeetingTime = (meeting: TeamsMeeting) => {
     const start = new Date(meeting.start.dateTime);
     const end = new Date(meeting.end.dateTime);
@@ -170,10 +275,10 @@ export default function TeamsPage() {
   };
 
   const quickActions = [
-    { icon: Video, label: 'Start Instant Meeting', color: 'bg-blue-500', disabled: !connected },
-    { icon: Calendar, label: 'Schedule Meeting', color: 'bg-green-500', disabled: !connected },
-    { icon: Phone, label: 'Make a Call', color: 'bg-purple-500', disabled: !connected },
-    { icon: MessageSquare, label: 'Send Message', color: 'bg-orange-500', disabled: !connected },
+    { icon: Video, label: 'Start Instant Meeting', color: 'bg-blue-500', disabled: !connected, onClick: handleInstantMeeting },
+    { icon: Calendar, label: 'Schedule Meeting', color: 'bg-green-500', disabled: !connected, onClick: handleScheduleMeeting },
+    { icon: Phone, label: 'Make a Call', color: 'bg-purple-500', disabled: true, onClick: () => toast.info('Coming soon!') },
+    { icon: MessageSquare, label: 'Send Message', color: 'bg-orange-500', disabled: !connected, onClick: handleSendMessage },
   ];
 
   const filteredMeetings = meetings.filter(meeting =>
@@ -201,7 +306,7 @@ export default function TeamsPage() {
                 <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
-              <Button>
+              <Button onClick={handleScheduleMeeting}>
                 <Plus className="mr-2 h-4 w-4" />
                 Schedule Meeting
               </Button>
@@ -284,6 +389,7 @@ export default function TeamsPage() {
                         variant="outline"
                         className="h-24 flex-col gap-2 hover:bg-accent"
                         disabled={action.disabled}
+                        onClick={action.onClick}
                       >
                         <div className={`${action.color} p-3 rounded-full text-white`}>
                           <action.icon className="h-5 w-5" />
@@ -383,6 +489,109 @@ export default function TeamsPage() {
           )}
         </div>
       </ScrollArea>
+
+      {/* Schedule Meeting Dialog */}
+      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <form onSubmit={handleSubmitSchedule}>
+            <DialogHeader>
+              <DialogTitle>Schedule Teams Meeting</DialogTitle>
+              <DialogDescription>
+                Create a new Microsoft Teams meeting and invite attendees
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="subject">Meeting Subject *</Label>
+                <Input
+                  id="subject"
+                  required
+                  value={scheduleForm.subject}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, subject: e.target.value })}
+                  placeholder="Weekly Team Sync"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="startDate">Date *</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    required
+                    value={scheduleForm.startDate}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, startDate: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="startTime">Time *</Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    required
+                    value={scheduleForm.startTime}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, startTime: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="duration">Duration (minutes) *</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  required
+                  min="15"
+                  step="15"
+                  value={scheduleForm.duration}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, duration: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="attendees">Attendees (comma-separated emails)</Label>
+                <Input
+                  id="attendees"
+                  type="text"
+                  value={scheduleForm.attendees}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, attendees: e.target.value })}
+                  placeholder="user@example.com, another@example.com"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={scheduleForm.description}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, description: e.target.value })}
+                  placeholder="Meeting agenda and details..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowScheduleDialog(false)}
+                disabled={submittingMeeting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={submittingMeeting}>
+                {submittingMeeting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Schedule Meeting
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
