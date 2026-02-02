@@ -44,3 +44,10 @@ next-env.d.ts
 .temp
 .vscode
 supabase/.temp
+
+.vercel
+.env*.local
+
+# Environment variable scripts with secrets
+push-env.bat
+.env.vercel

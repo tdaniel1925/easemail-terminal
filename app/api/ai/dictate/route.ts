@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       feature: 'ai_dictate',
       metadata: { transcriptLength: transcript.length, tone },
-    });
+    } as any);
 
     return NextResponse.json({
       transcript,

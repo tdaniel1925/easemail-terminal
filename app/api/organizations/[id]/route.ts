@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -13,7 +13,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const orgId = params.id;
+    const { id } = await params;
+    const orgId = id;
 
     // Check if user is a member
     const { data: membership } = await supabase
@@ -57,7 +58,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -67,7 +68,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const orgId = params.id;
+    const { id } = await params;
+    const orgId = id;
 
     // Check if user is owner or admin
     const { data: membership } = await supabase
@@ -111,7 +113,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -121,7 +123,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const orgId = params.id;
+    const { id } = await params;
+    const orgId = id;
 
     // Check if user is owner
     const { data: membership } = await supabase

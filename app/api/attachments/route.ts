@@ -45,13 +45,13 @@ export async function GET(request: NextRequest) {
     const allAttachments: Attachment[] = [];
 
     // Fetch messages with attachments from each account
-    for (const account of accounts) {
+    for (const account of (accounts as any[])) {
       try {
         const messagesResponse = await nylas.messages.list({
           identifier: account.grant_id,
           queryParams: {
             limit: 200,
-            has_attachment: true,
+            hasAttachment: true,
           },
         });
 

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const orgIds = memberships.map(m => m.organization_id);
+    const orgIds = (memberships as any[]).map((m: any) => m.organization_id);
 
     // Get organization details
     const { data: organizations } = await supabase
@@ -46,11 +46,11 @@ export async function GET(request: NextRequest) {
             .from('organization_members')
             .select('user_id')
             .eq('organization_id', orgId)
-        ).data?.map(m => m.user_id) || [])
+        ).data?.map((m: any) => m.user_id) || [])
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()); // Last 30 days
 
       // Count by feature
-      const featureCounts = usage?.reduce((acc: any, item) => {
+      const featureCounts = usage?.reduce((acc: any, item: any) => {
         acc[item.feature] = (acc[item.feature] || 0) + 1;
         return acc;
       }, {});
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
             .from('organization_members')
             .select('user_id')
             .eq('organization_id', orgId)
-        ).data?.map(m => m.user_id) || []);
+        ).data?.map((m: any) => m.user_id) || []);
 
       return {
         organizationId: orgId,
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
 
     // Aggregate analytics
     const analytics = {
-      organizations: organizations?.map((org, index) => ({
+      organizations: organizations?.map((org: any, index) => ({
         ...org,
         stats: usageStats[index],
       })),

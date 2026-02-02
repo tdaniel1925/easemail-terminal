@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -13,7 +13,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const accountId = params.id;
+    const { id } = await params;
+    const accountId = id;
 
     // Check if this is the only account
     const { data: accounts } = await supabase

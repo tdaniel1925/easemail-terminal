@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     const messages = messagesResponse.data;
 
     // Prepare emails for categorization
-    const emailsToCateg​orize = messages.map((msg: any) => ({
+    const emailsToCategorize = messages.map((msg: any) => ({
       id: msg.id,
       subject: msg.subject || '(no subject)',
       from: msg.from?.[0]?.email || 'unknown',
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }));
 
     // Batch categorize with AI
-    const categories = await batchCategorizeEmails(emailsToCateg​orize);
+    const categories = await batchCategorizeEmails(emailsToCategorize);
 
     // Cache results for 1 hour
     await setCache(cacheKey, categories, 3600);
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       feature: 'email_categorization',
       metadata: { count: Object.keys(categories).length },
-    });
+    } as any);
 
     return NextResponse.json({ categories, cached: false });
   } catch (error) {

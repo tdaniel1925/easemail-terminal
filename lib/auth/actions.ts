@@ -20,7 +20,7 @@ export async function signUp(formData: FormData) {
   const { error } = await supabase.auth.signUp(data);
 
   if (error) {
-    return { error: error.message };
+    redirect(`/signup?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath('/', 'layout');
@@ -38,7 +38,7 @@ export async function signIn(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data);
 
   if (error) {
-    return { error: error.message };
+    redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath('/', 'layout');
@@ -51,7 +51,7 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    return { error: error.message };
+    redirect(`/?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath('/', 'layout');

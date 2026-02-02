@@ -21,11 +21,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user's 2FA data
-    const { data: userData } = await supabase
+    const { data: userData } = (await supabase
       .from('users')
       .select('two_factor_secret, two_factor_enabled, email')
       .eq('id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     // Verify token if provided
     if (token && userData.two_factor_secret) {
-      const isValid = verifyToken(token, userData.two_factor_secret);
+      const isValid = await verifyToken(token, userData.two_factor_secret);
       if (!isValid) {
         return NextResponse.json(
           { error: 'Invalid TOTP token' },
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Disable 2FA
-    await supabase
+    await (supabase as any)
       .from('users')
       .update({
         two_factor_enabled: false,

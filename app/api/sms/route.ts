@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     await supabase.from('usage_tracking').insert({
       user_id: user.id,
       feature: 'sms_sent',
-    });
+    } as any);
 
     return NextResponse.json({ message });
   } catch (error) {

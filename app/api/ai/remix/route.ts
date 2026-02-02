@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       feature: 'ai_remix',
       metadata: { inputLength: text.length, tone },
-    });
+    } as any);
 
     // Call OpenAI to remix
     const remixed = await aiRemix(text, tone as AITone);

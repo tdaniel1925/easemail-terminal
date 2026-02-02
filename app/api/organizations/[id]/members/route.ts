@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -13,7 +13,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const orgId = params.id;
+    const { id } = await params;
+    const orgId = id;
 
     // Check if user is owner or admin
     const { data: membership } = await supabase
@@ -74,7 +75,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -84,7 +85,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const orgId = params.id;
+    const { id } = await params;
+    const orgId = id;
     const { searchParams } = new URL(request.url);
     const memberUserId = searchParams.get('userId');
 

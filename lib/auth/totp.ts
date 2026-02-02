@@ -1,11 +1,14 @@
-import { authenticator } from 'otplib';
+import { TOTP } from 'otplib';
+import { NobleCryptoPlugin } from 'otplib';
+import { ScureBase32Plugin } from 'otplib';
 import QRCode from 'qrcode';
 
-// Configure OTP settings
-authenticator.options = {
-  step: 30, // Time step in seconds (default: 30)
-  window: 1, // Number of steps to check before/after current time
-};
+// Create TOTP instance with plugins
+const totp = new TOTP({
+  period: 30, // Time step in seconds (default: 30)
+  crypto: new NobleCryptoPlugin(),
+  base32: new ScureBase32Plugin(),
+});
 
 export interface TwoFactorSetup {
   secret: string;
@@ -17,7 +20,7 @@ export interface TwoFactorSetup {
  * Generate a new TOTP secret for a user
  */
 export function generateSecret(): string {
-  return authenticator.generateSecret();
+  return totp.generateSecret();
 }
 
 /**
@@ -31,7 +34,10 @@ export async function generateQRCode(
   secret: string,
   issuer: string = 'EaseMail'
 ): Promise<string> {
-  const otpauth = authenticator.keyuri(email, issuer, secret);
+  const otpauth = new TOTP({
+    crypto: new NobleCryptoPlugin(),
+    base32: new ScureBase32Plugin(),
+  }).toURI({ label: email, issuer, secret });
   const qrCodeUrl = await QRCode.toDataURL(otpauth);
   return qrCodeUrl;
 }
@@ -41,9 +47,13 @@ export async function generateQRCode(
  * @param token 6-digit code from authenticator app
  * @param secret User's TOTP secret
  */
-export function verifyToken(token: string, secret: string): boolean {
+export async function verifyToken(token: string, secret: string): Promise<boolean> {
   try {
-    return authenticator.verify({ token, secret });
+    const result = await totp.verify(token, {
+      secret,
+      epochTolerance: 30, // Allow 30 seconds clock drift
+    });
+    return result.valid;
   } catch (error) {
     console.error('TOTP verification error:', error);
     return false;

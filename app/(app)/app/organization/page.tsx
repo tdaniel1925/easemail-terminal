@@ -92,12 +92,12 @@ export default function OrganizationPage() {
     return colors[role as keyof typeof colors] || colors.VIEWER;
   };
 
-  const getPlanBadge = (plan: string) => {
+  const getPlanBadge = (plan: string): "secondary" | "destructive" | "default" | "outline" => {
     const colors = {
-      FREE: 'secondary',
-      PRO: 'default',
-      BUSINESS: 'default',
-      ENTERPRISE: 'default',
+      FREE: 'secondary' as const,
+      PRO: 'default' as const,
+      BUSINESS: 'default' as const,
+      ENTERPRISE: 'default' as const,
     };
     return colors[plan as keyof typeof colors] || 'secondary';
   };

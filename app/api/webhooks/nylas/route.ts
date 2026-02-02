@@ -159,7 +159,7 @@ async function handleMessageCreated(data: NylasWebhookData) {
     await supabase.from('usage_tracking').insert({
       user_id: account.user_id,
       feature: 'email_received',
-    });
+    } as any);
 
     console.log(`Message created webhook processed for user: ${account.user_id}`);
   } catch (error) {

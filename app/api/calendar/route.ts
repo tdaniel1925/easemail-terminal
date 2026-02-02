@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     await supabase.from('usage_tracking').insert({
       user_id: user.id,
       feature: 'calendar_event',
-    });
+    } as any);
 
     return NextResponse.json({ event });
   } catch (error) {
