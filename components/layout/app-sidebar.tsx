@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   Mail, PenSquare, Inbox, Send, Star, Trash2, Archive, Clock, Menu,
   Users, Newspaper, Bell, Sparkles, Calendar, UserCircle, Video, Tag,
@@ -60,17 +61,20 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   return (
     <div className="w-64 border-r border-border bg-card hidden lg:flex flex-col h-screen">
       {/* Header - Fixed */}
-      <div className="p-4 border-b border-border flex-shrink-0">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+      <div className="p-6 border-b border-border flex-shrink-0">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             EaseMail
           </h1>
-          <Button variant="ghost" size="icon" onClick={onToggle}>
-            <Menu className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" size="icon" onClick={onToggle}>
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
-        <Button className="w-full" onClick={onCompose}>
-          <PenSquare className="mr-2 h-4 w-4" />
+        <Button className="w-full" size="lg" onClick={onCompose}>
+          <PenSquare className="mr-2 h-5 w-5" />
           Compose
         </Button>
       </div>

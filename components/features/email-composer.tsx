@@ -640,15 +640,15 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-8">
+        <DialogHeader className="pb-6">
           <div className="flex items-center justify-between">
-            <DialogTitle>New Message</DialogTitle>
+            <DialogTitle className="text-3xl">New Message</DialogTitle>
             {/* Auto-save indicator */}
-            <div className="text-xs text-muted-foreground">
+            <div className="text-sm text-muted-foreground">
               {saving ? (
-                <span className="flex items-center gap-1">
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Saving...
                 </span>
               ) : lastSaved ? (
@@ -659,7 +659,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
         </DialogHeader>
 
         <TooltipProvider>
-          <div className="flex-1 overflow-y-auto space-y-4">
+          <div className="flex-1 overflow-y-auto space-y-6">
           {/* To */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -1067,9 +1067,9 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Templates Selection Dialog */}
       {showTemplates && (
         <Dialog open={showTemplates} onOpenChange={setShowTemplates}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
-            <DialogHeader>
-              <DialogTitle>Choose a Template</DialogTitle>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto p-8">
+            <DialogHeader className="pb-6">
+              <DialogTitle className="text-3xl">Choose a Template</DialogTitle>
             </DialogHeader>
             <div className="space-y-3 mt-4">
               {templates.length === 0 ? (
@@ -1250,9 +1250,9 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Email Preview Dialog */}
       {showPreview && (
         <Dialog open={showPreview} onOpenChange={setShowPreview}>
-          <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-            <DialogHeader>
-              <DialogTitle>Email Preview</DialogTitle>
+          <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-8">
+            <DialogHeader className="pb-6">
+              <DialogTitle className="text-3xl">Email Preview</DialogTitle>
             </DialogHeader>
             <ScrollArea className="flex-1 mt-4">
               <div className="space-y-4">
@@ -1380,9 +1380,9 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Canned Responses Dialog */}
       {showCannedResponses && (
         <Dialog open={showCannedResponses} onOpenChange={setShowCannedResponses}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
-            <DialogHeader>
-              <DialogTitle>Insert Canned Response</DialogTitle>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto p-8">
+            <DialogHeader className="pb-6">
+              <DialogTitle className="text-3xl">Insert Canned Response</DialogTitle>
             </DialogHeader>
 
             {/* Search */}

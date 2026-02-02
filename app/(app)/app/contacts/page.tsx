@@ -103,14 +103,14 @@ export default function ContactsPage() {
       </div>
 
       {/* Contacts Grid */}
-      <ScrollArea className="flex-1 p-6">
+      <ScrollArea className="flex-1 p-8">
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="flex items-center justify-center h-96">
+            <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {contacts
                 .filter(contact => {
                   const name = getContactName(contact).toLowerCase();
@@ -125,23 +125,23 @@ export default function ContactsPage() {
                   const phone = getContactPhone(contact);
 
                   return (
-                    <Card key={contact.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-4">
+                    <Card key={contact.id} className="hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 hover:border-primary/50">
+                      <CardHeader className="pb-6">
                         <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-12 w-12">
+                          <div className="flex items-center gap-4">
+                            <Avatar className="h-16 w-16 ring-2 ring-border">
                               <AvatarImage src={contact.pictureUrl || undefined} />
-                              <AvatarFallback className="bg-primary text-primary-foreground">
+                              <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-primary-foreground text-xl font-bold">
                                 {getInitials(name)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="flex items-center gap-2">
-                                <CardTitle className="text-lg">{name}</CardTitle>
+                                <CardTitle className="text-xl font-bold">{name}</CardTitle>
                               </div>
                               {contact.companyName && (
-                                <CardDescription className="flex items-center gap-1 mt-1">
-                                  <Building className="h-3 w-3" />
+                                <CardDescription className="flex items-center gap-1 mt-2 text-sm">
+                                  <Building className="h-4 w-4" />
                                   {contact.companyName}
                                 </CardDescription>
                               )}
@@ -170,29 +170,30 @@ export default function ContactsPage() {
                           </DropdownMenu>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className="space-y-4">
                         {email && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <a href={`mailto:${email}`} className="text-primary hover:underline truncate">
+                          <div className="flex items-center gap-3 text-base">
+                            <Mail className="h-5 w-5 text-primary" />
+                            <a href={`mailto:${email}`} className="text-primary hover:underline truncate font-medium">
                               {email}
                             </a>
                           </div>
                         )}
                         {phone && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <a href={`tel:${phone}`} className="hover:underline">
+                          <div className="flex items-center gap-3 text-base">
+                            <Phone className="h-5 w-5 text-primary" />
+                            <a href={`tel:${phone}`} className="hover:underline font-medium">
                               {phone}
                             </a>
                           </div>
                         )}
-                        <div className="flex gap-2 mt-4">
-                          <Button variant="outline" size="sm" className="flex-1">
-                            <Mail className="mr-2 h-3 w-3" />
+                        <div className="flex gap-3 mt-6">
+                          <Button variant="outline" className="flex-1">
+                            <Mail className="mr-2 h-4 w-4" />
                             Email
                           </Button>
-                          <Button variant="outline" size="sm" className="flex-1">
+                          <Button variant="outline" className="flex-1">
+                            <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </Button>
                         </div>
@@ -210,15 +211,15 @@ export default function ContactsPage() {
               const query = searchQuery.toLowerCase();
               return name.includes(query) || email.includes(query) || company.includes(query);
             }).length === 0 && (
-              <div className="flex flex-col items-center justify-center h-64 text-center">
-                <UserCircle className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="font-semibold text-lg mb-2">No contacts found</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+              <div className="flex flex-col items-center justify-center h-96 text-center p-12">
+                <UserCircle className="h-24 w-24 text-muted-foreground mb-6 opacity-50" />
+                <h3 className="font-bold text-2xl mb-3">No contacts found</h3>
+                <p className="text-base text-muted-foreground mb-6 max-w-md">
                   {searchQuery ? 'Try a different search term' : contacts.length === 0 ? 'No contacts synced from your email account yet' : 'Get started by adding your first contact'}
                 </p>
                 {!searchQuery && (
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
+                  <Button size="lg">
+                    <Plus className="mr-2 h-5 w-5" />
                     Add Contact
                   </Button>
                 )}

@@ -933,9 +933,9 @@ export default function InboxPage() {
       {/* Sidebar */}
       {sidebarOpen && (
         <div className="w-64 border-r border-border bg-card hidden lg:block">
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <div className="p-6 border-b border-border">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 EaseMail
               </h1>
               <Tooltip>
@@ -1136,7 +1136,7 @@ export default function InboxPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b border-border bg-card p-4">
+        <header className="border-b border-border bg-card p-6">
           <div className="flex items-center gap-4">
             {!sidebarOpen && (
               <Tooltip>
@@ -1370,12 +1370,12 @@ export default function InboxPage() {
                   <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
               ) : filteredMessages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-center p-8">
-                  <Mail className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="font-semibold text-lg mb-2">
+                <div className="flex flex-col items-center justify-center h-96 text-center p-12">
+                  <Mail className="h-20 w-20 text-muted-foreground mb-6 opacity-50" />
+                  <h3 className="font-bold text-2xl mb-3">
                     {messages.length === 0 ? 'No messages yet' : 'No messages in this category'}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-base text-muted-foreground max-w-md">
                     {messages.length === 0
                       ? 'Connect an email account to see your messages'
                       : 'Try another category or run AI categorization'
@@ -1383,11 +1383,11 @@ export default function InboxPage() {
                   </p>
                   {messages.length === 0 ? (
                     <Link href="/app/connect">
-                      <Button className="mt-4">Connect Email</Button>
+                      <Button className="mt-6" size="lg">Connect Email</Button>
                     </Link>
                   ) : (
-                    <Button className="mt-4" onClick={runCategorization} disabled={categorizing}>
-                      <Sparkles className="mr-2 h-4 w-4" />
+                    <Button className="mt-6" size="lg" onClick={runCategorization} disabled={categorizing}>
+                      <Sparkles className="mr-2 h-5 w-5" />
                       Categorize with AI
                     </Button>
                   )}
@@ -1400,11 +1400,11 @@ export default function InboxPage() {
                   return (
                   <div
                     key={message.id}
-                    className={`w-full text-left p-4 border-b border-border hover:bg-accent transition-colors ${
-                      selectedMessage?.id === message.id ? 'bg-accent' : ''
+                    className={`w-full text-left p-6 border-b border-border hover:bg-accent/50 hover:border-l-4 hover:border-l-blue-500 transition-all ${
+                      selectedMessage?.id === message.id ? 'bg-accent border-l-4 border-l-blue-500' : ''
                     } ${isSelected ? 'bg-primary/5' : ''}`}
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-4">
                       {/* Checkbox */}
                       <button
                         onClick={(e) => {
@@ -1413,7 +1413,7 @@ export default function InboxPage() {
                         }}
                         className="mt-2"
                       >
-                        <div className={`h-4 w-4 rounded border flex items-center justify-center ${
+                        <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
                           isSelected ? 'bg-primary border-primary' : 'border-input hover:border-primary'
                         }`}>
                           {isSelected && (
@@ -1424,35 +1424,35 @@ export default function InboxPage() {
 
                       <button
                         onClick={() => setSelectedMessage(message)}
-                        className="flex-1 flex items-start gap-3 text-left"
+                        className="flex-1 flex items-start gap-4 text-left"
                       >
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-12 w-12 ring-2 ring-border">
                         <AvatarImage src={`https://logo.clearbit.com/${message.from?.[0]?.email?.split('@')[1]}`} />
-                        <AvatarFallback>
+                        <AvatarFallback className="text-base font-semibold">
                           {getInitials(message.from?.[0]?.name, message.from?.[0]?.email)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`font-medium truncate ${message.unread ? 'font-bold' : ''}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`font-semibold truncate text-base ${message.unread ? 'font-bold' : ''}`}>
                             {message.from?.[0]?.name || message.from?.[0]?.email}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-sm text-muted-foreground ml-2">
                             {formatDate(message.date * 1000)}
                           </span>
                         </div>
-                        <p className={`text-sm truncate mb-1 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                        <p className={`text-base truncate mb-2 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
                           {message.subject || '(no subject)'}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="text-sm text-muted-foreground truncate mb-3">
                           {message.snippet || ''}
                         </p>
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-2">
                           {message.unread && (
-                            <Badge variant="default" className="text-xs">New</Badge>
+                            <Badge variant="default" className="text-xs px-2 py-1">New</Badge>
                           )}
                           {category && (
-                            <Badge variant="outline" className={`text-xs ${getCategoryBadgeColor(category)}`}>
+                            <Badge variant="outline" className={`text-xs px-2 py-1 ${getCategoryBadgeColor(category)}`}>
                               {category}
                             </Badge>
                           )}
@@ -1461,9 +1461,9 @@ export default function InboxPage() {
                               e.stopPropagation();
                               handleToggleStar(message.id, message.starred || false);
                             }}
-                            className="ml-auto p-1 hover:bg-accent rounded"
+                            className="ml-auto p-1.5 hover:bg-accent rounded-lg transition-colors"
                           >
-                            <Star className={`h-4 w-4 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+                            <Star className={`h-5 w-5 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
                           </button>
                         </div>
                       </div>
@@ -1484,48 +1484,48 @@ export default function InboxPage() {
                   return (
                     <div key={threadId} className="border-b border-border">
                       {/* Thread Preview */}
-                      <div className={`w-full text-left p-4 hover:bg-accent transition-colors ${
-                        selectedMessage?.id === previewMessage.id ? 'bg-accent' : ''
+                      <div className={`w-full text-left p-6 hover:bg-accent/50 hover:border-l-4 hover:border-l-blue-500 transition-all ${
+                        selectedMessage?.id === previewMessage.id ? 'bg-accent border-l-4 border-l-blue-500' : ''
                       }`}>
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-4">
                           <button
                             onClick={() => toggleThread(threadId)}
-                            className="flex-1 flex items-start gap-3 text-left"
+                            className="flex-1 flex items-start gap-4 text-left"
                           >
-                            <Avatar className="h-10 w-10">
+                            <Avatar className="h-12 w-12 ring-2 ring-border">
                               <AvatarImage src={`https://logo.clearbit.com/${previewMessage.from?.[0]?.email?.split('@')[1]}`} />
-                              <AvatarFallback>
+                              <AvatarFallback className="text-base font-semibold">
                                 {getInitials(previewMessage.from?.[0]?.name, previewMessage.from?.[0]?.email)}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className={`font-medium truncate ${hasUnread ? 'font-bold' : ''}`}>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className={`font-semibold truncate text-base ${hasUnread ? 'font-bold' : ''}`}>
                                   {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
                                 </span>
                                 <div className="flex items-center gap-2">
                                   {threadCount > 1 && (
-                                    <Badge variant="secondary" className="text-xs">
+                                    <Badge variant="secondary" className="text-xs px-2 py-1">
                                       {threadCount}
                                     </Badge>
                                   )}
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-sm text-muted-foreground">
                                     {formatDate(previewMessage.date * 1000)}
                                   </span>
                                 </div>
                               </div>
-                              <p className={`text-sm truncate mb-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                              <p className={`text-base truncate mb-2 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
                                 {previewMessage.subject || '(no subject)'}
                               </p>
-                              <p className="text-xs text-muted-foreground truncate">
+                              <p className="text-sm text-muted-foreground truncate mb-3">
                                 {previewMessage.snippet || ''}
                               </p>
-                              <div className="flex items-center gap-2 mt-2">
+                              <div className="flex items-center gap-2">
                                 {hasUnread && (
-                                  <Badge variant="default" className="text-xs">New</Badge>
+                                  <Badge variant="default" className="text-xs px-2 py-1">New</Badge>
                                 )}
                                 {category && (
-                                  <Badge variant="outline" className={`text-xs ${getCategoryBadgeColor(category)}`}>
+                                  <Badge variant="outline" className={`text-xs px-2 py-1 ${getCategoryBadgeColor(category)}`}>
                                     {category}
                                   </Badge>
                                 )}
@@ -1602,19 +1602,19 @@ export default function InboxPage() {
           <div className={`flex-1 flex flex-col ${selectedMessage ? 'block' : 'hidden md:block'}`}>
             {selectedMessage ? (
               <>
-                <div className="border-b border-border bg-card p-6">
-                  <h2 className="text-2xl font-bold mb-2">
+                <div className="border-b border-border bg-card p-8">
+                  <h2 className="text-3xl font-bold mb-4">
                     {selectedMessage.subject || '(no subject)'}
                   </h2>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12 ring-2 ring-border">
                       <AvatarImage src={`https://logo.clearbit.com/${selectedMessage.from?.[0]?.email?.split('@')[1]}`} />
-                      <AvatarFallback>
+                      <AvatarFallback className="text-base font-semibold">
                         {getInitials(selectedMessage.from?.[0]?.name, selectedMessage.from?.[0]?.email)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium">
+                      <p className="font-semibold text-base">
                         {selectedMessage.from?.[0]?.name || selectedMessage.from?.[0]?.email}
                       </p>
                       <p className="text-sm text-muted-foreground">
@@ -1711,8 +1711,8 @@ export default function InboxPage() {
                     </div>
                   </div>
                 </div>
-                <ScrollArea className="flex-1 p-6">
-                  <div className="prose dark:prose-invert max-w-full" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+                <ScrollArea className="flex-1 p-8">
+                  <div className="prose dark:prose-invert max-w-full prose-lg" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                     <div
                       className="email-body-content"
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMessage.body || selectedMessage.snippet) }}
@@ -1721,11 +1721,11 @@ export default function InboxPage() {
                 </ScrollArea>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-center p-8">
+              <div className="flex-1 flex items-center justify-center text-center p-12">
                 <div>
-                  <Mail className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold text-lg mb-2">No message selected</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <Mail className="h-20 w-20 text-muted-foreground mx-auto mb-6 opacity-50" />
+                  <h3 className="font-bold text-2xl mb-3">No message selected</h3>
+                  <p className="text-base text-muted-foreground max-w-md">
                     Select a message from the list to read it
                   </p>
                 </div>
