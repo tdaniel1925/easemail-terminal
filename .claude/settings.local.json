@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:developer.nylas.com)",
+      "WebFetch(domain:api.us.nylas.com)",
+      "WebSearch",
+      "WebFetch(domain:sparkmailapp.com)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm audit fix:*)",
+      "Bash(npx shadcn@latest add button input card label form separator)",
+      "Bash(npx shadcn@latest add avatar dropdown-menu scroll-area badge dialog textarea)",
+      "Bash(npx shadcn@latest add select switch)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npx supabase:*)",
+      "Bash(set SUPABASE_ACCESS_TOKEN=sbp_dc29849b369dcb96355f5b789450690392bce114)",
+      "Bash($env:SUPABASE_ACCESS_TOKEN=\"sbp_dc29849b369dcb96355f5b789450690392bce114\")",
+      "Bash(npm run dev:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
