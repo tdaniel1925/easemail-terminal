@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
-  Reply, ReplyAll, Forward, LogOut, Loader2
+  Reply, ReplyAll, Forward, LogOut, Loader2, X
 } from 'lucide-react';
 import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
@@ -29,6 +29,9 @@ export default function InboxPage() {
   const [categorizing, setCategorizing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'all' | EmailCategory>('all');
   const [loggingOut, setLoggingOut] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   useEffect(() => {
     fetchMessages();
@@ -86,6 +89,12 @@ export default function InboxPage() {
   };
 
   const getFilteredMessages = () => {
+    // If searching, return search results
+    if (searchQuery && searchResults.length >= 0) {
+      return searchResults;
+    }
+
+    // Otherwise filter by category
     if (selectedCategory === 'all') {
       return messages;
     }
@@ -286,6 +295,41 @@ export default function InboxPage() {
     }
   };
 
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      setSearchQuery('');
+      return;
+    }
+
+    try {
+      setSearching(true);
+      setSearchQuery(query);
+
+      const response = await fetch(`/api/messages/search?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      if (response.ok && data.messages) {
+        setSearchResults(data.messages);
+        toast.success(`Found ${data.messages.length} result(s)`);
+      } else {
+        toast.error(data.error || 'Search failed');
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error('Failed to search messages');
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
@@ -400,8 +444,29 @@ export default function InboxPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search emails..."
-                className="pl-10 w-full max-w-xl"
+                className="pl-10 pr-10 w-full max-w-xl"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch(searchQuery);
+                  }
+                  if (e.key === 'Escape') {
+                    clearSearch();
+                  }
+                }}
               />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+              {searching && (
+                <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+              )}
             </div>
             <Button variant="ghost" size="icon" onClick={fetchMessages}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -428,6 +493,30 @@ export default function InboxPage() {
         <div className="flex-1 flex overflow-hidden">
           {/* Email List */}
           <div className="w-96 border-r border-border bg-card">
+            {/* Search Results Header */}
+            {searchQuery && (
+              <div className="p-3 border-b border-border bg-accent/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      Search results for "{searchQuery}"
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearSearch}
+                    className="h-7 text-xs"
+                  >
+                    Clear
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {filteredMessages.length} result(s) found
+                </p>
+              </div>
+            )}
             <ScrollArea className="h-full">
               {loading ? (
                 <div className="flex items-center justify-center h-64">
