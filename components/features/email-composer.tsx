@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus } from 'lucide-react';
+import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoiceInput } from '@/components/features/voice-input';
 import { VoiceMessageRecorder } from '@/components/features/voice-message-recorder';
@@ -76,6 +76,12 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [templateCategory, setTemplateCategory] = useState('');
+
+  // Schedule-related state
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [scheduling, setScheduling] = useState(false);
 
   // Save draft function
   const saveDraft = async (showToast: boolean = false) => {
@@ -202,6 +208,87 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     } catch (error) {
       console.error('Save template error:', error);
       toast.error('Failed to save template');
+    }
+  };
+
+  const handleScheduleSend = async () => {
+    if (!to || !subject || !body) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    if (!scheduleDate || !scheduleTime) {
+      toast.error('Please select date and time');
+      return;
+    }
+
+    try {
+      setScheduling(true);
+
+      // Combine date and time
+      const scheduledFor = new Date(`${scheduleDate}T${scheduleTime}`);
+
+      if (scheduledFor <= new Date()) {
+        toast.error('Scheduled time must be in the future');
+        return;
+      }
+
+      // Parse recipients
+      const toArray = to.split(',').map(e => e.trim()).filter(e => e);
+      const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e) : [];
+      const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e) : [];
+
+      // Process attachments if any
+      let processedAttachments: any[] | null = null;
+      if (attachments.length > 0) {
+        const formData = new FormData();
+        attachments.forEach((attachment) => formData.append('files', attachment.file));
+
+        const uploadResponse = await fetch('/api/attachments/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const uploadData = await uploadResponse.json();
+        if (uploadResponse.ok && uploadData.attachments) {
+          processedAttachments = uploadData.attachments;
+        }
+      }
+
+      const response = await fetch('/api/scheduled-emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: toArray,
+          cc: ccArray.length > 0 ? ccArray : undefined,
+          bcc: bccArray.length > 0 ? bccArray : undefined,
+          subject,
+          body,
+          attachments: processedAttachments,
+          scheduledFor: scheduledFor.toISOString(),
+          reply_to_message_id: replyTo?.messageId,
+          is_forward: replyTo?.isForward,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`📅 ${data.message}`);
+
+        // Delete draft if exists
+        await deleteDraft();
+
+        // Close composer
+        onClose();
+      } else {
+        toast.error(data.error || 'Failed to schedule email');
+      }
+    } catch (error) {
+      console.error('Schedule email error:', error);
+      toast.error('Failed to schedule email');
+    } finally {
+      setScheduling(false);
     }
   };
 
@@ -586,6 +673,10 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
             <Button variant="ghost" onClick={onClose}>
               Cancel
             </Button>
+            <Button variant="outline" onClick={() => setShowSchedule(true)}>
+              <Clock className="mr-2 h-4 w-4" />
+              Schedule
+            </Button>
             <Button onClick={handleSend} disabled={sending}>
               {sending ? (
                 <>
@@ -595,7 +686,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Send Email
+                  Send Now
                 </>
               )}
             </Button>
@@ -682,6 +773,66 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                 <Button onClick={saveAsTemplate}>
                   <BookmarkPlus className="mr-2 h-4 w-4" />
                   Save Template
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Schedule Send Dialog */}
+      {showSchedule && (
+        <Dialog open={showSchedule} onOpenChange={setShowSchedule}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Schedule Email</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label htmlFor="schedule-date">Date *</Label>
+                <Input
+                  id="schedule-date"
+                  type="date"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              <div>
+                <Label htmlFor="schedule-time">Time *</Label>
+                <Input
+                  id="schedule-time"
+                  type="time"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                />
+              </div>
+              {scheduleDate && scheduleTime && (
+                <div className="bg-accent/50 p-3 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Email will be sent on{' '}
+                    <strong>
+                      {new Date(`${scheduleDate}T${scheduleTime}`).toLocaleString()}
+                    </strong>
+                  </p>
+                </div>
+              )}
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="ghost" onClick={() => setShowSchedule(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleScheduleSend} disabled={scheduling}>
+                  {scheduling ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Scheduling...
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      Schedule Send
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
