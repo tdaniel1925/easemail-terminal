@@ -17,6 +17,7 @@ import { VoiceInput } from '@/components/features/voice-input';
 import { VoiceMessageRecorder } from '@/components/features/voice-message-recorder';
 import { AttachmentUploader } from '@/components/email/attachment-uploader';
 import { TiptapEditor } from '@/components/ui/tiptap-editor';
+import { RecipientInput } from '@/components/ui/recipient-input';
 
 // Dynamically import emoji picker to avoid SSR issues
 const EmojiPicker = dynamic(
@@ -663,12 +664,11 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                 )}
               </div>
             </div>
-            <Input
+            <RecipientInput
               id="to"
-              type="email"
               placeholder="recipient@example.com (separate multiple with commas)"
               value={to}
-              onChange={(e) => setTo(e.target.value)}
+              onChange={setTo}
             />
           </div>
 
@@ -690,12 +690,11 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                   <X className="h-3 w-3" />
                 </Button>
               </div>
-              <Input
+              <RecipientInput
                 id="cc"
-                type="email"
                 placeholder="cc@example.com (separate multiple with commas)"
                 value={cc}
-                onChange={(e) => setCc(e.target.value)}
+                onChange={setCc}
               />
             </div>
           )}
@@ -718,12 +717,11 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                   <X className="h-3 w-3" />
                 </Button>
               </div>
-              <Input
+              <RecipientInput
                 id="bcc"
-                type="email"
                 placeholder="bcc@example.com (separate multiple with commas)"
                 value={bcc}
-                onChange={(e) => setBcc(e.target.value)}
+                onChange={setBcc}
               />
             </div>
           )}
