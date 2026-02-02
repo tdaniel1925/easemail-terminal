@@ -17,6 +17,7 @@ import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
 import { EmailComposer } from '@/components/features/email-composer';
 import { toast } from 'sonner';
+import DOMPurify from 'dompurify';
 
 type EmailCategory = 'people' | 'newsletters' | 'notifications';
 
@@ -908,7 +909,7 @@ export default function InboxPage() {
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
       {sidebarOpen && (
-        <div className="w-64 border-r border-border bg-card">
+        <div className="w-64 border-r border-border bg-card hidden lg:block">
           <div className="p-4 border-b border-border">
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -1083,7 +1084,7 @@ export default function InboxPage() {
         {/* Email List & Reading Pane */}
         <div className="flex-1 flex overflow-hidden">
           {/* Email List */}
-          <div className="w-96 border-r border-border bg-card">
+          <div className="w-full md:w-96 lg:w-96 border-r border-border bg-card">
             {/* Search Results Header */}
             {searchQuery && (
               <div className="p-3 border-b border-border bg-accent/50">
@@ -1459,7 +1460,7 @@ export default function InboxPage() {
           </div>
 
           {/* Reading Pane */}
-          <div className="flex-1 flex flex-col">
+          <div className={`flex-1 flex flex-col ${selectedMessage ? 'block' : 'hidden md:block'}`}>
             {selectedMessage ? (
               <>
                 <div className="border-b border-border bg-card p-6">
@@ -1486,7 +1487,7 @@ export default function InboxPage() {
                     </div>
                   </div>
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-2 mt-4">
+                  <div className="flex items-center gap-2 mt-4 flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
@@ -1535,7 +1536,7 @@ export default function InboxPage() {
                       <Shield className="mr-2 h-4 w-4" />
                       Report Spam
                     </Button>
-                    <div className="ml-auto flex items-center gap-2">
+                    <div className="ml-auto flex items-center gap-2 flex-wrap">
                       <Button
                         variant="outline"
                         size="sm"
@@ -1572,10 +1573,12 @@ export default function InboxPage() {
                   </div>
                 </div>
                 <ScrollArea className="flex-1 p-6">
-                  <div
-                    className="prose dark:prose-invert max-w-none"
-                    dangerouslySetInnerHTML={{ __html: selectedMessage.body || selectedMessage.snippet }}
-                  />
+                  <div className="prose dark:prose-invert max-w-full" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+                    <div
+                      className="email-body-content"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMessage.body || selectedMessage.snippet) }}
+                    />
+                  </div>
                 </ScrollArea>
               </>
             ) : (
