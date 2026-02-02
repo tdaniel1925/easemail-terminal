@@ -17,12 +17,12 @@ export async function POST(
     const orgId = id;
 
     // Check if user is owner or admin
-    const { data: membership } = await supabase
+    const { data: membership } = (await supabase
       .from('organization_members')
       .select('role')
       .eq('organization_id', orgId)
       .eq('user_id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
@@ -35,11 +35,11 @@ export async function POST(
     }
 
     // Check if organization has available seats
-    const { data: org } = await supabase
+    const { data: org } = (await supabase
       .from('organizations')
       .select('seats, seats_used')
       .eq('id', orgId)
-      .single();
+      .single()) as { data: any };
 
     if (org && org.seats_used >= org.seats) {
       return NextResponse.json({ error: 'No available seats' }, { status: 400 });
@@ -53,7 +53,7 @@ export async function POST(
         email,
         role,
         invited_by: user.id,
-      })
+      } as any)
       .select()
       .single();
 
@@ -95,12 +95,12 @@ export async function DELETE(
     }
 
     // Check if user is owner or admin
-    const { data: membership } = await supabase
+    const { data: membership } = (await supabase
       .from('organization_members')
       .select('role')
       .eq('organization_id', orgId)
       .eq('user_id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
@@ -134,9 +134,9 @@ export async function DELETE(
     }
 
     // Decrement seats_used
-    await supabase
+    await (supabase as any)
       .from('organizations')
-      .update({ seats_used: supabase.rpc('decrement_seats', { org_id: orgId }) })
+      .update({ seats_used: (supabase as any).rpc('decrement_seats', { org_id: orgId }) })
       .eq('id', orgId);
 
     return NextResponse.json({ success: true });

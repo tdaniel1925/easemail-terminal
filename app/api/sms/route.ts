@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         direction: 'outbound',
         status: 'sent',
         twilio_sid: result.sid,
-      })
+      } as any)
       .select()
       .single();
 

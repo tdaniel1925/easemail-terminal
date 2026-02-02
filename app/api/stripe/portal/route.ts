@@ -18,11 +18,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get organization stripe customer ID
-    const { data: organization } = await supabase
+    const { data: organization } = (await supabase
       .from('organizations')
       .select('stripe_customer_id')
       .eq('id', organizationId)
-      .single();
+      .single()) as { data: any };
 
     if (!organization?.stripe_customer_id) {
       return NextResponse.json(

@@ -35,7 +35,7 @@ export async function aiRemix(text: string, tone: AITone = 'professional'): Prom
 
 export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
   const transcription = await openai.audio.transcriptions.create({
-    file: new File([audioBuffer], 'audio.webm', { type: 'audio/webm' }),
+    file: new File([audioBuffer as any], 'audio.webm', { type: 'audio/webm' }),
     model: 'whisper-1',
     language: 'en',
   });

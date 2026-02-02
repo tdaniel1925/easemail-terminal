@@ -21,12 +21,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user is owner or admin of the organization
-    const { data: membership } = await supabase
+    const { data: membership } = (await supabase
       .from('organization_members')
       .select('role')
       .eq('organization_id', organizationId)
       .eq('user_id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });

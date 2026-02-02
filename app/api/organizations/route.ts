@@ -11,12 +11,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's organizations
-    const { data: memberships } = await supabase
+    const { data: memberships } = (await supabase
       .from('organization_members')
       .select('*, organizations(*)')
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)) as { data: any };
 
-    const organizations = memberships?.map(m => ({
+    const organizations = memberships?.map((m: any) => ({
       ...m.organizations,
       role: m.role,
     })) || [];
@@ -50,16 +50,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Create organization
-    const { data: organization, error: orgError } = await supabase
+    const { data: organization, error: orgError } = (await supabase
       .from('organizations')
       .insert({
         name,
         plan: 'FREE',
         seats: 1,
         seats_used: 1,
-      })
+      } as any)
       .select()
-      .single();
+      .single()) as { data: any; error: any };
 
     if (orgError) {
       return NextResponse.json({ error: orgError.message }, { status: 400 });
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         organization_id: organization.id,
         user_id: user.id,
         role: 'OWNER',
-      });
+      } as any);
 
     if (memberError) {
       // Rollback organization creation

@@ -134,11 +134,11 @@ async function handleMessageCreated(data: NylasWebhookData) {
     const supabase = await createClient();
 
     // Find user by grant_id
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('user_id')
       .eq('grant_id', grant_id)
-      .single();
+      .single()) as { data: any };
 
     if (!account) {
       console.log(`No account found for grant_id: ${grant_id}`);
@@ -153,7 +153,7 @@ async function handleMessageCreated(data: NylasWebhookData) {
       object_id: id,
       payload: data,
       processed: false,
-    });
+    } as any);
 
     // Track new email notification
     await supabase.from('usage_tracking').insert({
@@ -176,11 +176,11 @@ async function handleMessageUpdated(data: NylasWebhookData) {
   try {
     const supabase = await createClient();
 
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('user_id')
       .eq('grant_id', grant_id)
-      .single();
+      .single()) as { data: any };
 
     if (!account) return;
 
@@ -191,7 +191,7 @@ async function handleMessageUpdated(data: NylasWebhookData) {
       object_id: id,
       payload: data,
       processed: false,
-    });
+    } as any);
 
     console.log(`Message updated webhook processed for user: ${account.user_id}`);
   } catch (error) {
@@ -208,11 +208,11 @@ async function handleMessageDeleted(data: NylasWebhookData) {
   try {
     const supabase = await createClient();
 
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('user_id')
       .eq('grant_id', grant_id)
-      .single();
+      .single()) as { data: any };
 
     if (!account) return;
 
@@ -223,7 +223,7 @@ async function handleMessageDeleted(data: NylasWebhookData) {
       object_id: id,
       payload: data,
       processed: false,
-    });
+    } as any);
 
     console.log(`Message deleted webhook processed for user: ${account.user_id}`);
   } catch (error) {
@@ -240,11 +240,11 @@ async function handleThreadUpdated(data: NylasWebhookData) {
   try {
     const supabase = await createClient();
 
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('user_id')
       .eq('grant_id', grant_id)
-      .single();
+      .single()) as { data: any };
 
     if (!account) return;
 
@@ -255,7 +255,7 @@ async function handleThreadUpdated(data: NylasWebhookData) {
       object_id: id,
       payload: data,
       processed: false,
-    });
+    } as any);
 
     console.log(`Thread updated webhook processed for user: ${account.user_id}`);
   } catch (error) {
@@ -272,11 +272,11 @@ async function handleCalendarEvent(type: string, data: NylasWebhookData) {
   try {
     const supabase = await createClient();
 
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('user_id')
       .eq('grant_id', grant_id)
-      .single();
+      .single()) as { data: any };
 
     if (!account) return;
 
@@ -287,7 +287,7 @@ async function handleCalendarEvent(type: string, data: NylasWebhookData) {
       object_id: id,
       payload: data,
       processed: false,
-    });
+    } as any);
 
     console.log(`Calendar event ${type} webhook processed for user: ${account.user_id}`);
   } catch (error) {
@@ -304,11 +304,11 @@ async function handleEventChange(type: string, data: NylasWebhookData) {
   try {
     const supabase = await createClient();
 
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('user_id')
       .eq('grant_id', grant_id)
-      .single();
+      .single()) as { data: any };
 
     if (!account) return;
 
@@ -319,7 +319,7 @@ async function handleEventChange(type: string, data: NylasWebhookData) {
       object_id: id,
       payload: data,
       processed: false,
-    });
+    } as any);
 
     console.log(`Event ${type} webhook processed for user: ${account.user_id}`);
   } catch (error) {

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       direction: 'inbound',
       status: messageStatus,
       twilio_sid: messageSid,
-    });
+    } as any);
 
     // Return TwiML response
     return new NextResponse(

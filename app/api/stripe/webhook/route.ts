@@ -31,12 +31,12 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
-        const organizationId = session.subscription_data?.metadata?.organizationId;
-        const plan = session.subscription_data?.metadata?.plan;
+        const organizationId = (session.metadata as any)?.organizationId;
+        const plan = (session.metadata as any)?.plan;
 
         if (organizationId && plan) {
           // Update organization with subscription info
-          await supabase
+          await (supabase as any)
             .from('organizations')
             .update({
               plan: plan as any,
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         const organizationId = subscription.metadata.organizationId;
 
         if (organizationId) {
-          await supabase
+          await (supabase as any)
             .from('organizations')
             .update({
               subscription_status: subscription.status.toUpperCase() as any,
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
         if (organizationId) {
           // Downgrade to free plan
-          await supabase
+          await (supabase as any)
             .from('organizations')
             .update({
               plan: 'FREE',

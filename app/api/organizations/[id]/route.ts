@@ -17,30 +17,30 @@ export async function GET(
     const orgId = id;
 
     // Check if user is a member
-    const { data: membership } = await supabase
+    const { data: membership } = (await supabase
       .from('organization_members')
       .select('role')
       .eq('organization_id', orgId)
       .eq('user_id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!membership) {
       return NextResponse.json({ error: 'Not a member of this organization' }, { status: 403 });
     }
 
     // Get organization details
-    const { data: organization } = await supabase
+    const { data: organization } = (await supabase
       .from('organizations')
       .select('*')
       .eq('id', orgId)
-      .single();
+      .single()) as { data: any };
 
     // Get all members
-    const { data: members } = await supabase
+    const { data: members } = (await supabase
       .from('organization_members')
       .select('*, users:user_id(email)')
       .eq('organization_id', orgId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })) as { data: any };
 
     return NextResponse.json({
       organization,
@@ -72,12 +72,12 @@ export async function PATCH(
     const orgId = id;
 
     // Check if user is owner or admin
-    const { data: membership } = await supabase
+    const { data: membership } = (await supabase
       .from('organization_members')
       .select('role')
       .eq('organization_id', orgId)
       .eq('user_id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
@@ -90,12 +90,12 @@ export async function PATCH(
     if (updates.name) allowedUpdates.name = updates.name;
     if (updates.seats && membership.role === 'OWNER') allowedUpdates.seats = updates.seats;
 
-    const { data: organization, error } = await supabase
+    const { data: organization, error } = (await (supabase as any)
       .from('organizations')
       .update(allowedUpdates)
       .eq('id', orgId)
       .select()
-      .single();
+      .single()) as { data: any; error: any };
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
@@ -127,12 +127,12 @@ export async function DELETE(
     const orgId = id;
 
     // Check if user is owner
-    const { data: membership } = await supabase
+    const { data: membership } = (await supabase
       .from('organization_members')
       .select('role')
       .eq('organization_id', orgId)
       .eq('user_id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!membership || membership.role !== 'OWNER') {
       return NextResponse.json({ error: 'Only owners can delete organizations' }, { status: 403 });

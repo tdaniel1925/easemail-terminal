@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('webhook_events')
       .update({
         processed: true,

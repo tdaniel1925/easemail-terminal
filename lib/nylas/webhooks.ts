@@ -37,7 +37,7 @@ export async function createNylasWebhook(options: WebhookSetupOptions) {
       requestBody: {
         description,
         webhookUrl,
-        triggerTypes: triggers,
+        triggerTypes: triggers as any,
         notificationEmailAddresses: [], // Optional: email for webhook failures
       },
     });

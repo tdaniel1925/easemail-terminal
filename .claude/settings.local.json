@@ -32,7 +32,8 @@
       "Bash(timeout 180 npm run build)",
       "Bash(Select-Object -First 60)",
       "Bash(git rm:*)",
-      "Bash(cmd /c push-env.bat)"
+      "Bash(cmd /c push-env.bat)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []
