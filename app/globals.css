@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    /* Light Mode - Spark-inspired clean and modern */
-    --background: 214 32% 97%; /* Soft gray-blue background */
-    --foreground: 222.2 84% 12%; /* Dark text */
-    --card: 0 0% 100%; /* Pure white cards for elevation */
-    --card-foreground: 222.2 84% 12%;
+    /* Light Mode - Gmail-inspired clean and minimal */
+    --background: 0 0% 100%; /* Pure white background like Gmail */
+    --foreground: 0 0% 20%; /* Dark gray text */
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 0 0% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 12%;
-    --primary: 217.2 91.2% 59.8%; /* Bright blue #3B82F6 */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 214 32% 91%; /* Light blue-gray */
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 214 32% 91%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 214 32% 91%; /* Subtle hover state */
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 0 0% 20%;
+    --primary: 221 83% 53%; /* Gmail blue #2563EB */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%; /* Very light gray for subtle backgrounds */
+    --secondary-foreground: 0 0% 20%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 0 0% 45%; /* Medium gray for secondary text */
+    --accent: 221 83% 97%; /* Very light blue for hover/active states */
+    --accent-foreground: 221 83% 53%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 88%; /* Slightly darker borders for definition */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%; /* Light gray borders */
     --input: 0 0% 100%; /* White inputs */
-    --ring: 217.2 91.2% 59.8%;
+    --ring: 221 83% 53%;
     --radius: 0.5rem;
   }
 

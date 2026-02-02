@@ -59,11 +59,11 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   if (!open) return null;
 
   return (
-    <div className="w-64 border-r border-gray-200 bg-white dark:bg-gray-900 dark:border-gray-800 hidden lg:flex flex-col h-screen" data-sidebar="app-sidebar-single">
+    <div className="w-64 border-r border-border bg-card hidden lg:flex flex-col h-screen" data-sidebar="app-sidebar-single">
       {/* Header - Fixed */}
       <div className="p-4 flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl font-bold text-foreground">
             EaseMail
           </h1>
           <div className="flex items-center gap-1">
@@ -73,7 +73,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
             </Button>
           </div>
         </div>
-        <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-sm" onClick={onCompose}>
+        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-sm" onClick={onCompose}>
           <PenSquare className="mr-2 h-4 w-4" />
           Compose
         </Button>
@@ -94,8 +94,8 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
             ].map((item) => (
               <Link key={item.label} href={item.href}>
                 <button
-                  className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-                    isActive(item.href) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                  className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                    isActive(item.href) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -110,7 +110,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
           {/* Apps */}
           <div className="space-y-0.5 mt-4">
             <div className="px-4 py-2">
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Apps
               </span>
             </div>
@@ -122,8 +122,8 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
             ].map((item) => (
               <Link key={item.label} href={item.href}>
                 <button
-                  className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-                    isActive(item.href) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+                  className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                    isActive(item.href) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
                   }`}
                 >
                   <item.icon className="h-5 w-5" />
@@ -136,7 +136,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
           {/* Smart Categories */}
           <div className="space-y-0.5 mt-4">
             <div className="px-4 py-2">
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Smart Categories
               </span>
             </div>
@@ -146,7 +146,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               { icon: Bell, label: 'Notifications', href: '/app/inbox?category=notifications' },
             ].map((item) => (
               <Link key={item.label} href={item.href}>
-                <button className="w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300">
+                <button className="w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors text-foreground/80">
                   <item.icon className="h-5 w-5" />
                   <span className="text-sm">{item.label}</span>
                 </button>
@@ -157,7 +157,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
           {/* Custom Labels */}
           <div className="space-y-0.5 mt-4">
             <div className="px-4 py-2 flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Labels
               </span>
               <Link href="/app/settings">
@@ -167,14 +167,14 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               </Link>
             </div>
             {labels.length === 0 ? (
-              <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400">
+              <div className="px-4 py-2 text-xs text-muted-foreground">
                 No labels yet
               </div>
             ) : (
               labels.slice(0, 5).map((label) => (
                 <button
                   key={label.id}
-                  className="w-full flex items-center gap-3 px-4 py-2 rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                  className="w-full flex items-center gap-3 px-4 py-2 rounded-r-full hover:bg-accent transition-colors text-foreground/80"
                 >
                   <div
                     className="h-3 w-3 rounded-full"
@@ -189,29 +189,29 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
       </ScrollArea>
 
       {/* Bottom Section - Sticky */}
-      <div className="border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
+      <div className="border-t border-border flex-shrink-0">
         {/* Account Section */}
         <div className="p-2">
           <div className="px-4 py-2">
-            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Accounts
             </span>
           </div>
           <div className="space-y-1 max-h-32 overflow-y-auto">
             {accounts.length === 0 ? (
-              <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400">
+              <div className="px-4 py-2 text-xs text-muted-foreground">
                 No accounts connected
               </div>
             ) : (
               accounts.slice(0, 2).map((account) => (
                 <div
                   key={account.id}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 dark:bg-gray-800"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted"
                 >
                   <div className="h-2 w-2 rounded-full bg-green-500" />
-                  <span className="text-xs truncate flex-1 text-gray-700 dark:text-gray-300">{account.email}</span>
+                  <span className="text-xs truncate flex-1">{account.email}</span>
                   {account.is_primary && (
-                    <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                    <Badge variant="secondary" className="text-[10px] px-1 py-0">
                       Primary
                     </Badge>
                   )}
@@ -220,7 +220,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
             )}
           </div>
           <Link href="/app/settings/email-accounts">
-            <Button variant="outline" size="sm" className="w-full mt-2 border-gray-300 dark:border-gray-700">
+            <Button variant="outline" size="sm" className="w-full mt-2">
               <Tag className="mr-2 h-3 w-3" />
               Manage Accounts
             </Button>
@@ -231,8 +231,8 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
         <div className="p-2 space-y-0.5">
           <Link href="/app/settings">
             <button
-              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-                pathname?.startsWith('/app/settings') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                pathname?.startsWith('/app/settings') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
               }`}
             >
               <Settings className="h-5 w-5" />
@@ -241,8 +241,8 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
           </Link>
           <Link href="/app/admin/analytics">
             <button
-              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${
-                pathname?.startsWith('/app/admin') ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'
+              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                pathname?.startsWith('/app/admin') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
               }`}
             >
               <BarChart3 className="h-5 w-5" />

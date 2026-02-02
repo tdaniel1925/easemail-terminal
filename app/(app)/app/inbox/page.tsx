@@ -928,9 +928,9 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-white dark:bg-gray-900">
+    <div className="flex h-full flex-col bg-background">
       {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+      <header className="border-b border-border bg-card p-4">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1007,7 +1007,7 @@ export default function InboxPage() {
       {/* Email List & Reading Pane */}
       <div className="flex-1 flex overflow-hidden">
         {/* Email List */}
-        <div className="w-full md:w-96 lg:w-96 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <div className="w-full md:w-96 lg:w-96 border-r border-border bg-card">
             {/* Search Results Header */}
             {searchQuery && (
               <div className="p-3 border-b border-border bg-accent/50">
@@ -1184,9 +1184,9 @@ export default function InboxPage() {
                   return (
                   <div
                     key={message.id}
-                    className={`w-full text-left py-2 px-3 border-b border-gray-100 dark:border-gray-800 hover:shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all cursor-pointer ${
-                      selectedMessage?.id === message.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-600' : ''
-                    } ${isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                    className={`w-full text-left py-2 px-3 border-b border-border hover:bg-accent/50 transition-all cursor-pointer ${
+                      selectedMessage?.id === message.id ? 'bg-accent border-l-4 border-l-primary' : ''
+                    } ${isSelected ? 'bg-accent/30' : ''}`}
                   >
                     <div className="flex items-center gap-1.5">
                       {/* Checkbox */}
@@ -1360,10 +1360,10 @@ export default function InboxPage() {
           </div>
 
           {/* Reading Pane */}
-          <div className={`flex-1 flex flex-col bg-white dark:bg-gray-900 ${selectedMessage ? 'block' : 'hidden md:block'}`}>
+          <div className={`flex-1 flex flex-col bg-card ${selectedMessage ? 'block' : 'hidden md:block'}`}>
             {selectedMessage ? (
               <>
-                <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+                <div className="border-b border-border bg-card p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={`https://logo.clearbit.com/${selectedMessage.from?.[0]?.email?.split('@')[1]}`} />
@@ -1384,16 +1384,16 @@ export default function InboxPage() {
                     </div>
                   </div>
                   {/* Action Toolbar */}
-                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
-                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, false)} className="bg-blue-600 hover:bg-blue-700 text-white border-0">
+                  <div className="flex items-center gap-2 pt-3 border-t border-border">
+                    <Button size="sm" onClick={() => handleReply(selectedMessage, false)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                       <Reply className="h-4 w-4 mr-1.5" />
                       Reply
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, true)} className="border-gray-300 dark:border-gray-700">
+                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, true)}>
                       <ReplyAll className="h-4 w-4 mr-1.5" />
                       Reply All
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleForward(selectedMessage)} className="border-gray-300 dark:border-gray-700">
+                    <Button variant="outline" size="sm" onClick={() => handleForward(selectedMessage)}>
                       <Forward className="h-4 w-4 mr-1.5" />
                       Forward
                     </Button>
