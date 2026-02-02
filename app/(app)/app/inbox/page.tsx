@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -63,19 +63,7 @@ export default function InboxPage() {
   // Spam state
   const [detectingSpam, setDetectingSpam] = useState(false);
 
-  useEffect(() => {
-    fetchAccounts();
-    fetchMessages();
-    fetchCategories();
-    fetchLabels();
-  }, []);
-
-  useEffect(() => {
-    // Refetch messages when account changes
-    fetchMessages(true);
-  }, [selectedAccount]);
-
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     try {
       const response = await fetch('/api/email-accounts');
       const data = await response.json();
@@ -86,9 +74,9 @@ export default function InboxPage() {
     } catch (error) {
       console.error('Failed to fetch accounts:', error);
     }
-  };
+  }, []);
 
-  const fetchMessages = async (reset: boolean = true) => {
+  const fetchMessages = useCallback(async (reset: boolean = true) => {
     try {
       if (reset) {
         setLoading(true);
@@ -116,7 +104,7 @@ export default function InboxPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedAccount]);
 
   const loadMoreMessages = async () => {
     if (!nextCursor || loadingMore) return;
@@ -144,7 +132,7 @@ export default function InboxPage() {
     }
   };
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await fetch('/api/messages/categorize');
       const data = await response.json();
@@ -155,7 +143,7 @@ export default function InboxPage() {
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
-  };
+  }, []);
 
   const runCategorization = async () => {
     try {
@@ -421,7 +409,7 @@ export default function InboxPage() {
   };
 
   // Snooze handlers
-  const fetchLabels = async () => {
+  const fetchLabels = useCallback(async () => {
     try {
       const response = await fetch('/api/labels');
       const data = await response.json();
@@ -431,7 +419,20 @@ export default function InboxPage() {
     } catch (error) {
       console.error('Failed to fetch labels:', error);
     }
-  };
+  }, []);
+
+  // Effects - placed after function definitions
+  useEffect(() => {
+    fetchAccounts();
+    fetchMessages();
+    fetchCategories();
+    fetchLabels();
+  }, [fetchAccounts, fetchMessages, fetchCategories, fetchLabels]);
+
+  useEffect(() => {
+    // Refetch messages when account changes
+    fetchMessages(true);
+  }, [selectedAccount, fetchMessages]);
 
   const handleSnooze = async (messageId: string) => {
     setSnoozeMessageId(messageId);
