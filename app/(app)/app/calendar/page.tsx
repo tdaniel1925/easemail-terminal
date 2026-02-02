@@ -53,14 +53,14 @@ export default function CalendarPage() {
   const groupedEvents = groupEventsByDate();
 
   return (
-    <div className="container max-w-6xl mx-auto py-8 px-4">
+    <div className="container max-w-6xl mx-auto py-6 px-4">
       {/* Back Button */}
       <div className="mb-4">
         <BackButton href="/app/inbox" />
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold">Calendar</h1>
           <p className="text-muted-foreground">Manage your schedule and events</p>
@@ -85,7 +85,7 @@ export default function CalendarPage() {
       ) : events.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-64">
-            <CalendarIcon className="h-16 w-16 text-muted-foreground mb-4" />
+            <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="font-semibold text-lg mb-2">No events yet</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Create your first event to get started
@@ -97,10 +97,10 @@ export default function CalendarPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {Object.entries(groupedEvents).map(([date, dayEvents]) => (
             <div key={date}>
-              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
                 <CalendarIcon className="h-5 w-5" />
                 {date}
               </h2>

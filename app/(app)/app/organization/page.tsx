@@ -113,9 +113,9 @@ export default function OrganizationPage() {
   }
 
   return (
-    <div className="container max-w-6xl mx-auto py-8 px-4">
+    <div className="container max-w-6xl mx-auto py-6 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold">Organizations</h1>
           <p className="text-muted-foreground">Manage your workspaces and teams</p>
@@ -130,7 +130,7 @@ export default function OrganizationPage() {
       {organizations.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-64">
-            <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
+            <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="font-semibold text-lg mb-2">No organizations yet</h3>
             <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
               Create an organization to collaborate with your team and manage multiple seats
@@ -142,7 +142,7 @@ export default function OrganizationPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {organizations.map((org) => (
             <Card
               key={org.id}

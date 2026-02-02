@@ -56,16 +56,16 @@ export default function TeamsPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card p-6">
+      <div className="border-b border-border bg-card p-4">
         <div className="mb-4">
           <BackButton href="/app/inbox" />
         </div>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Video className="h-8 w-8 text-purple-600" />
+              <Video className="h-6 w-6 text-purple-600" />
               MS Teams Integration
             </h1>
             <p className="text-muted-foreground mt-1">Manage your meetings and video calls</p>
@@ -88,8 +88,8 @@ export default function TeamsPage() {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
+      <ScrollArea className="flex-1 p-4">
+        <div className="max-w-5xl mx-auto space-y-4">
           {/* Quick Actions */}
           <Card>
             <CardHeader>
@@ -138,7 +138,7 @@ export default function TeamsPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold text-lg">{meeting.title}</h3>
+                            <h3 className="font-semibold text-base">{meeting.title}</h3>
                             <Badge variant="secondary" className="text-xs">
                               {meeting.type}
                             </Badge>
@@ -193,7 +193,7 @@ export default function TeamsPage() {
                 meeting.title.toLowerCase().includes(searchQuery.toLowerCase())
               ).length === 0 && (
                 <div className="text-center py-12">
-                  <Video className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <Video className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="font-semibold text-lg mb-2">No meetings found</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     {searchQuery ? 'Try a different search term' : 'You have no upcoming meetings'}

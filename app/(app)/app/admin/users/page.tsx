@@ -133,9 +133,9 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <div className="container max-w-7xl mx-auto py-8 px-4">
+    <div className="container max-w-7xl mx-auto py-6 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>
           <p className="text-muted-foreground">System-wide user administration</p>
@@ -147,13 +147,13 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-6 md:grid-cols-4 mb-6">
+      <div className="grid gap-4 md:grid-cols-4 mb-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{users.length}</div>
+            <div className="text-2xl font-bold">{users.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -161,7 +161,7 @@ export default function AdminUsersPage() {
             <CardTitle className="text-sm font-medium">2FA Enabled</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-2xl font-bold">
               {users.filter((u) => u.two_factor_enabled).length}
             </div>
           </CardContent>
@@ -171,7 +171,7 @@ export default function AdminUsersPage() {
             <CardTitle className="text-sm font-medium">Avg Organizations</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-2xl font-bold">
               {users.length > 0
                 ? (
                     users.reduce((sum, u) => sum + u.organization_count, 0) / users.length
@@ -185,7 +185,7 @@ export default function AdminUsersPage() {
             <CardTitle className="text-sm font-medium">Email Accounts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-2xl font-bold">
               {users.reduce((sum, u) => sum + u.email_account_count, 0)}
             </div>
           </CardContent>
@@ -193,7 +193,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Search */}
-      <Card className="mb-6">
+      <Card className="mb-4">
         <CardContent className="pt-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

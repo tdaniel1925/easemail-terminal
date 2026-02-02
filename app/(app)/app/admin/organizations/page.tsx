@@ -151,9 +151,9 @@ export default function AdminOrganizationsPage() {
   }
 
   return (
-    <div className="container max-w-7xl mx-auto py-8 px-4">
+    <div className="container max-w-7xl mx-auto py-6 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold">Organization Management</h1>
           <p className="text-muted-foreground">System-wide organization administration</p>
@@ -165,13 +165,13 @@ export default function AdminOrganizationsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-6 md:grid-cols-4 mb-6">
+      <div className="grid gap-4 md:grid-cols-4 mb-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Total Organizations</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{organizations.length}</div>
+            <div className="text-2xl font-bold">{organizations.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -179,7 +179,7 @@ export default function AdminOrganizationsPage() {
             <CardTitle className="text-sm font-medium">Total Members</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-2xl font-bold">
               {organizations.reduce((sum, org) => sum + org.member_count, 0)}
             </div>
           </CardContent>
@@ -189,7 +189,7 @@ export default function AdminOrganizationsPage() {
             <CardTitle className="text-sm font-medium">Total Seats</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-2xl font-bold">
               {organizations.reduce((sum, org) => sum + org.seats, 0)}
             </div>
           </CardContent>
@@ -199,7 +199,7 @@ export default function AdminOrganizationsPage() {
             <CardTitle className="text-sm font-medium">Paid Plans</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-2xl font-bold">
               {organizations.filter((org) => org.plan !== 'FREE').length}
             </div>
           </CardContent>
@@ -207,7 +207,7 @@ export default function AdminOrganizationsPage() {
       </div>
 
       {/* Search */}
-      <Card className="mb-6">
+      <Card className="mb-4">
         <CardContent className="pt-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -222,7 +222,7 @@ export default function AdminOrganizationsPage() {
       </Card>
 
       {/* Organizations List */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredOrgs.map((org) => (
           <Card
             key={org.id}
@@ -233,7 +233,7 @@ export default function AdminOrganizationsPage() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-lg">{org.name}</CardTitle>
+                  <CardTitle className="text-base">{org.name}</CardTitle>
                 </div>
                 <Badge className={getPlanBadgeColor(org.plan)}>{org.plan}</Badge>
               </div>

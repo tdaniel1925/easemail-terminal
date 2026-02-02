@@ -143,9 +143,9 @@ export default function AttachmentsPage() {
   };
 
   return (
-    <div className="container max-w-7xl mx-auto py-8 px-4">
+    <div className="container max-w-7xl mx-auto py-6 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold">Attachments</h1>
           <p className="text-muted-foreground">All your email attachments in one place</p>
@@ -157,7 +157,7 @@ export default function AttachmentsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4 mb-6">
+      <div className="grid gap-4 md:grid-cols-4 mb-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -201,7 +201,7 @@ export default function AttachmentsPage() {
       </div>
 
       {/* Search and Filter */}
-      <div className="mb-6 space-y-4">
+      <div className="mb-4 space-y-4">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -242,7 +242,7 @@ export default function AttachmentsPage() {
       ) : attachments.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-64">
-            <Paperclip className="h-16 w-16 text-muted-foreground mb-4" />
+            <Paperclip className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="font-semibold text-lg mb-2">No attachments found</h3>
             <p className="text-sm text-muted-foreground text-center">
               {searchQuery || fileTypeFilter !== 'all'
@@ -262,7 +262,7 @@ export default function AttachmentsPage() {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <FileIcon className={`h-8 w-8 flex-shrink-0 ${iconColor}`} />
+                      <FileIcon className={`h-6 w-6 flex-shrink-0 ${iconColor}`} />
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-sm font-medium truncate">
                           {attachment.filename}

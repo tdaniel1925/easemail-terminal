@@ -187,9 +187,9 @@ export default function SMSPage() {
   }
 
   return (
-    <div className="container max-w-7xl mx-auto py-8 px-4">
+    <div className="container max-w-7xl mx-auto py-6 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-3xl font-bold">SMS Messages</h1>
           <p className="text-muted-foreground">Send and receive text messages</p>
@@ -266,13 +266,13 @@ export default function SMSPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-6 md:grid-cols-4 mb-6">
+      <div className="grid gap-4 md:grid-cols-4 mb-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{messages.length}</div>
+            <div className="text-2xl font-bold">{messages.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -280,7 +280,7 @@ export default function SMSPage() {
             <CardTitle className="text-sm font-medium">Conversations</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{conversations.length}</div>
+            <div className="text-2xl font-bold">{conversations.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -288,7 +288,7 @@ export default function SMSPage() {
             <CardTitle className="text-sm font-medium">Sent</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-2xl font-bold">
               {messages.filter((m) => m.direction === 'outbound').length}
             </div>
           </CardContent>
@@ -298,7 +298,7 @@ export default function SMSPage() {
             <CardTitle className="text-sm font-medium">Received</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-2xl font-bold">
               {messages.filter((m) => m.direction === 'inbound').length}
             </div>
           </CardContent>
@@ -306,7 +306,7 @@ export default function SMSPage() {
       </div>
 
       {/* Main Content: Conversations and Message Thread */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-4">
         {/* Conversations List */}
         <Card className="md:col-span-1">
           <CardHeader>
@@ -341,9 +341,9 @@ export default function SMSPage() {
                     onClick={() => setSelectedConversation(conv.phoneNumber)}
                   >
                     <div className="flex items-start gap-3">
-                      <Avatar className="h-10 w-10 flex-shrink-0">
+                      <Avatar className="h-8 w-8 flex-shrink-0">
                         <AvatarFallback className="bg-primary/10">
-                          <Phone className="h-5 w-5" />
+                          <Phone className="h-4 w-4" />
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
