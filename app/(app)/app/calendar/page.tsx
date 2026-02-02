@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, Plus, RefreshCw, Clock, MapPin } from 'lucide-react';
+import { Calendar as CalendarIcon, Plus, RefreshCw, Clock, MapPin, Video } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CreateEventDialog } from '@/components/features/create-event-dialog';
 import { BackButton } from '@/components/ui/back-button';
@@ -21,12 +21,46 @@ export default function CalendarPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/calendar');
-      const data = await response.json();
 
-      if (data.events) {
-        setEvents(data.events);
+      // Fetch Nylas calendar events
+      const nylasResponse = await fetch('/api/calendar');
+      const nylasData = await nylasResponse.json();
+      const nylasEvents = nylasData.events || [];
+
+      // Fetch Teams meetings
+      let teamsEvents: any[] = [];
+      try {
+        const teamsResponse = await fetch('/api/teams/meetings?days=30');
+        const teamsData = await teamsResponse.json();
+
+        if (teamsResponse.ok && teamsData.meetings) {
+          // Transform Teams meetings to match event format
+          teamsEvents = teamsData.meetings.map((meeting: any) => ({
+            id: `teams-${meeting.id}`,
+            title: meeting.subject,
+            description: `Microsoft Teams Meeting`,
+            when: {
+              start_time: new Date(meeting.start.dateTime).getTime() / 1000,
+              end_time: new Date(meeting.end.dateTime).getTime() / 1000,
+            },
+            location: meeting.onlineMeeting?.joinUrl || 'Microsoft Teams',
+            status: 'confirmed',
+            source: 'teams',
+            joinUrl: meeting.onlineMeeting?.joinUrl,
+          }));
+        }
+      } catch (teamsError) {
+        console.log('Teams not connected or error fetching meetings');
       }
+
+      // Merge and sort all events
+      const allEvents = [...nylasEvents, ...teamsEvents].sort((a, b) => {
+        const aTime = a.when?.start_time || 0;
+        const bTime = b.when?.start_time || 0;
+        return aTime - bTime;
+      });
+
+      setEvents(allEvents);
     } catch (error) {
       console.error('Failed to fetch events:', error);
     } finally {
@@ -115,9 +149,17 @@ export default function CalendarPage() {
                             <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
                           )}
                         </div>
-                        <Badge variant={event.status === 'confirmed' ? 'default' : 'secondary'}>
-                          {event.status || 'pending'}
-                        </Badge>
+                        <div className="flex gap-2">
+                          {event.source === 'teams' && (
+                            <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                              <Video className="h-3 w-3 mr-1" />
+                              Teams
+                            </Badge>
+                          )}
+                          <Badge variant={event.status === 'confirmed' ? 'default' : 'secondary'}>
+                            {event.status || 'pending'}
+                          </Badge>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-0">
@@ -137,13 +179,25 @@ export default function CalendarPage() {
                             )}
                           </div>
                         )}
-                        {event.location && (
+                        {event.location && !event.joinUrl && (
                           <div className="flex items-center gap-1">
                             <MapPin className="h-4 w-4" />
                             {event.location}
                           </div>
                         )}
                       </div>
+                      {event.joinUrl && (
+                        <div className="mt-4">
+                          <Button
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700"
+                            onClick={() => window.open(event.joinUrl, '_blank')}
+                          >
+                            <Video className="mr-2 h-4 w-4" />
+                            Join Teams Meeting
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
