@@ -170,32 +170,32 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="container max-w-7xl mx-auto px-6 -mt-20 relative z-10 pb-12 space-y-6">
+      <div className="container max-w-7xl mx-auto px-4 -mt-16 relative z-10 pb-8 space-y-4">
         {/* Quick Stats - Large Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
               <Card
                 key={action.title}
-                className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-0 bg-gradient-to-br from-card to-card/50"
+                className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-0 bg-gradient-to-br from-card to-card/50"
                 onClick={() => router.push(action.href)}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={`${action.color} p-3 rounded-xl text-white shadow-lg`}>
-                      <Icon className="h-6 w-6" />
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className={`${action.color} p-2 rounded-lg text-white`}>
+                      <Icon className="h-5 w-5" />
                     </div>
                     {action.count !== undefined && (
                       <div className="text-right">
-                        <div className="text-3xl font-bold">{action.count}</div>
+                        <div className="text-2xl font-bold">{action.count}</div>
                       </div>
                     )}
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">{action.title}</h3>
-                  <div className="flex items-center text-sm text-muted-foreground group-hover:text-primary transition-colors">
+                  <h3 className="font-semibold text-base mb-1">{action.title}</h3>
+                  <div className="flex items-center text-xs text-muted-foreground group-hover:text-primary transition-colors">
                     View details
-                    <ArrowRight className="ml-1 h-4 w-4" />
+                    <ArrowRight className="ml-1 h-3 w-3" />
                   </div>
                 </CardContent>
               </Card>
@@ -204,45 +204,45 @@ export default function HomePage() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Today's Summary */}
           <Card className="border-0 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                  <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                  <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-xl font-bold">Today's Summary</h2>
+                <h2 className="text-base font-bold">Today's Summary</h2>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground mb-1">Emails Received</div>
-                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.today}</div>
+                    <div className="text-xs font-medium text-muted-foreground mb-0.5">Emails Received</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.today}</div>
                   </div>
-                  <div className="p-3 bg-blue-500 rounded-xl">
+                  <div className="p-2 bg-blue-500 rounded-xl">
                     <TrendingUp className="h-10 w-10 text-white" />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground mb-1">Avg. Response Time</div>
-                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.avgResponseTime}</div>
+                    <div className="text-xs font-medium text-muted-foreground mb-0.5">Avg. Response Time</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.avgResponseTime}</div>
                   </div>
                   <div className="p-2 bg-green-500 rounded-xl">
-                    <Clock className="h-8 w-8 text-white" />
+                    <Clock className="h-6 w-6 text-white" />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-muted-foreground mb-1">Top Sender</div>
-                    <div className="text-base font-semibold text-purple-900 dark:text-purple-100 truncate">{stats.topSender}</div>
+                    <div className="text-xs font-medium text-muted-foreground mb-0.5">Top Sender</div>
+                    <div className="text-sm font-semibold text-purple-900 dark:text-purple-100 truncate">{stats.topSender}</div>
                   </div>
                   <div className="p-2 bg-purple-500 rounded-xl">
-                    <BarChart3 className="h-8 w-8 text-white" />
+                    <BarChart3 className="h-6 w-6 text-white" />
                   </div>
                 </div>
               </div>
@@ -251,12 +251,12 @@ export default function HomePage() {
 
           {/* Focus Time Recommendations */}
           <Card className="border-0 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                  <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                  <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h2 className="text-xl font-bold">Best Time to Focus</h2>
+                <h2 className="text-base font-bold">Best Time to Focus</h2>
               </div>
 
               <div className="space-y-4">
@@ -290,22 +290,22 @@ export default function HomePage() {
 
         {/* AI Insights */}
         <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg">
-                <Sparkles className="h-6 w-6" />
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg">
+                <Sparkles className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-xl mb-2">AI Insight</h3>
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                <h3 className="font-bold text-base mb-1.5">AI Insight</h3>
+                <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                   You've been most productive between 9 AM - 11 AM this week. Consider scheduling
                   important tasks during this time for maximum efficiency.
                 </p>
                 <div className="flex gap-2">
-                  <Button>
+                  <Button size="sm">
                     Schedule Focus Time
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" size="sm">
                     View More Insights
                   </Button>
                 </div>

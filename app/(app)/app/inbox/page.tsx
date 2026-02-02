@@ -1184,71 +1184,60 @@ export default function InboxPage() {
                   return (
                   <div
                     key={message.id}
-                    className={`w-full text-left p-3 border-b border-border hover:bg-accent/50 hover:border-l-2 hover:border-l-blue-500 transition-all ${
-                      selectedMessage?.id === message.id ? 'bg-accent border-l-2 border-l-blue-500' : ''
+                    className={`w-full text-left py-1.5 px-2 border-b border-border hover:bg-accent/50 transition-colors ${
+                      selectedMessage?.id === message.id ? 'bg-accent' : ''
                     } ${isSelected ? 'bg-primary/5' : ''}`}
                   >
-                    <div className="flex items-start gap-2">
+                    <div className="flex items-center gap-1.5">
                       {/* Checkbox */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleMessageSelection(message.id);
                         }}
-                        className="mt-1"
                       >
-                        <div className={`h-4 w-4 rounded border flex items-center justify-center ${
+                        <div className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${
                           isSelected ? 'bg-primary border-primary' : 'border-input hover:border-primary'
                         }`}>
                           {isSelected && (
-                            <Check className="h-3 w-3 text-primary-foreground" />
+                            <Check className="h-2.5 w-2.5 text-primary-foreground" />
                           )}
                         </div>
                       </button>
 
                       <button
                         onClick={() => setSelectedMessage(message)}
-                        className="flex-1 flex items-start gap-2 text-left"
+                        className="flex-1 flex items-center gap-1.5 text-left min-w-0"
                       >
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-6 w-6">
                         <AvatarImage src={`https://logo.clearbit.com/${message.from?.[0]?.email?.split('@')[1]}`} />
-                        <AvatarFallback className="text-xs font-semibold">
+                        <AvatarFallback className="text-[10px] font-semibold">
                           {getInitials(message.from?.[0]?.name, message.from?.[0]?.email)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`font-medium truncate text-sm ${message.unread ? 'font-bold' : ''}`}>
-                            {message.from?.[0]?.name || message.from?.[0]?.email}
-                          </span>
-                          <span className="text-xs text-muted-foreground ml-2">
-                            {formatDate(message.date * 1000)}
-                          </span>
-                        </div>
-                        <p className={`text-sm truncate mb-1 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                      <div className="flex-1 min-w-0 flex items-center gap-2">
+                        <span className={`font-medium truncate text-xs ${message.unread ? 'font-bold' : ''} w-32 shrink-0`}>
+                          {message.from?.[0]?.name || message.from?.[0]?.email}
+                        </span>
+                        <p className={`text-xs truncate flex-1 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
                           {message.subject || '(no subject)'}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate mb-1">
-                          {message.snippet || ''}
-                        </p>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 shrink-0">
                           {message.unread && (
-                            <Badge variant="default" className="text-[10px] px-1.5 py-0.5">New</Badge>
-                          )}
-                          {category && (
-                            <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 ${getCategoryBadgeColor(category)}`}>
-                              {category}
-                            </Badge>
+                            <Badge variant="default" className="text-[9px] px-1 py-0">New</Badge>
                           )}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleToggleStar(message.id, message.starred || false);
                             }}
-                            className="ml-auto p-1 hover:bg-accent rounded transition-colors"
+                            className="p-0.5"
                           >
-                            <Star className={`h-4 w-4 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+                            <Star className={`h-3.5 w-3.5 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
                           </button>
+                          <span className="text-[10px] text-muted-foreground">
+                            {formatDate(message.date * 1000)}
+                          </span>
                         </div>
                       </div>
                       </button>
@@ -1268,51 +1257,39 @@ export default function InboxPage() {
                   return (
                     <div key={threadId} className="border-b border-border">
                       {/* Thread Preview */}
-                      <div className={`w-full text-left p-3 hover:bg-accent/50 hover:border-l-2 hover:border-l-blue-500 transition-all ${
-                        selectedMessage?.id === previewMessage.id ? 'bg-accent border-l-2 border-l-blue-500' : ''
+                      <div className={`w-full text-left py-1.5 px-2 hover:bg-accent/50 transition-colors ${
+                        selectedMessage?.id === previewMessage.id ? 'bg-accent' : ''
                       }`}>
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => toggleThread(threadId)}
-                            className="flex-1 flex items-start gap-2 text-left"
+                            className="flex-1 flex items-center gap-1.5 text-left min-w-0"
                           >
-                            <Avatar className="h-8 w-8">
+                            <Avatar className="h-6 w-6">
                               <AvatarImage src={`https://logo.clearbit.com/${previewMessage.from?.[0]?.email?.split('@')[1]}`} />
-                              <AvatarFallback className="text-xs font-semibold">
+                              <AvatarFallback className="text-[10px] font-semibold">
                                 {getInitials(previewMessage.from?.[0]?.name, previewMessage.from?.[0]?.email)}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className={`font-medium truncate text-sm ${hasUnread ? 'font-bold' : ''}`}>
-                                  {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
-                                </span>
-                                <div className="flex items-center gap-1">
-                                  {threadCount > 1 && (
-                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-                                      {threadCount}
-                                    </Badge>
-                                  )}
-                                  <span className="text-xs text-muted-foreground">
-                                    {formatDate(previewMessage.date * 1000)}
-                                  </span>
-                                </div>
-                              </div>
-                              <p className={`text-sm truncate mb-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                            <div className="flex-1 min-w-0 flex items-center gap-2">
+                              <span className={`font-medium truncate text-xs ${hasUnread ? 'font-bold' : ''} w-32 shrink-0`}>
+                                {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
+                              </span>
+                              <p className={`text-xs truncate flex-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
                                 {previewMessage.subject || '(no subject)'}
                               </p>
-                              <p className="text-xs text-muted-foreground truncate mb-1">
-                                {previewMessage.snippet || ''}
-                              </p>
-                              <div className="flex items-center gap-1">
-                                {hasUnread && (
-                                  <Badge variant="default" className="text-[10px] px-1.5 py-0.5">New</Badge>
-                                )}
-                                {category && (
-                                  <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 ${getCategoryBadgeColor(category)}`}>
-                                    {category}
+                              <div className="flex items-center gap-1 shrink-0">
+                                {threadCount > 1 && (
+                                  <Badge variant="secondary" className="text-[9px] px-1 py-0">
+                                    {threadCount}
                                   </Badge>
                                 )}
+                                {hasUnread && (
+                                  <Badge variant="default" className="text-[9px] px-1 py-0">New</Badge>
+                                )}
+                                <span className="text-[10px] text-muted-foreground">
+                                  {formatDate(previewMessage.date * 1000)}
+                                </span>
                               </div>
                             </div>
                           </button>
