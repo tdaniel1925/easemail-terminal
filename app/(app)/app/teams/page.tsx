@@ -41,6 +41,26 @@ export default function TeamsPage() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    // Check for OAuth callback status in URL
+    const params = new URLSearchParams(window.location.search);
+    const connected = params.get('connected');
+    const error = params.get('error');
+
+    if (connected === 'true') {
+      toast.success('Successfully connected to Microsoft Teams!');
+      // Clean URL
+      window.history.replaceState({}, '', '/app/teams');
+    } else if (error) {
+      const errorMessages: Record<string, string> = {
+        'auth_failed': 'Microsoft authorization failed. Please try again.',
+        'token_exchange_failed': 'Failed to exchange authorization code. Please check your Azure App Registration redirect URI.',
+        'Unauthorized': 'Session expired. Please sign in again.',
+      };
+      toast.error(errorMessages[error] || 'Connection failed. Please try again.');
+      // Clean URL
+      window.history.replaceState({}, '', '/app/teams');
+    }
+
     checkStatus();
   }, []);
 
