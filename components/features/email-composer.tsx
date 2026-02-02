@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save } from 'lucide-react';
+import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoiceInput } from '@/components/features/voice-input';
 import { VoiceMessageRecorder } from '@/components/features/voice-message-recorder';
@@ -69,6 +69,13 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Template-related state
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [templateCategory, setTemplateCategory] = useState('');
 
   // Save draft function
   const saveDraft = async (showToast: boolean = false) => {
@@ -141,6 +148,60 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       });
     } catch (error) {
       console.error('Delete draft error:', error);
+    }
+  };
+
+  // Template functions
+  const fetchTemplates = async () => {
+    try {
+      const response = await fetch('/api/templates');
+      const data = await response.json();
+      if (response.ok && data.templates) {
+        setTemplates(data.templates);
+      }
+    } catch (error) {
+      console.error('Fetch templates error:', error);
+    }
+  };
+
+  const useTemplate = (template: any) => {
+    setSubject(template.subject || '');
+    setBody(template.body || '');
+    setShowTemplates(false);
+    toast.success(`📄 Template "${template.name}" loaded`);
+  };
+
+  const saveAsTemplate = async () => {
+    if (!templateName || !body) {
+      toast.error('Please provide template name and content');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: templateName,
+          subject,
+          body,
+          category: templateCategory || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('📚 Template saved successfully');
+        setShowSaveTemplate(false);
+        setTemplateName('');
+        setTemplateCategory('');
+      } else {
+        toast.error(data.error || 'Failed to save template');
+      }
+    } catch (error) {
+      console.error('Save template error:', error);
+      toast.error('Failed to save template');
     }
   };
 
@@ -458,7 +519,27 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
         {/* Actions */}
         <div className="flex items-center justify-between pt-4 border-t border-border">
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => {
+                fetchTemplates();
+                setShowTemplates(true);
+              }}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Use Template
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => setShowSaveTemplate(true)}
+              disabled={!body}
+            >
+              <BookmarkPlus className="mr-2 h-4 w-4" />
+              Save as Template
+            </Button>
+
             <Button
               variant="outline"
               onClick={handleAIRemix}
@@ -521,6 +602,92 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           </div>
         </div>
       </DialogContent>
+
+      {/* Templates Selection Dialog */}
+      {showTemplates && (
+        <Dialog open={showTemplates} onOpenChange={setShowTemplates}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle>Choose a Template</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 mt-4">
+              {templates.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No templates yet. Create your first template!</p>
+                </div>
+              ) : (
+                templates.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => useTemplate(template)}
+                    className="w-full text-left p-4 border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{template.name}</h3>
+                        {template.subject && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Subject: {template.subject}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                          {template.body}
+                        </p>
+                      </div>
+                      {template.category && (
+                        <Badge variant="secondary" className="ml-2">
+                          {template.category}
+                        </Badge>
+                      )}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Save as Template Dialog */}
+      {showSaveTemplate && (
+        <Dialog open={showSaveTemplate} onOpenChange={setShowSaveTemplate}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save as Template</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label htmlFor="template-name">Template Name *</Label>
+                <Input
+                  id="template-name"
+                  placeholder="e.g., Meeting Follow-up"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="template-category">Category (optional)</Label>
+                <Input
+                  id="template-category"
+                  placeholder="e.g., work, personal, marketing"
+                  value={templateCategory}
+                  onChange={(e) => setTemplateCategory(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="ghost" onClick={() => setShowSaveTemplate(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={saveAsTemplate}>
+                  <BookmarkPlus className="mr-2 h-4 w-4" />
+                  Save Template
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 }
