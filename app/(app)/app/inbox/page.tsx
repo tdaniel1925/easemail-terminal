@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
@@ -1154,18 +1155,19 @@ export default function InboxPage() {
 
             {/* Account Selector */}
             {accounts.length > 1 && (
-              <select
-                value={selectedAccount}
-                onChange={(e) => setSelectedAccount(e.target.value)}
-                className="px-3 py-2 border rounded-md text-sm bg-background"
-              >
-                <option value="unified">📬 All Accounts ({accounts.length})</option>
-                {accounts.map((account) => (
-                  <option key={account.id} value={account.id}>
-                    📧 {account.email}
-                  </option>
-                ))}
-              </select>
+              <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unified">📬 All Accounts ({accounts.length})</SelectItem>
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      📧 {account.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
 
             <Button variant="ghost" size="icon" onClick={() => fetchMessages(true)}>

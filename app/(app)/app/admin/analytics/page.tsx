@@ -58,11 +58,20 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     fetchAnalytics();
+
+    // Auto-refresh analytics every 60 seconds
+    const refreshInterval = setInterval(() => {
+      fetchAnalytics(false); // Silent refresh without loading state
+    }, 60000);
+
+    return () => clearInterval(refreshInterval);
   }, []);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const response = await fetch('/api/analytics');
       const data = await response.json();
 
@@ -72,7 +81,9 @@ export default function AnalyticsPage() {
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 

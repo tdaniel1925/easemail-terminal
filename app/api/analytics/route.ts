@@ -28,61 +28,93 @@ export async function GET(request: NextRequest) {
 
     const orgIds = (organizations as any[])?.map((org: any) => org.id) || [];
 
-    // Get usage stats for all organizations
-    const usagePromises = orgIds.map(async (orgId) => {
-      // Get members
-      const { count: memberCount } = await supabase
+    // Fetch all data upfront to avoid N+1 queries (3 queries instead of 5*N queries)
+    const [
+      { data: allMembers },
+      { data: allUsage },
+      { data: allEmailAccounts }
+    ] = await Promise.all([
+      // Query 1: Get all organization members
+      supabase
         .from('organization_members')
-        .select('*', { count: 'exact', head: true })
-        .eq('organization_id', orgId);
+        .select('organization_id, user_id')
+        .in('organization_id', orgIds),
 
-      // Get usage tracking (use 'timestamp' field from schema)
-      const { data: usage } = await supabase
+      // Query 2: Get all usage tracking for last 30 days
+      supabase
         .from('usage_tracking')
-        .select('feature, timestamp')
-        .in('user_id', (
-          await supabase
-            .from('organization_members')
-            .select('user_id')
-            .eq('organization_id', orgId)
-        ).data?.map((m: any) => m.user_id) || [])
-        .gte('timestamp', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()); // Last 30 days
+        .select('user_id, feature, timestamp')
+        .gte('timestamp', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+
+      // Query 3: Get all email accounts
+      supabase
+        .from('email_accounts')
+        .select('user_id')
+    ]);
+
+    // Group members by organization
+    const membersByOrg = (allMembers || []).reduce((acc: any, member: any) => {
+      if (!acc[member.organization_id]) {
+        acc[member.organization_id] = [];
+      }
+      acc[member.organization_id].push(member.user_id);
+      return acc;
+    }, {});
+
+    // Create user ID to org ID mapping for usage data
+    const userToOrgMap = (allMembers || []).reduce((acc: any, member: any) => {
+      acc[member.user_id] = member.organization_id;
+      return acc;
+    }, {});
+
+    // Group usage by organization
+    const usageByOrg = (allUsage || []).reduce((acc: any, usage: any) => {
+      const orgId = userToOrgMap[usage.user_id];
+      if (orgId) {
+        if (!acc[orgId]) {
+          acc[orgId] = [];
+        }
+        acc[orgId].push(usage);
+      }
+      return acc;
+    }, {});
+
+    // Group email accounts by organization
+    const emailAccountsByOrg = (allEmailAccounts || []).reduce((acc: any, account: any) => {
+      const orgId = userToOrgMap[account.user_id];
+      if (orgId) {
+        acc[orgId] = (acc[orgId] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    // Calculate stats for each organization (in memory, no more queries)
+    const usageStats = orgIds.map((orgId) => {
+      const members = membersByOrg[orgId] || [];
+      const usage = usageByOrg[orgId] || [];
 
       // Count by feature
-      const featureCounts = usage?.reduce((acc: any, item: any) => {
+      const featureCounts = usage.reduce((acc: any, item: any) => {
         acc[item.feature] = (acc[item.feature] || 0) + 1;
         return acc;
       }, {});
 
-      // Count by day for time series (use 'timestamp' field from schema)
-      const dailyUsage = usage?.reduce((acc: any, item: any) => {
+      // Count by day for time series
+      const dailyUsage = usage.reduce((acc: any, item: any) => {
         const date = new Date(item.timestamp).toISOString().split('T')[0];
         acc[date] = (acc[date] || 0) + 1;
         return acc;
       }, {});
 
-      // Get email accounts
-      const { count: emailAccountCount } = await supabase
-        .from('email_accounts')
-        .select('*', { count: 'exact', head: true })
-        .in('user_id', (
-          await supabase
-            .from('organization_members')
-            .select('user_id')
-            .eq('organization_id', orgId)
-        ).data?.map((m: any) => m.user_id) || []);
-
       return {
         organizationId: orgId,
-        memberCount: memberCount || 0,
-        emailAccountCount: emailAccountCount || 0,
-        featureUsage: featureCounts || {},
-        totalUsage: usage?.length || 0,
-        dailyUsage: dailyUsage || {},
+        memberCount: members.length,
+        emailAccountCount: emailAccountsByOrg[orgId] || 0,
+        featureUsage: featureCounts,
+        totalUsage: usage.length,
+        dailyUsage: dailyUsage,
       };
     });
-
-    const usageStats = await Promise.all(usagePromises);
 
     // Combine daily usage across all organizations
     const combinedDailyUsage = usageStats.reduce((acc: any, stat) => {
