@@ -1148,7 +1148,7 @@ export default function InboxPage() {
                 </div>
               </div>
             )}
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full pr-2">
               {loading ? (
                 <div className="flex items-center justify-center h-64">
                   <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -1216,10 +1216,10 @@ export default function InboxPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0 flex items-start gap-2">
-                        <span className={`font-medium truncate text-xs ${message.unread ? 'font-bold' : ''} w-32 shrink-0`}>
+                        <span className={`font-medium truncate text-sm ${message.unread ? 'font-bold' : ''} w-32 shrink-0`}>
                           {message.from?.[0]?.name || message.from?.[0]?.email}
                         </span>
-                        <p className={`text-xs line-clamp-2 flex-1 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                        <p className={`text-sm line-clamp-2 flex-1 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
                           {message.subject || '(no subject)'}
                         </p>
                         <div className="flex items-center gap-1 shrink-0 ml-auto">
@@ -1272,10 +1272,10 @@ export default function InboxPage() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0 flex items-start gap-2">
-                              <span className={`font-medium truncate text-xs ${hasUnread ? 'font-bold' : ''} w-32 shrink-0`}>
+                              <span className={`font-medium truncate text-sm ${hasUnread ? 'font-bold' : ''} w-32 shrink-0`}>
                                 {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
                               </span>
-                              <p className={`text-xs line-clamp-2 flex-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                              <p className={`text-sm line-clamp-2 flex-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
                                 {previewMessage.subject || '(no subject)'}
                               </p>
                               <div className="flex items-center gap-1 shrink-0 ml-auto">
@@ -1365,21 +1365,21 @@ export default function InboxPage() {
               <>
                 <div className="border-b border-border bg-card p-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <Avatar className="h-6 w-6">
+                    <Avatar className="h-8 w-8">
                       <AvatarImage src={`https://logo.clearbit.com/${selectedMessage.from?.[0]?.email?.split('@')[1]}`} />
-                      <AvatarFallback className="text-[10px] font-semibold">
+                      <AvatarFallback className="text-xs font-semibold">
                         {getInitials(selectedMessage.from?.[0]?.name, selectedMessage.from?.[0]?.email)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-xs truncate">
+                      <p className="font-semibold text-sm truncate">
                         {selectedMessage.from?.[0]?.name || selectedMessage.from?.[0]?.email}
                       </p>
-                      <p className="text-[10px] text-muted-foreground truncate">
+                      <p className="text-xs text-muted-foreground truncate">
                         {selectedMessage.subject || '(no subject)'}
                       </p>
                     </div>
-                    <div className="text-[10px] text-muted-foreground shrink-0">
+                    <div className="text-xs text-muted-foreground shrink-0">
                       {new Date(selectedMessage.date * 1000).toLocaleString()}
                     </div>
                   </div>
@@ -1417,8 +1417,8 @@ export default function InboxPage() {
                     </Button>
                   </div>
                 </div>
-                <ScrollArea className="flex-1 p-4">
-                  <div className="prose dark:prose-invert max-w-full prose-sm" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+                <ScrollArea className="flex-1 p-8">
+                  <div className="prose dark:prose-invert max-w-4xl mx-auto prose-sm">
                     <div
                       className="email-body-content"
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMessage.body || selectedMessage.snippet) }}
