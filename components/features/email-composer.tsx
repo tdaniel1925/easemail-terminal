@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,11 +8,20 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useHotkeys } from 'react-hotkeys-hook';
+import dynamic from 'next/dynamic';
 import { VoiceInput } from '@/components/features/voice-input';
 import { VoiceMessageRecorder } from '@/components/features/voice-message-recorder';
 import { AttachmentUploader } from '@/components/email/attachment-uploader';
+
+// Dynamically import emoji picker to avoid SSR issues
+const EmojiPicker = dynamic(
+  () => import('emoji-picker-react'),
+  { ssr: false }
+);
 
 interface EmailComposerProps {
   onClose: () => void;
@@ -88,6 +97,13 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [showSubjectConfirm, setShowSubjectConfirm] = useState(false);
   const [suggestedSubject, setSuggestedSubject] = useState('');
   const [pendingBody, setPendingBody] = useState('');
+
+  // New feature states
+  const [priority, setPriority] = useState<'normal' | 'high' | 'low'>('normal');
+  const [showPreview, setShowPreview] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [undoSendCountdown, setUndoSendCountdown] = useState<number | null>(null);
+  const undoSendTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Save draft function
   const saveDraft = async (showToast: boolean = false) => {
@@ -320,6 +336,39 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     };
   }, [to, cc, bcc, subject, body]); // Re-run when any field changes
 
+  // Keyboard shortcuts
+  useHotkeys('ctrl+enter,meta+enter', (e) => {
+    e.preventDefault();
+    if (!sending && to && subject && body) {
+      handleSend();
+    }
+  }, { enableOnFormTags: ['INPUT', 'TEXTAREA'] });
+
+  useHotkeys('ctrl+s,meta+s', (e) => {
+    e.preventDefault();
+    saveDraft(true);
+  }, { enableOnFormTags: ['INPUT', 'TEXTAREA'] });
+
+  useHotkeys('ctrl+shift+s,meta+shift+s', (e) => {
+    e.preventDefault();
+    setShowSchedule(true);
+  }, { enableOnFormTags: ['INPUT', 'TEXTAREA'] });
+
+  useHotkeys('ctrl+e,meta+e', (e) => {
+    e.preventDefault();
+    setShowEmojiPicker(!showEmojiPicker);
+  }, { enableOnFormTags: ['INPUT', 'TEXTAREA'] });
+
+  useHotkeys('escape', () => {
+    if (showEmojiPicker) {
+      setShowEmojiPicker(false);
+    } else if (showPreview) {
+      setShowPreview(false);
+    } else {
+      onClose();
+    }
+  });
+
   const handleAIRemix = async () => {
     if (!body || body.length < 10) {
       toast.error('Please write at least 10 characters to remix');
@@ -374,14 +423,18 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     toast.success('✨ Email remixed!');
   };
 
-  const handleSend = async () => {
-    if (!to || !subject || !body) {
-      toast.error('Please fill in all fields');
-      return;
+  const cancelUndoSend = () => {
+    if (undoSendTimerRef.current) {
+      clearInterval(undoSendTimerRef.current);
+      undoSendTimerRef.current = null;
     }
+    setUndoSendCountdown(null);
+    setSending(false);
+    toast.success('Send cancelled');
+  };
 
+  const actualSend = async () => {
     try {
-      setSending(true);
 
       // Parse recipients (comma-separated)
       const toArray = to.split(',').map(e => e.trim()).filter(e => e);
@@ -444,7 +497,33 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       toast.error('Failed to send email');
     } finally {
       setSending(false);
+      setUndoSendCountdown(null);
     }
+  };
+
+  const handleSend = () => {
+    if (!to || !subject || !body) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    // Start undo countdown
+    setSending(true);
+    setUndoSendCountdown(5);
+
+    let countdown = 5;
+    undoSendTimerRef.current = setInterval(() => {
+      countdown -= 1;
+      setUndoSendCountdown(countdown);
+
+      if (countdown <= 0) {
+        if (undoSendTimerRef.current) {
+          clearInterval(undoSendTimerRef.current);
+          undoSendTimerRef.current = null;
+        }
+        actualSend();
+      }
+    }, 1000);
   };
 
   return (
@@ -564,7 +643,22 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
           {/* Subject */}
           <div className="space-y-2">
-            <Label htmlFor="subject">Subject</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="subject">Subject</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Priority:</span>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as any)}
+                  className="text-xs border rounded px-2 py-1"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="high">High</option>
+                  <option value="low">Low</option>
+                </select>
+                {priority === 'high' && <Flag className="h-4 w-4 text-red-500" />}
+              </div>
+            </div>
             <Input
               id="subject"
               placeholder="Email subject"
@@ -576,7 +670,23 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           {/* Body */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="body">Message</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="body">Message</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    >
+                      <Smile className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Add emoji (Ctrl/Cmd+E)</TooltipContent>
+                </Tooltip>
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Tone:</span>
                 <select
@@ -591,6 +701,18 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                 </select>
               </div>
             </div>
+            {showEmojiPicker && (
+              <div className="relative">
+                <div className="absolute z-50 top-0 left-0 shadow-lg">
+                  <EmojiPicker
+                    onEmojiClick={(emojiData) => {
+                      setBody(body + emojiData.emoji);
+                      setShowEmojiPicker(false);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             <Textarea
               id="body"
               placeholder="Write your message here... You can use messy text - we'll polish it with AI!"
@@ -732,18 +854,33 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
               <Tooltip>
                 <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={() => setShowPreview(true)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Preview
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Preview email before sending</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button variant="outline" onClick={() => setShowSchedule(true)}>
                     <Clock className="mr-2 h-4 w-4" />
                     Schedule
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Schedule this email to send later</TooltipContent>
+                <TooltipContent>Schedule this email to send later (Ctrl/Cmd+Shift+S)</TooltipContent>
               </Tooltip>
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button onClick={handleSend} disabled={sending}>
-                    {sending ? (
+                  <Button onClick={handleSend} disabled={sending || undoSendCountdown !== null}>
+                    {undoSendCountdown !== null ? (
+                      <>
+                        <Undo2 className="mr-2 h-4 w-4" />
+                        Undo ({undoSendCountdown}s)
+                      </>
+                    ) : sending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Sending...
@@ -756,8 +893,15 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Send email immediately</TooltipContent>
+                <TooltipContent>Send email immediately (Ctrl/Cmd+Enter)</TooltipContent>
               </Tooltip>
+
+              {undoSendCountdown !== null && (
+                <Button variant="destructive" onClick={cancelUndoSend}>
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+              )}
             </div>
           </div>
         </TooltipProvider>
@@ -941,6 +1085,121 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                   Use AI Subject
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Email Preview Dialog */}
+      {showPreview && (
+        <Dialog open={showPreview} onOpenChange={setShowPreview}>
+          <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle>Email Preview</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="flex-1 mt-4">
+              <div className="space-y-4">
+                {/* Preview Header */}
+                <div className="border-b pb-4 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-sm font-medium text-muted-foreground w-16">To:</span>
+                    <span className="text-sm flex-1">{to}</span>
+                  </div>
+                  {cc && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm font-medium text-muted-foreground w-16">Cc:</span>
+                      <span className="text-sm flex-1">{cc}</span>
+                    </div>
+                  )}
+                  {bcc && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm font-medium text-muted-foreground w-16">Bcc:</span>
+                      <span className="text-sm flex-1">{bcc}</span>
+                    </div>
+                  )}
+                  <div className="flex items-start gap-2">
+                    <span className="text-sm font-medium text-muted-foreground w-16">Subject:</span>
+                    <span className="text-sm flex-1 font-semibold">{subject || '(no subject)'}</span>
+                    {priority === 'high' && (
+                      <Badge variant="destructive" className="ml-2">
+                        <Flag className="h-3 w-3 mr-1" />
+                        High Priority
+                      </Badge>
+                    )}
+                    {priority === 'low' && (
+                      <Badge variant="secondary" className="ml-2">
+                        Low Priority
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Preview Body */}
+                <div className="prose dark:prose-invert max-w-none">
+                  <div className="whitespace-pre-wrap">{body}</div>
+                </div>
+
+                {/* Attachments */}
+                {attachments.length > 0 && (
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-medium mb-2">Attachments ({attachments.length})</h4>
+                    <div className="space-y-2">
+                      {attachments.map((attachment) => (
+                        <div
+                          key={attachment.id}
+                          className="flex items-center gap-2 p-2 bg-accent rounded-lg"
+                        >
+                          <Paperclip className="h-4 w-4" />
+                          <span className="text-sm">{attachment.name}</span>
+                          <span className="text-xs text-muted-foreground">
+                            ({(attachment.size / 1024 / 1024).toFixed(2)} MB)
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Warnings */}
+                <div className="space-y-2">
+                  {!subject && (
+                    <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm text-yellow-900 dark:text-yellow-100">
+                        Subject line is empty
+                      </span>
+                    </div>
+                  )}
+                  {body.toLowerCase().includes('attach') && attachments.length === 0 && (
+                    <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                      <span className="text-sm text-yellow-900 dark:text-yellow-100">
+                        You mentioned an attachment but none are attached
+                      </span>
+                    </div>
+                  )}
+                  {to.split(',').length > 10 && (
+                    <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <AlertCircle className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm text-blue-900 dark:text-blue-100">
+                        This email will be sent to {to.split(',').length} recipients
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </ScrollArea>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowPreview(false)}>
+                Edit
+              </Button>
+              <Button onClick={() => {
+                setShowPreview(false);
+                handleSend();
+              }}>
+                <Send className="mr-2 h-4 w-4" />
+                Send Now
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

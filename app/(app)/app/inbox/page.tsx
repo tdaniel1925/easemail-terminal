@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label';
 import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
-  Reply, ReplyAll, Forward, LogOut, Loader2, X, Check, Minus, Tag, Shield, AlertTriangle
+  Reply, ReplyAll, Forward, LogOut, Loader2, X, Check, Minus, Tag, Shield, AlertTriangle,
+  Calendar, UserCircle, Video
 } from 'lucide-react';
 import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
@@ -954,6 +955,27 @@ export default function InboxPage() {
                       </Badge>
                     )}
                   </button>
+                ))}
+              </div>
+
+              {/* Apps */}
+              <div className="space-y-1">
+                <div className="px-3 py-2">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">
+                    Apps
+                  </span>
+                </div>
+                {[
+                  { icon: UserCircle, label: 'Contacts', href: '/app/contacts' },
+                  { icon: Calendar, label: 'Calendar', href: '/app/calendar' },
+                  { icon: Video, label: 'MS Teams', href: '/app/teams' },
+                ].map((item) => (
+                  <Link key={item.label} href={item.href}>
+                    <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                      <item.icon className="h-4 w-4" />
+                      <span className="text-sm">{item.label}</span>
+                    </button>
+                  </Link>
                 ))}
               </div>
 
