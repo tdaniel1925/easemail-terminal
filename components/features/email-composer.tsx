@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2 } from 'lucide-react';
+import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHotkeys } from 'react-hotkeys-hook';
 import dynamic from 'next/dynamic';
@@ -110,6 +110,11 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [signatures, setSignatures] = useState<any[]>([]);
   const [selectedSignature, setSelectedSignature] = useState<string>('');
 
+  // Canned responses states
+  const [showCannedResponses, setShowCannedResponses] = useState(false);
+  const [cannedResponseSearch, setCannedResponseSearch] = useState('');
+  const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
+
   // Save draft function
   const saveDraft = async (showToast: boolean = false) => {
     // Don't save empty drafts
@@ -204,6 +209,16 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     toast.success(`📄 Template "${template.name}" loaded`);
   };
 
+  const insertCannedResponse = (template: any) => {
+    // Insert at the end of current body content
+    setBody((currentBody) => {
+      const separator = currentBody ? '\n\n' : '';
+      return currentBody + separator + template.body;
+    });
+    setShowCannedResponses(false);
+    toast.success(`✨ Inserted "${template.name}"`);
+  };
+
   const saveAsTemplate = async () => {
     if (!templateName || !body) {
       toast.error('Please provide template name and content');
@@ -283,6 +298,19 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   useEffect(() => {
     fetchSignatures();
   }, []);
+
+  // Filter templates for canned responses
+  useEffect(() => {
+    if (cannedResponseSearch) {
+      const filtered = templates.filter((template) =>
+        template.name.toLowerCase().includes(cannedResponseSearch.toLowerCase()) ||
+        (template.category && template.category.toLowerCase().includes(cannedResponseSearch.toLowerCase()))
+      );
+      setFilteredTemplates(filtered);
+    } else {
+      setFilteredTemplates(templates);
+    }
+  }, [cannedResponseSearch, templates]);
 
   const handleScheduleSend = async () => {
     if (!to || !subject || !body) {
@@ -410,9 +438,16 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     setShowEmojiPicker(!showEmojiPicker);
   }, { enableOnFormTags: ['INPUT', 'TEXTAREA'] });
 
+  useHotkeys('ctrl+slash,meta+slash', (e) => {
+    e.preventDefault();
+    setShowCannedResponses(!showCannedResponses);
+  }, { enableOnFormTags: ['INPUT', 'TEXTAREA'] });
+
   useHotkeys('escape', () => {
     if (showEmojiPicker) {
       setShowEmojiPicker(false);
+    } else if (showCannedResponses) {
+      setShowCannedResponses(false);
     } else if (showPreview) {
       setShowPreview(false);
     } else {
@@ -737,6 +772,23 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Add emoji (Ctrl/Cmd+E)</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => {
+                        fetchTemplates();
+                        setShowCannedResponses(!showCannedResponses);
+                      }}
+                    >
+                      <Zap className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Insert canned response (Ctrl/Cmd+/)</TooltipContent>
                 </Tooltip>
               </div>
               <div className="flex items-center gap-4">
@@ -1268,6 +1320,71 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                 <Send className="mr-2 h-4 w-4" />
                 Send Now
               </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Canned Responses Dialog */}
+      {showCannedResponses && (
+        <Dialog open={showCannedResponses} onOpenChange={setShowCannedResponses}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle>Insert Canned Response</DialogTitle>
+            </DialogHeader>
+
+            {/* Search */}
+            <div className="mt-4">
+              <Input
+                placeholder="Search canned responses..."
+                value={cannedResponseSearch}
+                onChange={(e) => setCannedResponseSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            {/* Templates List */}
+            <div className="space-y-3 mt-4">
+              {filteredTemplates.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Zap className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  {cannedResponseSearch ? (
+                    <p>No canned responses found matching "{cannedResponseSearch}"</p>
+                  ) : (
+                    <>
+                      <p>No canned responses yet.</p>
+                      <p className="text-sm mt-2">Create templates in Settings to use as quick responses.</p>
+                    </>
+                  )}
+                </div>
+              ) : (
+                filteredTemplates.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => insertCannedResponse(template)}
+                    className="w-full text-left p-4 border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{template.name}</h3>
+                        {template.subject && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Subject: {template.subject}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                          {template.body.replace(/<[^>]*>/g, '')}
+                        </p>
+                      </div>
+                      {template.category && (
+                        <Badge variant="secondary" className="ml-2">
+                          {template.category}
+                        </Badge>
+                      )}
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </DialogContent>
         </Dialog>
