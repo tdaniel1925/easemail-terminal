@@ -103,14 +103,14 @@ export default function ContactsPage() {
       </div>
 
       {/* Contacts Grid */}
-      <ScrollArea className="flex-1 p-8">
+      <ScrollArea className="flex-1 p-6">
         {loading ? (
-          <div className="flex items-center justify-center h-96">
-            <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {contacts
                 .filter(contact => {
                   const name = getContactName(contact).toLowerCase();
@@ -125,23 +125,23 @@ export default function ContactsPage() {
                   const phone = getContactPhone(contact);
 
                   return (
-                    <Card key={contact.id} className="hover:shadow-xl hover:scale-105 transition-all duration-300 border-2 hover:border-primary/50">
-                      <CardHeader className="pb-6">
+                    <Card key={contact.id} className="hover:shadow-lg transition-all duration-200 hover:border-primary/50">
+                      <CardHeader className="pb-4">
                         <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-4">
-                            <Avatar className="h-16 w-16 ring-2 ring-border">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-12 w-12 ring-2 ring-border">
                               <AvatarImage src={contact.pictureUrl || undefined} />
-                              <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-primary-foreground text-xl font-bold">
+                              <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-primary-foreground text-base font-bold">
                                 {getInitials(name)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="flex items-center gap-2">
-                                <CardTitle className="text-xl font-bold">{name}</CardTitle>
+                                <CardTitle className="text-lg font-bold">{name}</CardTitle>
                               </div>
                               {contact.companyName && (
-                                <CardDescription className="flex items-center gap-1 mt-2 text-sm">
-                                  <Building className="h-4 w-4" />
+                                <CardDescription className="flex items-center gap-1 mt-1 text-xs">
+                                  <Building className="h-3 w-3" />
                                   {contact.companyName}
                                 </CardDescription>
                               )}
@@ -170,30 +170,30 @@ export default function ContactsPage() {
                           </DropdownMenu>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-4">
+                      <CardContent className="space-y-3">
                         {email && (
-                          <div className="flex items-center gap-3 text-base">
-                            <Mail className="h-5 w-5 text-primary" />
+                          <div className="flex items-center gap-2 text-sm">
+                            <Mail className="h-4 w-4 text-primary" />
                             <a href={`mailto:${email}`} className="text-primary hover:underline truncate font-medium">
                               {email}
                             </a>
                           </div>
                         )}
                         {phone && (
-                          <div className="flex items-center gap-3 text-base">
-                            <Phone className="h-5 w-5 text-primary" />
+                          <div className="flex items-center gap-2 text-sm">
+                            <Phone className="h-4 w-4 text-primary" />
                             <a href={`tel:${phone}`} className="hover:underline font-medium">
                               {phone}
                             </a>
                           </div>
                         )}
-                        <div className="flex gap-3 mt-6">
-                          <Button variant="outline" className="flex-1">
-                            <Mail className="mr-2 h-4 w-4" />
+                        <div className="flex gap-2 mt-4">
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Mail className="mr-1 h-3 w-3" />
                             Email
                           </Button>
-                          <Button variant="outline" className="flex-1">
-                            <Edit className="mr-2 h-4 w-4" />
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Edit className="mr-1 h-3 w-3" />
                             Edit
                           </Button>
                         </div>

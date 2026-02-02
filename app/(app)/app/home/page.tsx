@@ -170,9 +170,9 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="container max-w-7xl mx-auto px-8 -mt-24 relative z-10 pb-16 space-y-8">
+      <div className="container max-w-7xl mx-auto px-6 -mt-20 relative z-10 pb-12 space-y-6">
         {/* Quick Stats - Large Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
@@ -181,18 +181,18 @@ export default function HomePage() {
                 className="group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-0 bg-gradient-to-br from-card to-card/50"
                 onClick={() => router.push(action.href)}
               >
-                <CardContent className="p-8">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`${action.color} p-4 rounded-xl text-white shadow-lg`}>
-                      <Icon className="h-8 w-8" />
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`${action.color} p-3 rounded-xl text-white shadow-lg`}>
+                      <Icon className="h-6 w-6" />
                     </div>
                     {action.count !== undefined && (
                       <div className="text-right">
-                        <div className="text-4xl font-bold">{action.count}</div>
+                        <div className="text-3xl font-bold">{action.count}</div>
                       </div>
                     )}
                   </div>
-                  <h3 className="font-semibold text-xl mb-2">{action.title}</h3>
+                  <h3 className="font-semibold text-lg mb-2">{action.title}</h3>
                   <div className="flex items-center text-sm text-muted-foreground group-hover:text-primary transition-colors">
                     View details
                     <ArrowRight className="ml-1 h-4 w-4" />
@@ -204,45 +204,45 @@ export default function HomePage() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Today's Summary */}
           <Card className="border-0 shadow-sm">
-            <CardContent className="p-8">
-              <div className="flex items-center gap-3 mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                  <Mail className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-2xl font-bold">Today's Summary</h2>
+                <h2 className="text-xl font-bold">Today's Summary</h2>
               </div>
 
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
                   <div>
                     <div className="text-sm font-medium text-muted-foreground mb-1">Emails Received</div>
-                    <div className="text-4xl font-bold text-blue-600 dark:text-blue-400">{stats.today}</div>
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.today}</div>
                   </div>
                   <div className="p-3 bg-blue-500 rounded-xl">
                     <TrendingUp className="h-10 w-10 text-white" />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-5 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
                   <div>
                     <div className="text-sm font-medium text-muted-foreground mb-1">Avg. Response Time</div>
-                    <div className="text-4xl font-bold text-green-600 dark:text-green-400">{stats.avgResponseTime}</div>
+                    <div className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.avgResponseTime}</div>
                   </div>
-                  <div className="p-3 bg-green-500 rounded-xl">
-                    <Clock className="h-10 w-10 text-white" />
+                  <div className="p-2 bg-green-500 rounded-xl">
+                    <Clock className="h-8 w-8 text-white" />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-5 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
                   <div className="flex-1">
                     <div className="text-sm font-medium text-muted-foreground mb-1">Top Sender</div>
-                    <div className="text-lg font-semibold text-purple-900 dark:text-purple-100 truncate">{stats.topSender}</div>
+                    <div className="text-base font-semibold text-purple-900 dark:text-purple-100 truncate">{stats.topSender}</div>
                   </div>
-                  <div className="p-3 bg-purple-500 rounded-xl">
-                    <BarChart3 className="h-10 w-10 text-white" />
+                  <div className="p-2 bg-purple-500 rounded-xl">
+                    <BarChart3 className="h-8 w-8 text-white" />
                   </div>
                 </div>
               </div>
@@ -251,12 +251,12 @@ export default function HomePage() {
 
           {/* Focus Time Recommendations */}
           <Card className="border-0 shadow-sm">
-            <CardContent className="p-8">
-              <div className="flex items-center gap-3 mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-2 mb-4">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                  <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h2 className="text-2xl font-bold">Best Time to Focus</h2>
+                <h2 className="text-xl font-bold">Best Time to Focus</h2>
               </div>
 
               <div className="space-y-4">
@@ -290,22 +290,22 @@ export default function HomePage() {
 
         {/* AI Insights */}
         <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50">
-          <CardContent className="p-8">
-            <div className="flex items-start gap-6">
-              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg">
-                <Sparkles className="h-8 w-8" />
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg">
+                <Sparkles className="h-6 w-6" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-2xl mb-3">AI Insight</h3>
-                <p className="text-base text-muted-foreground mb-6 leading-relaxed">
+                <h3 className="font-bold text-xl mb-2">AI Insight</h3>
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                   You've been most productive between 9 AM - 11 AM this week. Consider scheduling
                   important tasks during this time for maximum efficiency.
                 </p>
-                <div className="flex gap-3">
-                  <Button size="lg">
+                <div className="flex gap-2">
+                  <Button>
                     Schedule Focus Time
                   </Button>
-                  <Button variant="outline" size="lg">
+                  <Button variant="outline">
                     View More Insights
                   </Button>
                 </div>

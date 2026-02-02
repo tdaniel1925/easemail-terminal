@@ -59,29 +59,29 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   if (!open) return null;
 
   return (
-    <div className="w-64 border-r border-border bg-card hidden lg:flex flex-col h-screen" data-sidebar="app-sidebar-single">
+    <div className="w-52 border-r border-border bg-card hidden lg:flex flex-col h-screen" data-sidebar="app-sidebar-single">
       {/* Header - Fixed */}
-      <div className="p-6 border-b border-border flex-shrink-0">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+      <div className="p-4 border-b border-border flex-shrink-0">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             EaseMail
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={onToggle}>
-              <Menu className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggle}>
+              <Menu className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        <Button className="w-full" size="lg" onClick={onCompose}>
-          <PenSquare className="mr-2 h-5 w-5" />
+        <Button className="w-full" onClick={onCompose}>
+          <PenSquare className="mr-2 h-4 w-4" />
           Compose
         </Button>
       </div>
 
       {/* Scrollable Content */}
       <ScrollArea className="flex-1">
-        <nav className="p-2 space-y-4">
+        <nav className="p-2 space-y-3">
           {/* Main Folders */}
           <div className="space-y-1">
             {[

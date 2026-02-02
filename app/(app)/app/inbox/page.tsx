@@ -930,7 +930,7 @@ export default function InboxPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <header className="border-b border-border bg-card p-6">
+      <header className="border-b border-border bg-card p-4">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1184,20 +1184,20 @@ export default function InboxPage() {
                   return (
                   <div
                     key={message.id}
-                    className={`w-full text-left p-6 border-b border-border hover:bg-accent/50 hover:border-l-4 hover:border-l-blue-500 transition-all ${
-                      selectedMessage?.id === message.id ? 'bg-accent border-l-4 border-l-blue-500' : ''
+                    className={`w-full text-left p-3 border-b border-border hover:bg-accent/50 hover:border-l-2 hover:border-l-blue-500 transition-all ${
+                      selectedMessage?.id === message.id ? 'bg-accent border-l-2 border-l-blue-500' : ''
                     } ${isSelected ? 'bg-primary/5' : ''}`}
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-2">
                       {/* Checkbox */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleMessageSelection(message.id);
                         }}
-                        className="mt-2"
+                        className="mt-1"
                       >
-                        <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
+                        <div className={`h-4 w-4 rounded border flex items-center justify-center ${
                           isSelected ? 'bg-primary border-primary' : 'border-input hover:border-primary'
                         }`}>
                           {isSelected && (
@@ -1208,35 +1208,35 @@ export default function InboxPage() {
 
                       <button
                         onClick={() => setSelectedMessage(message)}
-                        className="flex-1 flex items-start gap-4 text-left"
+                        className="flex-1 flex items-start gap-2 text-left"
                       >
-                      <Avatar className="h-12 w-12 ring-2 ring-border">
+                      <Avatar className="h-8 w-8">
                         <AvatarImage src={`https://logo.clearbit.com/${message.from?.[0]?.email?.split('@')[1]}`} />
-                        <AvatarFallback className="text-base font-semibold">
+                        <AvatarFallback className="text-xs font-semibold">
                           {getInitials(message.from?.[0]?.name, message.from?.[0]?.email)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className={`font-semibold truncate text-base ${message.unread ? 'font-bold' : ''}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`font-medium truncate text-sm ${message.unread ? 'font-bold' : ''}`}>
                             {message.from?.[0]?.name || message.from?.[0]?.email}
                           </span>
-                          <span className="text-sm text-muted-foreground ml-2">
+                          <span className="text-xs text-muted-foreground ml-2">
                             {formatDate(message.date * 1000)}
                           </span>
                         </div>
-                        <p className={`text-base truncate mb-2 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                        <p className={`text-sm truncate mb-1 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
                           {message.subject || '(no subject)'}
                         </p>
-                        <p className="text-sm text-muted-foreground truncate mb-3">
+                        <p className="text-xs text-muted-foreground truncate mb-1">
                           {message.snippet || ''}
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           {message.unread && (
-                            <Badge variant="default" className="text-xs px-2 py-1">New</Badge>
+                            <Badge variant="default" className="text-[10px] px-1.5 py-0.5">New</Badge>
                           )}
                           {category && (
-                            <Badge variant="outline" className={`text-xs px-2 py-1 ${getCategoryBadgeColor(category)}`}>
+                            <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 ${getCategoryBadgeColor(category)}`}>
                               {category}
                             </Badge>
                           )}
@@ -1245,9 +1245,9 @@ export default function InboxPage() {
                               e.stopPropagation();
                               handleToggleStar(message.id, message.starred || false);
                             }}
-                            className="ml-auto p-1.5 hover:bg-accent rounded-lg transition-colors"
+                            className="ml-auto p-1 hover:bg-accent rounded transition-colors"
                           >
-                            <Star className={`h-5 w-5 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+                            <Star className={`h-4 w-4 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
                           </button>
                         </div>
                       </div>
@@ -1268,48 +1268,48 @@ export default function InboxPage() {
                   return (
                     <div key={threadId} className="border-b border-border">
                       {/* Thread Preview */}
-                      <div className={`w-full text-left p-6 hover:bg-accent/50 hover:border-l-4 hover:border-l-blue-500 transition-all ${
-                        selectedMessage?.id === previewMessage.id ? 'bg-accent border-l-4 border-l-blue-500' : ''
+                      <div className={`w-full text-left p-3 hover:bg-accent/50 hover:border-l-2 hover:border-l-blue-500 transition-all ${
+                        selectedMessage?.id === previewMessage.id ? 'bg-accent border-l-2 border-l-blue-500' : ''
                       }`}>
-                        <div className="flex items-start gap-4">
+                        <div className="flex items-start gap-2">
                           <button
                             onClick={() => toggleThread(threadId)}
-                            className="flex-1 flex items-start gap-4 text-left"
+                            className="flex-1 flex items-start gap-2 text-left"
                           >
-                            <Avatar className="h-12 w-12 ring-2 ring-border">
+                            <Avatar className="h-8 w-8">
                               <AvatarImage src={`https://logo.clearbit.com/${previewMessage.from?.[0]?.email?.split('@')[1]}`} />
-                              <AvatarFallback className="text-base font-semibold">
+                              <AvatarFallback className="text-xs font-semibold">
                                 {getInitials(previewMessage.from?.[0]?.name, previewMessage.from?.[0]?.email)}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className={`font-semibold truncate text-base ${hasUnread ? 'font-bold' : ''}`}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className={`font-medium truncate text-sm ${hasUnread ? 'font-bold' : ''}`}>
                                   {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
                                 </span>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
                                   {threadCount > 1 && (
-                                    <Badge variant="secondary" className="text-xs px-2 py-1">
+                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
                                       {threadCount}
                                     </Badge>
                                   )}
-                                  <span className="text-sm text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground">
                                     {formatDate(previewMessage.date * 1000)}
                                   </span>
                                 </div>
                               </div>
-                              <p className={`text-base truncate mb-2 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                              <p className={`text-sm truncate mb-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
                                 {previewMessage.subject || '(no subject)'}
                               </p>
-                              <p className="text-sm text-muted-foreground truncate mb-3">
+                              <p className="text-xs text-muted-foreground truncate mb-1">
                                 {previewMessage.snippet || ''}
                               </p>
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1">
                                 {hasUnread && (
-                                  <Badge variant="default" className="text-xs px-2 py-1">New</Badge>
+                                  <Badge variant="default" className="text-[10px] px-1.5 py-0.5">New</Badge>
                                 )}
                                 {category && (
-                                  <Badge variant="outline" className={`text-xs px-2 py-1 ${getCategoryBadgeColor(category)}`}>
+                                  <Badge variant="outline" className={`text-[10px] px-1.5 py-0.5 ${getCategoryBadgeColor(category)}`}>
                                     {category}
                                   </Badge>
                                 )}
