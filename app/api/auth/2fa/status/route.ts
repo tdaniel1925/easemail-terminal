@@ -11,11 +11,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's 2FA status
-    const { data: userData } = await supabase
+    const { data: userData } = (await supabase
       .from('users')
       .select('two_factor_enabled')
       .eq('id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

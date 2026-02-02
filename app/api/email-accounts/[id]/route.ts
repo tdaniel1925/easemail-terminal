@@ -41,21 +41,21 @@ export async function DELETE(
     }
 
     // If this was the primary account, set another one as primary
-    const { data: wasPrimary } = await supabase
+    const { data: wasPrimary } = (await supabase
       .from('email_accounts')
       .select('is_primary')
       .eq('id', accountId)
-      .single();
+      .single()) as { data: any };
 
     if (wasPrimary?.is_primary) {
-      const { data: remainingAccounts } = await supabase
+      const { data: remainingAccounts } = (await supabase
         .from('email_accounts')
         .select('id')
         .eq('user_id', user.id)
-        .limit(1);
+        .limit(1)) as { data: any };
 
       if (remainingAccounts && remainingAccounts.length > 0) {
-        await supabase
+        await (supabase as any)
           .from('email_accounts')
           .update({ is_primary: true })
           .eq('id', remainingAccounts[0].id);

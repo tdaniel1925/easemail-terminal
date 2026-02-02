@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
     const authUrl = nylas.auth.urlForOAuth2({
       clientId: nylasOAuthConfig.clientId,
       redirectUri: nylasOAuthConfig.redirectUri,
-      provider: nylasProvider,
-      scopes: ['email', 'calendar', 'contacts'],
+      provider: nylasProvider as any,
+      scope: ['email', 'calendar', 'contacts'],
       state: user.id, // Pass user ID in state for callback
     });
 

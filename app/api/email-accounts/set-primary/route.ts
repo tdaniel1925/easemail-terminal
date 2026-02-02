@@ -13,13 +13,13 @@ export async function POST(request: NextRequest) {
     const { accountId } = await request.json();
 
     // First, unset all accounts as non-primary
-    await supabase
+    await (supabase as any)
       .from('email_accounts')
       .update({ is_primary: false })
       .eq('user_id', user.id);
 
     // Then set the selected account as primary
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('email_accounts')
       .update({ is_primary: true })
       .eq('id', accountId)

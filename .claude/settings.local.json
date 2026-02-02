@@ -30,7 +30,9 @@
       "Bash(dir /s /b appapi*[*]route.ts 2)",
       "Bash(nul)",
       "Bash(timeout 180 npm run build)",
-      "Bash(Select-Object -First 60)"
+      "Bash(Select-Object -First 60)",
+      "Bash(git rm:*)",
+      "Bash(cmd /c push-env.bat)"
     ],
     "deny": [],
     "ask": []

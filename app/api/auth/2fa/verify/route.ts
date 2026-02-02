@@ -21,11 +21,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user's 2FA data
-    const { data: userData } = await supabase
+    const { data: userData } = (await supabase
       .from('users')
       .select('two_factor_secret, two_factor_enabled')
       .eq('id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -42,24 +42,24 @@ export async function POST(request: NextRequest) {
 
     // Verify TOTP token
     if (token && userData.two_factor_secret) {
-      isValid = verifyToken(token, userData.two_factor_secret);
+      isValid = await verifyToken(token, userData.two_factor_secret);
     }
 
     // Verify backup code if token failed or not provided
     if (!isValid && backupCode) {
       const hashedCode = await hashBackupCode(backupCode);
 
-      const { data: backupCodes } = await supabase
+      const { data: backupCodes } = (await supabase
         .from('backup_codes')
         .select('*')
         .eq('user_id', user.id)
         .eq('code_hash', hashedCode)
         .eq('used', false)
-        .limit(1);
+        .limit(1)) as { data: any };
 
       if (backupCodes && backupCodes.length > 0) {
         // Mark backup code as used
-        await supabase
+        await (supabase as any)
           .from('backup_codes')
           .update({ used: true, used_at: new Date().toISOString() })
           .eq('id', backupCodes[0].id);

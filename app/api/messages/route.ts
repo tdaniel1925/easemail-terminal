@@ -13,12 +13,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's email accounts
-    const { data: accounts } = await supabase
+    const { data: accounts } = (await supabase
       .from('email_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single();
+      .single()) as { data: any };
 
     if (!accounts) {
       return NextResponse.json({ error: 'No email account connected' }, { status: 400 });

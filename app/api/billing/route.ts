@@ -11,11 +11,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's organization membership
-    const { data: membership } = await supabase
+    const { data: membership } = (await supabase
       .from('organization_members')
       .select('organization_id, role')
       .eq('user_id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!membership) {
       // User has no organization, return free plan
@@ -32,11 +32,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get organization billing info
-    const { data: organization } = await supabase
+    const { data: organization } = (await supabase
       .from('organizations')
       .select('*')
       .eq('id', membership.organization_id)
-      .single();
+      .single()) as { data: any };
 
     if (!organization) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });

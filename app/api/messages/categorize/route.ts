@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Get primary email account
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single();
+      .single()) as { data: any };
 
     if (!account) {
       return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
@@ -84,12 +84,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Get primary email account
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single();
+      .single()) as { data: any };
 
     if (!account) {
       return NextResponse.json({ error: 'No email account connected' }, { status: 400 });

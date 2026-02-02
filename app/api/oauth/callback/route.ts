@@ -33,13 +33,13 @@ export async function GET(request: NextRequest) {
     // Save to database
     const supabase = await createClient();
 
-    const { error: dbError } = await supabase
+    const { error: dbError } = await (supabase as any)
       .from('email_accounts')
       .insert({
         user_id: state,
         grant_id: grantId,
         email: email,
-        provider: provider.toUpperCase(),
+        provider: (provider || 'GOOGLE').toUpperCase(),
         is_primary: true,
       });
 

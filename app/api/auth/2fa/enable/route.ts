@@ -21,11 +21,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user's temporary secret
-    const { data: userData } = await supabase
+    const { data: userData } = (await supabase
       .from('users')
       .select('two_factor_secret, two_factor_enabled')
       .eq('id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!userData || !userData.two_factor_secret) {
       return NextResponse.json(
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the token
-    const isValid = verifyToken(token, userData.two_factor_secret);
+    const isValid = await verifyToken(token, userData.two_factor_secret);
 
     if (!isValid) {
       return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Enable 2FA
-    await supabase
+    await (supabase as any)
       .from('users')
       .update({ two_factor_enabled: true })
       .eq('id', user.id);
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
         }))
       );
 
-      await supabase.from('backup_codes').insert(hashedCodes);
+      await (supabase as any).from('backup_codes').insert(hashedCodes);
     }
 
     return NextResponse.json({

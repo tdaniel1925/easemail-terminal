@@ -12,12 +12,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single();
+      .single()) as { data: any };
 
     if (!account) {
       return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         const response = await nylas.events.list({
           identifier: account.grant_id,
           queryParams: {
-            calendar_id: '*', // All calendars
+            calendarId: '*', // All calendars
             limit: 100,
           },
         });
@@ -60,12 +60,12 @@ export async function POST(request: NextRequest) {
 
     const { title, startTime, endTime, description, location } = await request.json();
 
-    const { data: account } = await supabase
+    const { data: account } = (await supabase
       .from('email_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single();
+      .single()) as { data: any };
 
     if (!account) {
       return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
@@ -77,11 +77,14 @@ export async function POST(request: NextRequest) {
       requestBody: {
         title,
         when: {
-          start_time: Math.floor(new Date(startTime).getTime() / 1000),
-          end_time: Math.floor(new Date(endTime).getTime() / 1000),
+          startTime: Math.floor(new Date(startTime).getTime() / 1000),
+          endTime: Math.floor(new Date(endTime).getTime() / 1000),
         },
         description,
         location,
+      },
+      queryParams: {
+        calendarId: 'primary',
       },
     });
 

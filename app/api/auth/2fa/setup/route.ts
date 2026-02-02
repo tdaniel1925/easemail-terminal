@@ -12,11 +12,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user email
-    const { data: userData } = await supabase
+    const { data: userData } = (await supabase
       .from('users')
       .select('email')
       .eq('id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!userData) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const setup = await setup2FA(userData.email);
 
     // Store secret temporarily (will be confirmed when enabled)
-    await supabase
+    await (supabase as any)
       .from('users')
       .update({ two_factor_secret: setup.secret })
       .eq('id', user.id);
