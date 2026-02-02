@@ -546,7 +546,8 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4">
+        <TooltipProvider>
+          <div className="flex-1 overflow-y-auto space-y-4">
           {/* To */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -754,7 +755,8 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        </TooltipProvider>
 
         {/* Actions */}
         <TooltipProvider>
