@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Video, Search, Plus, Calendar, Users, Phone, MessageSquare, Settings } from 'lucide-react';
+import { BackButton } from '@/components/ui/back-button';
 
 export default function TeamsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,6 +59,9 @@ export default function TeamsPage() {
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card p-6">
+        <div className="mb-4">
+          <BackButton href="/app/inbox" />
+        </div>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">

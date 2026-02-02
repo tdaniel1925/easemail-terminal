@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarIcon, Plus, RefreshCw, Clock, MapPin } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CreateEventDialog } from '@/components/features/create-event-dialog';
+import { BackButton } from '@/components/ui/back-button';
 
 export default function CalendarPage() {
   const [events, setEvents] = useState<any[]>([]);
@@ -53,6 +54,11 @@ export default function CalendarPage() {
 
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
+      {/* Back Button */}
+      <div className="mb-4">
+        <BackButton href="/app/inbox" />
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

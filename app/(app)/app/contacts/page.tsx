@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserCircle, Search, Plus, Mail, Phone, Building, Tag, Star, MoreVertical, RefreshCw, Loader2, Edit, Trash2, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
+import { BackButton } from '@/components/ui/back-button';
 
 export default function ContactsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,6 +70,9 @@ export default function ContactsPage() {
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card p-6">
+        <div className="mb-4">
+          <BackButton href="/app/inbox" />
+        </div>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold">Contacts</h1>

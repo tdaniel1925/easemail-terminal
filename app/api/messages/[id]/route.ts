@@ -40,6 +40,16 @@ export async function DELETE(
         messageId: id,
       });
 
+      // Track usage for analytics
+      try {
+        await supabase.from('usage_tracking').insert({
+          user_id: user.id,
+          feature: 'email_deleted_permanent',
+        } as any);
+      } catch (trackingError) {
+        console.error('Usage tracking error:', trackingError);
+      }
+
       return NextResponse.json({ message: 'Message permanently deleted' });
     } else {
       // Move to trash (update label/folder)
@@ -50,6 +60,16 @@ export async function DELETE(
           folders: ['trash'],
         },
       });
+
+      // Track usage for analytics
+      try {
+        await supabase.from('usage_tracking').insert({
+          user_id: user.id,
+          feature: 'email_deleted',
+        } as any);
+      } catch (trackingError) {
+        console.error('Usage tracking error:', trackingError);
+      }
 
       return NextResponse.json({ message: 'Message moved to trash' });
     }
@@ -110,6 +130,24 @@ export async function PATCH(
       messageId: id,
       requestBody: updatePayload,
     });
+
+    // Track usage for analytics
+    try {
+      if (folders && folders.includes('archive')) {
+        await supabase.from('usage_tracking').insert({
+          user_id: user.id,
+          feature: 'email_archived',
+        } as any);
+      }
+      if (typeof starred === 'boolean' && starred) {
+        await supabase.from('usage_tracking').insert({
+          user_id: user.id,
+          feature: 'email_starred',
+        } as any);
+      }
+    } catch (trackingError) {
+      console.error('Usage tracking error:', trackingError);
+    }
 
     return NextResponse.json({ message: 'Message updated', data: updated.data });
   } catch (error) {

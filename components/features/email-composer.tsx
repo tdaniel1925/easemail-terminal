@@ -875,7 +875,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
               content={body}
               onChange={setBody}
               placeholder="Write your message here... You can use messy text - we'll polish it with AI!"
-              minHeight="300px"
+              minHeight="400px"
             />
           </div>
 

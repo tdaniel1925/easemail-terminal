@@ -68,12 +68,25 @@ export default function HomePage() {
     fetchUserData();
     fetchStats();
 
-    // Auto-refresh dashboard every 30 seconds
+    // Auto-refresh dashboard every 30 seconds (only when page is visible)
     const refreshInterval = setInterval(() => {
-      fetchStats(); // Refresh stats silently
+      if (document.visibilityState === 'visible') {
+        fetchStats(); // Refresh stats silently
+      }
     }, 30000);
 
-    return () => clearInterval(refreshInterval);
+    // Refetch when page becomes visible after being hidden
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchStats();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const fetchUserData = async () => {

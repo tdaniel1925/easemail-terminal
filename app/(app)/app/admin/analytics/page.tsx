@@ -59,12 +59,25 @@ export default function AnalyticsPage() {
   useEffect(() => {
     fetchAnalytics();
 
-    // Auto-refresh analytics every 60 seconds
+    // Auto-refresh analytics every 60 seconds (only when page is visible)
     const refreshInterval = setInterval(() => {
-      fetchAnalytics(false); // Silent refresh without loading state
+      if (document.visibilityState === 'visible') {
+        fetchAnalytics(false); // Silent refresh without loading state
+      }
     }, 60000);
 
-    return () => clearInterval(refreshInterval);
+    // Refetch when page becomes visible after being hidden
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAnalytics(false);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const fetchAnalytics = async (showLoading = true) => {

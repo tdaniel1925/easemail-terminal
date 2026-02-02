@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         });
         return response.data;
       },
-      600 // Cache for 10 minutes
+      120 // Cache for 2 minutes
     );
 
     return NextResponse.json({ contacts });

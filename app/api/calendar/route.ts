@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
         });
         return response.data;
       },
-      300 // Cache for 5 minutes
+      60 // Cache for 1 minute
     );
 
     return NextResponse.json({ events });

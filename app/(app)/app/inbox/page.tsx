@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
@@ -431,12 +432,25 @@ export default function InboxPage() {
     fetchCategories();
     fetchLabels();
 
-    // Auto-refresh inbox every 60 seconds
+    // Auto-refresh inbox every 60 seconds (only when page is visible)
     const refreshInterval = setInterval(() => {
-      fetchMessages(false); // Silent refresh without loading state
+      if (document.visibilityState === 'visible') {
+        fetchMessages(false); // Silent refresh without loading state
+      }
     }, 60000);
 
-    return () => clearInterval(refreshInterval);
+    // Refetch when page becomes visible after being hidden
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchMessages(false);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [fetchAccounts, fetchMessages, fetchCategories, fetchLabels]);
 
   useEffect(() => {
@@ -924,9 +938,14 @@ export default function InboxPage() {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 EaseMail
               </h1>
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
-                <Menu className="h-5 w-5" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Close sidebar</TooltipContent>
+              </Tooltip>
             </div>
             <Button className="w-full" onClick={() => setComposing(true)}>
               <PenSquare className="mr-2 h-4 w-4" />
@@ -1120,9 +1139,14 @@ export default function InboxPage() {
         <header className="border-b border-border bg-card p-4">
           <div className="flex items-center gap-4">
             {!sidebarOpen && (
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
-                <Menu className="h-5 w-5" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Open sidebar</TooltipContent>
+              </Tooltip>
             )}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1170,9 +1194,14 @@ export default function InboxPage() {
               </Select>
             )}
 
-            <Button variant="ghost" size="icon" onClick={() => fetchMessages(true)}>
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={() => fetchMessages(true)}>
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Refresh messages</TooltipContent>
+            </Tooltip>
             <Button
               variant="ghost"
               size="sm"

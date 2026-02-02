@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getUser } from '@/lib/auth/actions';
+import { AppShell } from '@/components/layout/app-shell';
 
 export default async function AppLayout({
   children,
@@ -13,8 +14,8 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppShell>
       {children}
-    </div>
+    </AppShell>
   );
 }
