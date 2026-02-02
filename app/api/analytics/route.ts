@@ -55,6 +55,13 @@ export async function GET(request: NextRequest) {
         return acc;
       }, {});
 
+      // Count by day for time series
+      const dailyUsage = usage?.reduce((acc: any, item: any) => {
+        const date = new Date(item.created_at).toISOString().split('T')[0];
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+      }, {});
+
       // Get email accounts
       const { count: emailAccountCount } = await supabase
         .from('email_accounts')
@@ -72,10 +79,38 @@ export async function GET(request: NextRequest) {
         emailAccountCount: emailAccountCount || 0,
         featureUsage: featureCounts || {},
         totalUsage: usage?.length || 0,
+        dailyUsage: dailyUsage || {},
       };
     });
 
     const usageStats = await Promise.all(usagePromises);
+
+    // Combine daily usage across all organizations
+    const combinedDailyUsage = usageStats.reduce((acc: any, stat) => {
+      Object.entries(stat.dailyUsage).forEach(([date, count]) => {
+        acc[date] = (acc[date] || 0) + (count as number);
+      });
+      return acc;
+    }, {});
+
+    // Create array of last 30 days with counts
+    const last30Days = Array.from({ length: 30 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (29 - i));
+      return date.toISOString().split('T')[0];
+    });
+
+    const dailyUsageArray = last30Days.map(date => ({
+      date,
+      count: combinedDailyUsage[date] || 0,
+      displayDate: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    }));
+
+    // Plan distribution
+    const planDistribution = organizations?.reduce((acc: any, org: any) => {
+      acc[org.plan] = (acc[org.plan] || 0) + 1;
+      return acc;
+    }, {});
 
     // Aggregate analytics
     const analytics = {
@@ -92,6 +127,8 @@ export async function GET(request: NextRequest) {
         });
         return acc;
       }, {}),
+      dailyUsage: dailyUsageArray,
+      planDistribution: planDistribution || {},
     };
 
     return NextResponse.json({ analytics });

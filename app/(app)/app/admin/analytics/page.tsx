@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   BarChart3,
@@ -13,7 +14,31 @@ import {
   Sparkles,
   Calendar,
   Loader2,
+  Download,
+  PieChart as PieChartIcon,
+  LineChart as LineChartIcon,
 } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+
+interface DailyUsage {
+  date: string;
+  count: number;
+  displayDate: string;
+}
 
 interface Analytics {
   organizations: any[];
@@ -21,7 +46,11 @@ interface Analytics {
   totalEmailAccounts: number;
   totalUsage: number;
   featureBreakdown: Record<string, number>;
+  dailyUsage: DailyUsage[];
+  planDistribution: Record<string, number>;
 }
+
+const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
 export default function AnalyticsPage() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -71,8 +100,55 @@ export default function AnalyticsPage() {
       email_sent: 'Emails Sent',
       calendar_event: 'Calendar Events',
       email_categorization: 'Email Categorization',
+      sms_sent: 'SMS Sent',
     };
     return labels[feature] || feature;
+  };
+
+  const exportToCSV = () => {
+    if (!analytics) return;
+
+    const csvRows = [
+      ['EaseMail Analytics Report', new Date().toLocaleDateString()],
+      [],
+      ['Overview'],
+      ['Total Members', analytics.totalMembers],
+      ['Total Email Accounts', analytics.totalEmailAccounts],
+      ['Total Usage (30 days)', analytics.totalUsage],
+      [],
+      ['Feature Breakdown'],
+      ['Feature', 'Count', 'Percentage'],
+      ...Object.entries(analytics.featureBreakdown).map(([feature, count]) => [
+        getFeatureLabel(feature),
+        count,
+        `${((count / analytics.totalUsage) * 100).toFixed(2)}%`,
+      ]),
+      [],
+      ['Daily Usage'],
+      ['Date', 'Count'],
+      ...analytics.dailyUsage.map(d => [d.displayDate, d.count]),
+      [],
+      ['Organizations'],
+      ['Name', 'Plan', 'Members', 'Email Accounts', 'Usage'],
+      ...analytics.organizations.map(org => [
+        org.name,
+        org.plan,
+        org.stats?.memberCount || 0,
+        org.stats?.emailAccountCount || 0,
+        org.stats?.totalUsage || 0,
+      ]),
+    ];
+
+    const csvContent = csvRows.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -104,9 +180,15 @@ export default function AnalyticsPage() {
   return (
     <div className="container max-w-7xl mx-auto py-8 px-4">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-        <p className="text-muted-foreground">Usage insights and organization metrics</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+          <p className="text-muted-foreground">Usage insights and organization metrics</p>
+        </div>
+        <Button onClick={exportToCSV} variant="outline">
+          <Download className="mr-2 h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Overview Cards */}
@@ -171,11 +253,69 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="features" className="space-y-6">
+      <Tabs defaultValue="trends" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="features">Feature Usage</TabsTrigger>
-          <TabsTrigger value="organizations">Organizations</TabsTrigger>
+          <TabsTrigger value="trends">
+            <LineChartIcon className="h-4 w-4 mr-2" />
+            Usage Trends
+          </TabsTrigger>
+          <TabsTrigger value="features">
+            <BarChart3 className="h-4 w-4 mr-2" />
+            Feature Usage
+          </TabsTrigger>
+          <TabsTrigger value="plans">
+            <PieChartIcon className="h-4 w-4 mr-2" />
+            Plans
+          </TabsTrigger>
+          <TabsTrigger value="organizations">
+            <Users className="h-4 w-4 mr-2" />
+            Organizations
+          </TabsTrigger>
         </TabsList>
+
+        {/* Usage Trends Tab */}
+        <TabsContent value="trends" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Usage Trends</CardTitle>
+              <CardDescription>Daily usage over the last 30 days</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={analytics.dailyUsage}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis
+                      dataKey="displayDate"
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <YAxis
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      name="Usage Events"
+                      dot={{ fill: '#3b82f6' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Feature Usage Tab */}
         <TabsContent value="features" className="space-y-4">
@@ -185,46 +325,179 @@ export default function AnalyticsPage() {
               <CardDescription>Last 30 days</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {Object.entries(analytics.featureBreakdown)
-                  .sort(([, a], [, b]) => (b as number) - (a as number))
-                  .map(([feature, count]) => {
-                    const Icon = getFeatureIcon(feature);
-                    const percentage =
-                      analytics.totalUsage > 0
-                        ? ((count as number) / analytics.totalUsage) * 100
-                        : 0;
-
-                    return (
-                      <div key={feature} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Icon className="h-4 w-4 text-muted-foreground" />
-                            <span className="font-medium">{getFeatureLabel(feature)}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm text-muted-foreground">
-                              {percentage.toFixed(1)}%
-                            </span>
-                            <Badge variant="secondary">{count.toLocaleString()}</Badge>
-                          </div>
-                        </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary transition-all"
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                {Object.keys(analytics.featureBreakdown).length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No feature usage data yet
+              {Object.keys(analytics.featureBreakdown).length > 0 ? (
+                <>
+                  {/* Bar Chart */}
+                  <div className="h-[300px] mb-6">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={Object.entries(analytics.featureBreakdown)
+                          .sort(([, a], [, b]) => (b as number) - (a as number))
+                          .map(([feature, count]) => ({
+                            name: getFeatureLabel(feature),
+                            count: count,
+                          }))}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis
+                          dataKey="name"
+                          className="text-xs"
+                          tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis
+                          className="text-xs"
+                          tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--background))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                        />
+                        <Bar dataKey="count" fill="#3b82f6" name="Usage Count" />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                )}
-              </div>
+
+                  {/* Detailed Breakdown */}
+                  <div className="space-y-4">
+                    {Object.entries(analytics.featureBreakdown)
+                      .sort(([, a], [, b]) => (b as number) - (a as number))
+                      .map(([feature, count]) => {
+                        const Icon = getFeatureIcon(feature);
+                        const percentage =
+                          analytics.totalUsage > 0
+                            ? ((count as number) / analytics.totalUsage) * 100
+                            : 0;
+
+                        return (
+                          <div key={feature} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Icon className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-medium">{getFeatureLabel(feature)}</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm text-muted-foreground">
+                                  {percentage.toFixed(1)}%
+                                </span>
+                                <Badge variant="secondary">{count.toLocaleString()}</Badge>
+                              </div>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary transition-all"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No feature usage data yet
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Plans Tab */}
+        <TabsContent value="plans" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Plan Distribution</CardTitle>
+              <CardDescription>Organizations by plan type</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {Object.keys(analytics.planDistribution).length > 0 ? (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={Object.entries(analytics.planDistribution).map(
+                            ([plan, count], index) => ({
+                              name: plan,
+                              value: count,
+                              fill: CHART_COLORS[index % CHART_COLORS.length],
+                            })
+                          )}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) =>
+                            `${name} ${((percent || 0) * 100).toFixed(0)}%`
+                          }
+                          outerRadius={100}
+                          dataKey="value"
+                        >
+                          {Object.entries(analytics.planDistribution).map((_, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={CHART_COLORS[index % CHART_COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--background))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="space-y-3">
+                    {Object.entries(analytics.planDistribution)
+                      .sort(([, a], [, b]) => (b as number) - (a as number))
+                      .map(([plan, count], index) => {
+                        const total = Object.values(analytics.planDistribution).reduce(
+                          (a, b) => a + b,
+                          0
+                        );
+                        const percentage = ((count as number) / total) * 100;
+
+                        return (
+                          <div
+                            key={plan}
+                            className="flex items-center justify-between p-3 border rounded-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="w-4 h-4 rounded"
+                                style={{
+                                  backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
+                                }}
+                              />
+                              <div>
+                                <div className="font-medium">{plan}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {percentage.toFixed(1)}% of organizations
+                                </div>
+                              </div>
+                            </div>
+                            <Badge variant="secondary" className="text-lg">
+                              {count.toLocaleString()}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No plan data available
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
