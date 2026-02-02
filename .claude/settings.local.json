@@ -64,7 +64,8 @@
       "Bash(node run-signatures-migration.js:*)",
       "Bash(node scripts/apply-super-admin-migration.js:*)",
       "Bash(node scripts/set-super-admin.js:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
