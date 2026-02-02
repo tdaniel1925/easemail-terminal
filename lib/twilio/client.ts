@@ -1,17 +1,37 @@
 import twilio from 'twilio';
+import type { Twilio } from 'twilio';
 
-export const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID!,
-  process.env.TWILIO_AUTH_TOKEN!
-);
+let twilioInstance: Twilio | null = null;
 
-export const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER!;
+function getTwilioClient(): Twilio {
+  if (!twilioInstance) {
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+      throw new Error('TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN environment variable is not set');
+    }
+    twilioInstance = twilio(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN
+    );
+  }
+  return twilioInstance;
+}
+
+export const twilioClient = getTwilioClient;
+
+export function getTwilioPhoneNumber(): string {
+  if (!process.env.TWILIO_PHONE_NUMBER) {
+    throw new Error('TWILIO_PHONE_NUMBER environment variable is not set');
+  }
+  return process.env.TWILIO_PHONE_NUMBER;
+}
 
 export async function sendSMS(to: string, body: string) {
   try {
-    const message = await twilioClient.messages.create({
+    const client = getTwilioClient();
+    const phoneNumber = getTwilioPhoneNumber();
+    const message = await client.messages.create({
       body,
-      from: twilioPhoneNumber,
+      from: phoneNumber,
       to,
     });
 
@@ -24,7 +44,8 @@ export async function sendSMS(to: string, body: string) {
 
 export async function getSMSMessages(limit: number = 50) {
   try {
-    const messages = await twilioClient.messages.list({
+    const client = getTwilioClient();
+    const messages = await client.messages.list({
       limit,
     });
 
@@ -46,11 +67,12 @@ export async function getSMSMessages(limit: number = 50) {
 
 export async function setupSMSWebhook(webhookUrl: string) {
   try {
+    const client = getTwilioClient();
     // Configure incoming message webhook
-    const phoneNumbers = await twilioClient.incomingPhoneNumbers.list();
+    const phoneNumbers = await client.incomingPhoneNumbers.list();
 
     if (phoneNumbers.length > 0) {
-      await twilioClient
+      await client
         .incomingPhoneNumbers(phoneNumbers[0].sid)
         .update({
           smsUrl: webhookUrl,

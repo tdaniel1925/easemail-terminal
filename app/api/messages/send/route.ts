@@ -26,7 +26,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email via Nylas
-    const message = await nylas.messages.send({
+    const nylasClient = nylas();
+    const message = await nylasClient.messages.send({
       identifier: account.grant_id,
       requestBody: {
         to: [{ email: to }],

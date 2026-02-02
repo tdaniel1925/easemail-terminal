@@ -1,22 +1,38 @@
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia' as any,
-  typescript: true,
-});
+let stripeInstance: Stripe | null = null;
 
-export const STRIPE_PLANS = {
-  PRO: {
-    name: 'Pro',
-    price: 1200, // $12.00 in cents
-    priceId: process.env.STRIPE_PRO_PRICE_ID!,
-  },
-  BUSINESS: {
-    name: 'Business',
-    price: 2500, // $25.00 per seat in cents
-    priceId: process.env.STRIPE_BUSINESS_PRICE_ID!,
-  },
-};
+function getStripeClient(): Stripe {
+  if (!stripeInstance) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY environment variable is not set');
+    }
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-12-18.acacia' as any,
+      typescript: true,
+    });
+  }
+  return stripeInstance;
+}
+
+export const stripe = getStripeClient;
+
+export function getStripePlans() {
+  return {
+    PRO: {
+      name: 'Pro',
+      price: 1200, // $12.00 in cents
+      priceId: process.env.STRIPE_PRO_PRICE_ID || '',
+    },
+    BUSINESS: {
+      name: 'Business',
+      price: 2500, // $25.00 per seat in cents
+      priceId: process.env.STRIPE_BUSINESS_PRICE_ID || '',
+    },
+  };
+}
+
+export const STRIPE_PLANS = getStripePlans();
 
 export async function createCheckoutSession(params: {
   organizationId: string;
@@ -28,9 +44,10 @@ export async function createCheckoutSession(params: {
 }) {
   const { organizationId, plan, seats = 1, successUrl, cancelUrl, customerEmail } = params;
 
-  const planConfig = STRIPE_PLANS[plan];
+  const planConfig = getStripePlans()[plan];
+  const stripeClient = getStripeClient();
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await stripeClient.checkout.sessions.create({
     mode: 'subscription',
     payment_method_types: ['card'],
     customer_email: customerEmail,
@@ -55,7 +72,8 @@ export async function createCheckoutSession(params: {
 }
 
 export async function createCustomerPortalSession(customerId: string, returnUrl: string) {
-  const session = await stripe.billingPortal.sessions.create({
+  const stripeClient = getStripeClient();
+  const session = await stripeClient.billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
   });
@@ -64,9 +82,10 @@ export async function createCustomerPortalSession(customerId: string, returnUrl:
 }
 
 export async function updateSubscriptionSeats(subscriptionId: string, newSeats: number) {
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const stripeClient = getStripeClient();
+  const subscription = await stripeClient.subscriptions.retrieve(subscriptionId);
 
-  const updatedSubscription = await stripe.subscriptions.update(subscriptionId, {
+  const updatedSubscription = await stripeClient.subscriptions.update(subscriptionId, {
     items: [
       {
         id: subscription.items.data[0].id,
@@ -80,10 +99,11 @@ export async function updateSubscriptionSeats(subscriptionId: string, newSeats: 
 }
 
 export async function cancelSubscription(subscriptionId: string, immediately = false) {
+  const stripeClient = getStripeClient();
   if (immediately) {
-    return await stripe.subscriptions.cancel(subscriptionId);
+    return await stripeClient.subscriptions.cancel(subscriptionId);
   } else {
-    return await stripe.subscriptions.update(subscriptionId, {
+    return await stripeClient.subscriptions.update(subscriptionId, {
       cancel_at_period_end: true,
     });
   }

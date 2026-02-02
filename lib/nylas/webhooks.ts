@@ -1,8 +1,18 @@
 import Nylas from 'nylas';
 
-const nylas = new Nylas({
-  apiKey: process.env.NYLAS_API_KEY!,
-});
+let nylasInstance: Nylas | null = null;
+
+function getNylasClient(): Nylas {
+  if (!nylasInstance) {
+    if (!process.env.NYLAS_API_KEY) {
+      throw new Error('NYLAS_API_KEY environment variable is not set');
+    }
+    nylasInstance = new Nylas({
+      apiKey: process.env.NYLAS_API_KEY,
+    });
+  }
+  return nylasInstance;
+}
 
 export interface WebhookSetupOptions {
   webhookUrl: string;
@@ -33,6 +43,7 @@ export async function createNylasWebhook(options: WebhookSetupOptions) {
   } = options;
 
   try {
+    const nylas = getNylasClient();
     const webhook = await nylas.webhooks.create({
       requestBody: {
         description,
@@ -55,6 +66,7 @@ export async function createNylasWebhook(options: WebhookSetupOptions) {
  */
 export async function listNylasWebhooks() {
   try {
+    const nylas = getNylasClient();
     const webhooks = await nylas.webhooks.list();
     return { success: true, webhooks: webhooks.data };
   } catch (error: any) {
@@ -68,6 +80,7 @@ export async function listNylasWebhooks() {
  */
 export async function deleteNylasWebhook(webhookId: string) {
   try {
+    const nylas = getNylasClient();
     await nylas.webhooks.destroy({ webhookId });
     console.log('Webhook deleted successfully:', webhookId);
     return { success: true };
@@ -99,6 +112,7 @@ export async function updateNylasWebhook(
       updateData.triggerTypes = updates.triggers;
     }
 
+    const nylas = getNylasClient();
     const webhook = await nylas.webhooks.update({
       webhookId,
       requestBody: updateData,
@@ -117,6 +131,7 @@ export async function updateNylasWebhook(
  */
 export async function getNylasWebhook(webhookId: string) {
   try {
+    const nylas = getNylasClient();
     const webhook = await nylas.webhooks.find({ webhookId });
     return { success: true, webhook: webhook.data };
   } catch (error: any) {
@@ -130,6 +145,7 @@ export async function getNylasWebhook(webhookId: string) {
  */
 export async function rotateWebhookSecret(webhookId: string) {
   try {
+    const nylas = getNylasClient();
     const result = await nylas.webhooks.rotateSecret({ webhookId });
     console.log('Webhook secret rotated successfully');
     return { success: true, secret: result.data.webhookSecret };

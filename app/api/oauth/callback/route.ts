@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { nylas, nylasOAuthConfig } from '@/lib/nylas/client';
+import { nylas, getNylasOAuthConfig } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
@@ -22,9 +22,11 @@ export async function GET(request: NextRequest) {
 
   try {
     // Exchange code for grant
-    const response = await nylas.auth.exchangeCodeForToken({
-      clientId: nylasOAuthConfig.clientId,
-      redirectUri: nylasOAuthConfig.redirectUri,
+    const nylasClient = nylas();
+    const oauthConfig = getNylasOAuthConfig();
+    const response = await nylasClient.auth.exchangeCodeForToken({
+      clientId: oauthConfig.clientId,
+      redirectUri: oauthConfig.redirectUri,
       code,
     });
 

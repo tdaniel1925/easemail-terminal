@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { nylas, nylasOAuthConfig } from '@/lib/nylas/client';
+import { nylas, getNylasOAuthConfig } from '@/lib/nylas/client';
 import { getUser } from '@/lib/auth/actions';
 
 export async function POST(request: NextRequest) {
@@ -21,9 +21,11 @@ export async function POST(request: NextRequest) {
     const nylasProvider = providerMap[provider] || 'google';
 
     // Build Nylas OAuth URL
-    const authUrl = nylas.auth.urlForOAuth2({
-      clientId: nylasOAuthConfig.clientId,
-      redirectUri: nylasOAuthConfig.redirectUri,
+    const nylasClient = nylas();
+    const oauthConfig = getNylasOAuthConfig();
+    const authUrl = nylasClient.auth.urlForOAuth2({
+      clientId: oauthConfig.clientId,
+      redirectUri: oauthConfig.redirectUri,
       provider: nylasProvider as any,
       scope: ['email', 'calendar', 'contacts'],
       state: user.id, // Pass user ID in state for callback

@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
     const events = await getCachedOrFetch(
       `events:${account.grant_id}`,
       async () => {
-        const response = await nylas.events.list({
+        const nylasClient = nylas();
+        const response = await nylasClient.events.list({
           identifier: account.grant_id,
           queryParams: {
             calendarId: '*', // All calendars
@@ -72,7 +73,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create event via Nylas
-    const event = await nylas.events.create({
+    const nylasClient = nylas();
+    const event = await nylasClient.events.create({
       identifier: account.grant_id,
       requestBody: {
         title,

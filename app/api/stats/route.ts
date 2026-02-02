@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
 
     try {
       // Fetch messages from Nylas to calculate stats
-      const messagesResponse = await nylas.messages.list({
+      const nylasClient = nylas();
+      const messagesResponse = await nylasClient.messages.list({
         identifier: account.grant_id,
         queryParams: {
           limit: 100,

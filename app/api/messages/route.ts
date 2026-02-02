@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
     const messages = await getCachedOrFetch(
       `messages:${grantId}`,
       async () => {
-        const response = await nylas.messages.list({
+        const nylasClient = nylas();
+        const response = await nylasClient.messages.list({
           identifier: grantId,
           queryParams: {
             limit: 50,

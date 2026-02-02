@@ -1,16 +1,34 @@
 import Nylas from 'nylas';
 
-const nylasConfig = {
-  apiKey: process.env.NYLAS_API_KEY!,
-  apiUri: process.env.NYLAS_API_URI || 'https://api.us.nylas.com',
-};
+let nylasInstance: Nylas | null = null;
 
-export const nylas = new Nylas(nylasConfig);
+function getNylasClient(): Nylas {
+  if (!nylasInstance) {
+    if (!process.env.NYLAS_API_KEY) {
+      throw new Error('NYLAS_API_KEY environment variable is not set');
+    }
+    const nylasConfig = {
+      apiKey: process.env.NYLAS_API_KEY,
+      apiUri: process.env.NYLAS_API_URI || 'https://api.us.nylas.com',
+    };
+    nylasInstance = new Nylas(nylasConfig);
+  }
+  return nylasInstance;
+}
 
-export const nylasClientId = process.env.NYLAS_CLIENT_ID!;
+export const nylas = getNylasClient;
+
+export function getNylasClientId(): string {
+  if (!process.env.NYLAS_CLIENT_ID) {
+    throw new Error('NYLAS_CLIENT_ID environment variable is not set');
+  }
+  return process.env.NYLAS_CLIENT_ID;
+}
 
 // OAuth configuration
-export const nylasOAuthConfig = {
-  clientId: nylasClientId,
-  redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/api/oauth/callback`,
-};
+export function getNylasOAuthConfig() {
+  return {
+    clientId: getNylasClientId(),
+    redirectUri: `${process.env.NEXT_PUBLIC_APP_URL}/api/oauth/callback`,
+  };
+}

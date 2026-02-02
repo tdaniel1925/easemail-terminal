@@ -1,8 +1,18 @@
 import OpenAI from 'openai';
 
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+let openaiInstance: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiInstance) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+    openaiInstance = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openaiInstance;
+}
 
 export type AITone = 'professional' | 'friendly' | 'brief' | 'detailed';
 
@@ -14,6 +24,7 @@ export async function aiRemix(text: string, tone: AITone = 'professional'): Prom
     detailed: 'Rewrite this into a detailed, comprehensive email. Expand on key points. Fix spelling and grammar.',
   };
 
+  const openai = getOpenAIClient();
   const completion = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
@@ -34,6 +45,7 @@ export async function aiRemix(text: string, tone: AITone = 'professional'): Prom
 }
 
 export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
+  const openai = getOpenAIClient();
   const transcription = await openai.audio.transcriptions.create({
     file: new File([audioBuffer as any], 'audio.webm', { type: 'audio/webm' }),
     model: 'whisper-1',
@@ -44,6 +56,7 @@ export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
 }
 
 export async function generateSmartReplies(emailBody: string, numReplies: number = 3): Promise<string[]> {
+  const openai = getOpenAIClient();
   const completion = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
@@ -64,6 +77,7 @@ export async function generateSmartReplies(emailBody: string, numReplies: number
 }
 
 export async function extractCalendarEvent(text: string) {
+  const openai = getOpenAIClient();
   const completion = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [
@@ -89,6 +103,7 @@ export async function categorizeEmail(
   from: string,
   body: string
 ): Promise<EmailCategory> {
+  const openai = getOpenAIClient();
   const completion = await openai.chat.completions.create({
     model: 'gpt-4-turbo-preview',
     messages: [

@@ -34,7 +34,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch messages from Nylas
-    const messagesResponse = await nylas.messages.list({
+    const nylasClient = nylas();
+    const messagesResponse = await nylasClient.messages.list({
       identifier: account.grant_id,
       queryParams: {
         limit: 50, // Categorize recent messages

@@ -1,32 +1,40 @@
 import Redis from 'ioredis';
 
-const getRedisUrl = () => {
-  if (process.env.REDIS_URL) {
-    return process.env.REDIS_URL;
+let redisInstance: Redis | null = null;
+
+function getRedisClient(): Redis {
+  if (!redisInstance) {
+    if (!process.env.REDIS_URL) {
+      throw new Error('REDIS_URL environment variable is not set');
+    }
+
+    redisInstance = new Redis(process.env.REDIS_URL, {
+      maxRetriesPerRequest: 3,
+      retryStrategy(times) {
+        const delay = Math.min(times * 50, 2000);
+        return delay;
+      },
+    });
+
+    redisInstance.on('error', (error) => {
+      console.error('Redis error:', error);
+    });
+
+    redisInstance.on('connect', () => {
+      console.log('Redis connected');
+    });
   }
-  throw new Error('REDIS_URL is not defined');
-};
 
-export const redis = new Redis(getRedisUrl(), {
-  maxRetriesPerRequest: 3,
-  retryStrategy(times) {
-    const delay = Math.min(times * 50, 2000);
-    return delay;
-  },
-});
+  return redisInstance;
+}
 
-redis.on('error', (error) => {
-  console.error('Redis error:', error);
-});
-
-redis.on('connect', () => {
-  console.log('Redis connected');
-});
+export const redis = getRedisClient;
 
 // Cache helper functions
 export async function getCache<T>(key: string): Promise<T | null> {
   try {
-    const data = await redis.get(key);
+    const redisClient = getRedisClient();
+    const data = await redisClient.get(key);
     return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error('Cache get error:', error);
@@ -40,7 +48,8 @@ export async function setCache(
   expirationSeconds: number = 3600
 ): Promise<void> {
   try {
-    await redis.setex(key, expirationSeconds, JSON.stringify(value));
+    const redisClient = getRedisClient();
+    await redisClient.setex(key, expirationSeconds, JSON.stringify(value));
   } catch (error) {
     console.error('Cache set error:', error);
   }
@@ -48,7 +57,8 @@ export async function setCache(
 
 export async function deleteCache(key: string): Promise<void> {
   try {
-    await redis.del(key);
+    const redisClient = getRedisClient();
+    await redisClient.del(key);
   } catch (error) {
     console.error('Cache delete error:', error);
   }
