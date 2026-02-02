@@ -12,24 +12,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's email accounts
-    const { data: accounts } = (await supabase
-      .from('email_accounts')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_primary', true)
-      .single()) as { data: any };
-
-    if (!accounts) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
-    }
-
-    const grantId = accounts.grant_id;
-
     // Get pagination parameters
     const searchParams = request.nextUrl.searchParams;
     const pageToken = searchParams.get('page_token');
     const limit = parseInt(searchParams.get('limit') || '50');
+    const accountId = searchParams.get('accountId');
+
+    // Get user's email account(s)
+    let account: any;
+    if (accountId) {
+      // Fetch specific account
+      const { data: specificAccount } = (await supabase
+        .from('email_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('id', accountId)
+        .single()) as { data: any };
+
+      account = specificAccount;
+    } else {
+      // Fetch primary account
+      const { data: primaryAccount } = (await supabase
+        .from('email_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_primary', true)
+        .single()) as { data: any };
+
+      account = primaryAccount;
+    }
+
+    if (!account) {
+      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+    }
+
+    const grantId = account.grant_id;
 
     // Fetch messages from Nylas (disable caching for pagination)
     const nylasClient = nylas();
