@@ -16,6 +16,7 @@ import dynamic from 'next/dynamic';
 import { VoiceInput } from '@/components/features/voice-input';
 import { VoiceMessageRecorder } from '@/components/features/voice-message-recorder';
 import { AttachmentUploader } from '@/components/email/attachment-uploader';
+import { TiptapEditor } from '@/components/ui/tiptap-editor';
 
 // Dynamically import emoji picker to avoid SSR issues
 const EmojiPicker = dynamic(
@@ -714,13 +715,11 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                 </div>
               </div>
             )}
-            <Textarea
-              id="body"
+            <TiptapEditor
+              content={body}
+              onChange={setBody}
               placeholder="Write your message here... You can use messy text - we'll polish it with AI!"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={12}
-              className="resize-none"
+              minHeight="300px"
             />
           </div>
 
