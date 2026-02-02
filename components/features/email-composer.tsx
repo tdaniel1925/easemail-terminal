@@ -106,6 +106,10 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [undoSendCountdown, setUndoSendCountdown] = useState<number | null>(null);
   const undoSendTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Signature states
+  const [signatures, setSignatures] = useState<any[]>([]);
+  const [selectedSignature, setSelectedSignature] = useState<string>('');
+
   // Save draft function
   const saveDraft = async (showToast: boolean = false) => {
     // Don't save empty drafts
@@ -233,6 +237,52 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       toast.error('Failed to save template');
     }
   };
+
+  // Signature functions
+  const fetchSignatures = async () => {
+    try {
+      const response = await fetch('/api/signatures');
+      const data = await response.json();
+      if (response.ok && data.signatures) {
+        setSignatures(data.signatures);
+        // Auto-insert default signature if available and body is empty
+        const defaultSig = data.signatures.find((sig: any) => sig.is_default);
+        if (defaultSig && !body) {
+          insertSignature(defaultSig.content);
+          setSelectedSignature(defaultSig.id);
+        }
+      }
+    } catch (error) {
+      console.error('Fetch signatures error:', error);
+    }
+  };
+
+  const insertSignature = (signatureContent: string) => {
+    const separator = '\n\n---\n\n';
+    setBody((currentBody) => {
+      // Remove any existing signature (content after ---)
+      const bodyWithoutSig = currentBody.split('---')[0].trim();
+      return bodyWithoutSig + separator + signatureContent;
+    });
+  };
+
+  const handleSignatureChange = (signatureId: string) => {
+    setSelectedSignature(signatureId);
+    if (signatureId) {
+      const signature = signatures.find((sig) => sig.id === signatureId);
+      if (signature) {
+        insertSignature(signature.content);
+      }
+    } else {
+      // Remove signature
+      setBody((currentBody) => currentBody.split('---')[0].trim());
+    }
+  };
+
+  // Fetch signatures when composer opens
+  useEffect(() => {
+    fetchSignatures();
+  }, []);
 
   const handleScheduleSend = async () => {
     if (!to || !subject || !body) {
@@ -689,18 +739,35 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                   <TooltipContent>Add emoji (Ctrl/Cmd+E)</TooltipContent>
                 </Tooltip>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Tone:</span>
-                <select
-                  value={tone}
-                  onChange={(e) => setTone(e.target.value as any)}
-                  className="text-xs border rounded px-2 py-1"
-                >
-                  <option value="professional">Professional</option>
-                  <option value="friendly">Friendly</option>
-                  <option value="brief">Brief</option>
-                  <option value="detailed">Detailed</option>
-                </select>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Tone:</span>
+                  <select
+                    value={tone}
+                    onChange={(e) => setTone(e.target.value as any)}
+                    className="text-xs border rounded px-2 py-1"
+                  >
+                    <option value="professional">Professional</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="brief">Brief</option>
+                    <option value="detailed">Detailed</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Signature:</span>
+                  <select
+                    value={selectedSignature}
+                    onChange={(e) => handleSignatureChange(e.target.value)}
+                    className="text-xs border rounded px-2 py-1"
+                  >
+                    <option value="">None</option>
+                    {signatures.map((sig) => (
+                      <option key={sig.id} value={sig.id}>
+                        {sig.name} {sig.is_default ? '(Default)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
             {showEmojiPicker && (

@@ -60,7 +60,8 @@
       "Bash(npm:*)",
       "Bash(git merge:*)",
       "Bash(Select-Object -First 20)",
-      "Bash(Select-Object -First 15)"
+      "Bash(Select-Object -First 15)",
+      "Bash(node run-signatures-migration.js:*)"
     ],
     "deny": [],
     "ask": []
