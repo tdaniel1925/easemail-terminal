@@ -429,6 +429,13 @@ export default function InboxPage() {
     fetchMessages();
     fetchCategories();
     fetchLabels();
+
+    // Auto-refresh inbox every 60 seconds
+    const refreshInterval = setInterval(() => {
+      fetchMessages(false); // Silent refresh without loading state
+    }, 60000);
+
+    return () => clearInterval(refreshInterval);
   }, [fetchAccounts, fetchMessages, fetchCategories, fetchLabels]);
 
   useEffect(() => {

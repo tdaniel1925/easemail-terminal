@@ -61,7 +61,10 @@
       "Bash(git merge:*)",
       "Bash(Select-Object -First 20)",
       "Bash(Select-Object -First 15)",
-      "Bash(node run-signatures-migration.js:*)"
+      "Bash(node run-signatures-migration.js:*)",
+      "Bash(node scripts/apply-super-admin-migration.js:*)",
+      "Bash(node scripts/set-super-admin.js:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

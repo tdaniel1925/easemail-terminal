@@ -67,6 +67,13 @@ export default function HomePage() {
   useEffect(() => {
     fetchUserData();
     fetchStats();
+
+    // Auto-refresh dashboard every 30 seconds
+    const refreshInterval = setInterval(() => {
+      fetchStats(); // Refresh stats silently
+    }, 30000);
+
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const fetchUserData = async () => {

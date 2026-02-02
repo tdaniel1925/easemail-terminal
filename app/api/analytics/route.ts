@@ -36,17 +36,17 @@ export async function GET(request: NextRequest) {
         .select('*', { count: 'exact', head: true })
         .eq('organization_id', orgId);
 
-      // Get usage tracking
+      // Get usage tracking (use 'timestamp' field from schema)
       const { data: usage } = await supabase
         .from('usage_tracking')
-        .select('feature, created_at')
+        .select('feature, timestamp')
         .in('user_id', (
           await supabase
             .from('organization_members')
             .select('user_id')
             .eq('organization_id', orgId)
         ).data?.map((m: any) => m.user_id) || [])
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()); // Last 30 days
+        .gte('timestamp', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()); // Last 30 days
 
       // Count by feature
       const featureCounts = usage?.reduce((acc: any, item: any) => {
@@ -54,9 +54,9 @@ export async function GET(request: NextRequest) {
         return acc;
       }, {});
 
-      // Count by day for time series
+      // Count by day for time series (use 'timestamp' field from schema)
       const dailyUsage = usage?.reduce((acc: any, item: any) => {
-        const date = new Date(item.created_at).toISOString().split('T')[0];
+        const date = new Date(item.timestamp).toISOString().split('T')[0];
         acc[date] = (acc[date] || 0) + 1;
         return acc;
       }, {});

@@ -53,6 +53,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Track usage for analytics
+    try {
+      await supabase.from('usage_tracking').insert({
+        user_id: user.id,
+        feature: 'email_sent',
+      } as any);
+    } catch (trackingError) {
+      // Don't fail the request if tracking fails
+      console.error('Usage tracking error:', trackingError);
+    }
+
     return NextResponse.json({ message: 'Email sent successfully', data: message });
   } catch (error) {
     console.error('Send message error:', error);

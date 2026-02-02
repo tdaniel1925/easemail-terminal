@@ -35,10 +35,12 @@ export async function GET(request: NextRequest) {
     try {
       // Fetch messages from Nylas to calculate stats
       const nylasClient = nylas();
+
+      // Fetch more messages for accurate stats (increased from 100 to 500)
       const messagesResponse = await nylasClient.messages.list({
         identifier: account.grant_id,
         queryParams: {
-          limit: 100,
+          limit: 500,
         },
       });
 
@@ -46,7 +48,7 @@ export async function GET(request: NextRequest) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Calculate stats
+      // Calculate stats from actual message data
       const unread = messages.filter((m: any) => m.unread).length;
       const todayMessages = messages.filter((m: any) => {
         const msgDate = new Date((m.date || 0) * 1000);
@@ -71,13 +73,54 @@ export async function GET(request: NextRequest) {
       const topSender = Object.entries(senderCounts)
         .sort(([, a], [, b]) => b - a)[0]?.[0] || 'No data';
 
+      // Calculate average response time from recent emails
+      // Look at sent messages and find average time between received and replied
+      const sentMessages = messages.filter((m: any) =>
+        m.folders?.some((f: string) => f.toLowerCase().includes('sent'))
+      );
+
+      let totalResponseTimeMs = 0;
+      let responseCount = 0;
+
+      sentMessages.forEach((sent: any) => {
+        // Find corresponding received message by checking thread or subject
+        const received = messages.find((m: any) =>
+          m.thread_id === sent.thread_id &&
+          m.date < sent.date &&
+          !m.folders?.some((f: string) => f.toLowerCase().includes('sent'))
+        );
+
+        if (received) {
+          const responseTime = (sent.date - received.date) * 1000; // Convert to ms
+          if (responseTime > 0 && responseTime < 7 * 24 * 60 * 60 * 1000) { // Filter out outliers (> 7 days)
+            totalResponseTimeMs += responseTime;
+            responseCount++;
+          }
+        }
+      });
+
+      let avgResponseTime = 'N/A';
+      if (responseCount > 0) {
+        const avgMs = totalResponseTimeMs / responseCount;
+        const hours = Math.floor(avgMs / (1000 * 60 * 60));
+        const minutes = Math.floor((avgMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        if (hours > 24) {
+          avgResponseTime = `${Math.floor(hours / 24)}d ${hours % 24}h`;
+        } else if (hours > 0) {
+          avgResponseTime = `${hours}h ${minutes}m`;
+        } else {
+          avgResponseTime = `${minutes}m`;
+        }
+      }
+
       return NextResponse.json({
         stats: {
           unread,
           today: todayMessages,
           starred,
           sent: sentCount || 0,
-          avgResponseTime: '2h', // TODO: Calculate actual response time
+          avgResponseTime,
           topSender,
         },
       });
