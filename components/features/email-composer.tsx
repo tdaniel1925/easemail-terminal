@@ -11,6 +11,7 @@ import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoiceInput } from '@/components/features/voice-input';
 import { VoiceMessageRecorder } from '@/components/features/voice-message-recorder';
+import { AttachmentUploader } from '@/components/email/attachment-uploader';
 
 interface EmailComposerProps {
   onClose: () => void;
@@ -61,6 +62,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [remixing, setRemixing] = useState(false);
   const [tone, setTone] = useState<'professional' | 'friendly' | 'brief' | 'detailed'>('professional');
   const [voiceAttachments, setVoiceAttachments] = useState<Array<{ blob: Blob; duration: number }>>([]);
+  const [attachments, setAttachments] = useState<Array<{ id: string; name: string; size: number; type: string; file: File }>>([]);
 
   // Draft-related state
   const [draftId, setDraftId] = useState<string | null>(null);
@@ -208,6 +210,29 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e) : [];
       const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e) : [];
 
+      // Process attachments if any
+      let processedAttachments: any[] = [];
+      if (attachments.length > 0) {
+        const formData = new FormData();
+        attachments.forEach((attachment) => {
+          formData.append('files', attachment.file);
+        });
+
+        const uploadResponse = await fetch('/api/attachments/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const uploadData = await uploadResponse.json();
+        if (uploadResponse.ok && uploadData.attachments) {
+          processedAttachments = uploadData.attachments;
+        } else {
+          toast.error('Failed to process attachments');
+          setSending(false);
+          return;
+        }
+      }
+
       // Use reply endpoint if this is a reply, otherwise use send endpoint
       const endpoint = replyTo?.messageId ? '/api/messages/reply' : '/api/messages/send';
 
@@ -220,6 +245,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           ...(bccArray.length > 0 && { bcc: bccArray }),
           subject,
           body,
+          ...(processedAttachments.length > 0 && { attachments: processedAttachments }),
           ...(replyTo?.messageId && { messageId: replyTo.messageId, replyAll: replyTo.replyAll }),
         }),
       });
@@ -402,6 +428,14 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
             onRecorded={(blob, duration) => {
               setVoiceAttachments([...voiceAttachments, { blob, duration }]);
             }}
+          />
+
+          {/* File Attachments */}
+          <AttachmentUploader
+            attachments={attachments}
+            onAttachmentsChange={setAttachments}
+            maxSize={25}
+            maxFiles={10}
           />
 
           {/* AI Remix Hint */}

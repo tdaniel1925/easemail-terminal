@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { to, cc, bcc, subject, body } = await request.json();
+    const { to, cc, bcc, subject, body, attachments: attachmentData } = await request.json();
 
     // Get user's email account
     const { data: account } = (await supabase
@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
         ...(bccRecipients && { bcc: bccRecipients }),
         subject,
         body,
+        ...(attachmentData && attachmentData.length > 0 && { attachments: attachmentData }),
       },
     });
 
