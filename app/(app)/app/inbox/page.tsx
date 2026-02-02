@@ -37,6 +37,9 @@ export default function InboxPage() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [viewMode, setViewMode] = useState<'messages' | 'threads'>('messages');
+  const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
+  const [threadMessages, setThreadMessages] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
     fetchMessages();
@@ -525,6 +528,75 @@ export default function InboxPage() {
     }
   };
 
+  // Threading functions
+  const groupMessagesByThread = () => {
+    const threads = new Map<string, any[]>();
+
+    filteredMessages.forEach((message) => {
+      const threadId = message.thread_id || message.id;
+      if (!threads.has(threadId)) {
+        threads.set(threadId, []);
+      }
+      threads.get(threadId)!.push(message);
+    });
+
+    // Sort messages within each thread by date (oldest first)
+    threads.forEach((messages, threadId) => {
+      messages.sort((a, b) => a.date - b.date);
+    });
+
+    return threads;
+  };
+
+  const toggleThread = async (threadId: string) => {
+    const newExpanded = new Set(expandedThreads);
+
+    if (newExpanded.has(threadId)) {
+      newExpanded.delete(threadId);
+      setExpandedThreads(newExpanded);
+    } else {
+      newExpanded.add(threadId);
+      setExpandedThreads(newExpanded);
+
+      // Fetch thread messages if not already loaded
+      if (!threadMessages[threadId]) {
+        try {
+          const response = await fetch(`/api/threads/${threadId}`);
+          const data = await response.json();
+
+          if (response.ok && data.messages) {
+            setThreadMessages(prev => ({
+              ...prev,
+              [threadId]: data.messages.sort((a: any, b: any) => a.date - b.date),
+            }));
+          }
+        } catch (error) {
+          console.error('Failed to fetch thread messages:', error);
+          toast.error('Failed to load thread messages');
+        }
+      }
+    }
+  };
+
+  const getThreadPreview = (thread: any[]) => {
+    // Return the most recent message
+    return thread[thread.length - 1];
+  };
+
+  const getDisplayItems = () => {
+    if (viewMode === 'messages') {
+      return filteredMessages.map(msg => ({ type: 'message' as const, data: msg }));
+    } else {
+      const threads = groupMessagesByThread();
+      return Array.from(threads.entries()).map(([threadId, messages]) => ({
+        type: 'thread' as const,
+        threadId,
+        messages,
+        preview: getThreadPreview(messages),
+      }));
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
@@ -783,7 +855,7 @@ export default function InboxPage() {
                 </div>
               </div>
             ) : filteredMessages.length > 0 && (
-              <div className="p-2 border-b border-border flex items-center gap-2">
+              <div className="p-2 border-b border-border flex items-center justify-between gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -806,6 +878,26 @@ export default function InboxPage() {
                     {selectedMessages.size > 0 ? `${selectedMessages.size} selected` : 'Select all'}
                   </span>
                 </Button>
+                <div className="flex items-center gap-1 bg-accent/50 rounded-md p-1">
+                  <Button
+                    variant={viewMode === 'messages' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('messages')}
+                    className="h-6 text-xs px-2"
+                  >
+                    <Mail className="h-3 w-3 mr-1" />
+                    Messages
+                  </Button>
+                  <Button
+                    variant={viewMode === 'threads' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('threads')}
+                    className="h-6 text-xs px-2"
+                  >
+                    <Users className="h-3 w-3 mr-1" />
+                    Threads
+                  </Button>
+                </div>
               </div>
             )}
             <ScrollArea className="h-full">
@@ -836,7 +928,8 @@ export default function InboxPage() {
                     </Button>
                   )}
                 </div>
-              ) : (
+              ) : viewMode === 'messages' ? (
+                // Message View
                 filteredMessages.map((message) => {
                   const category = categories[message.id];
                   const isSelected = selectedMessages.has(message.id);
@@ -913,6 +1006,104 @@ export default function InboxPage() {
                       </button>
                     </div>
                   </div>
+                  );
+                })
+              ) : (
+                // Thread View
+                Array.from(groupMessagesByThread().entries()).map(([threadId, threadMessages]) => {
+                  const previewMessage = getThreadPreview(threadMessages);
+                  const category = categories[previewMessage.id];
+                  const isExpanded = expandedThreads.has(threadId);
+                  const threadCount = threadMessages.length;
+                  const hasUnread = threadMessages.some(m => m.unread);
+
+                  return (
+                    <div key={threadId} className="border-b border-border">
+                      {/* Thread Preview */}
+                      <div className={`w-full text-left p-4 hover:bg-accent transition-colors ${
+                        selectedMessage?.id === previewMessage.id ? 'bg-accent' : ''
+                      }`}>
+                        <div className="flex items-start gap-3">
+                          <button
+                            onClick={() => toggleThread(threadId)}
+                            className="flex-1 flex items-start gap-3 text-left"
+                          >
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={`https://logo.clearbit.com/${previewMessage.from?.[0]?.email?.split('@')[1]}`} />
+                              <AvatarFallback>
+                                {getInitials(previewMessage.from?.[0]?.name, previewMessage.from?.[0]?.email)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className={`font-medium truncate ${hasUnread ? 'font-bold' : ''}`}>
+                                  {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  {threadCount > 1 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {threadCount}
+                                    </Badge>
+                                  )}
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatDate(previewMessage.date * 1000)}
+                                  </span>
+                                </div>
+                              </div>
+                              <p className={`text-sm truncate mb-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                                {previewMessage.subject || '(no subject)'}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {previewMessage.snippet || ''}
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                {hasUnread && (
+                                  <Badge variant="default" className="text-xs">New</Badge>
+                                )}
+                                {category && (
+                                  <Badge variant="outline" className={`text-xs ${getCategoryBadgeColor(category)}`}>
+                                    {category}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Expanded Thread Messages */}
+                      {isExpanded && threadMessages.length > 1 && (
+                        <div className="bg-accent/30 border-t border-border">
+                          {threadMessages.slice(0, -1).map((msg) => (
+                            <button
+                              key={msg.id}
+                              onClick={() => setSelectedMessage(msg)}
+                              className="w-full text-left p-3 pl-16 border-b border-border/50 hover:bg-accent/50 transition-colors flex items-start gap-3"
+                            >
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={`https://logo.clearbit.com/${msg.from?.[0]?.email?.split('@')[1]}`} />
+                                <AvatarFallback className="text-xs">
+                                  {getInitials(msg.from?.[0]?.name, msg.from?.[0]?.email)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm truncate">
+                                    {msg.from?.[0]?.name || msg.from?.[0]?.email}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatDate(msg.date * 1000)}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {msg.snippet || ''}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   );
                 })
               )}
