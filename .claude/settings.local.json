@@ -65,7 +65,8 @@
       "Bash(node scripts/apply-super-admin-migration.js:*)",
       "Bash(node scripts/set-super-admin.js:*)",
       "Bash(find:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(tail:*)"
     ],
     "deny": [],
     "ask": []

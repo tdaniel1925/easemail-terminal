@@ -928,11 +928,9 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="border-b border-border bg-card p-6">
+    <div className="flex h-full flex-col">
+      {/* Header */}
+      <header className="border-b border-border bg-card p-6">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1004,12 +1002,12 @@ export default function InboxPage() {
               )}
             </Button>
           </div>
-        </header>
+      </header>
 
-        {/* Email List & Reading Pane */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Email List */}
-          <div className="w-full md:w-96 lg:w-96 border-r border-border bg-card">
+      {/* Email List & Reading Pane */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Email List */}
+        <div className="w-full md:w-96 lg:w-96 border-r border-border bg-card">
             {/* Search Results Header */}
             {searchQuery && (
               <div className="p-3 border-b border-border bg-accent/50">
@@ -1519,7 +1517,6 @@ export default function InboxPage() {
             )}
           </div>
         </div>
-      </div>
 
       {/* Composer Dialog */}
       {composing && (
