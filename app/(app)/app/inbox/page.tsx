@@ -928,9 +928,9 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-white dark:bg-gray-900">
       {/* Header */}
-      <header className="border-b border-border bg-card p-4">
+      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -1007,7 +1007,7 @@ export default function InboxPage() {
       {/* Email List & Reading Pane */}
       <div className="flex-1 flex overflow-hidden">
         {/* Email List */}
-        <div className="w-full md:w-96 lg:w-96 border-r border-border bg-card">
+        <div className="w-full md:w-96 lg:w-96 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
             {/* Search Results Header */}
             {searchQuery && (
               <div className="p-3 border-b border-border bg-accent/50">
@@ -1184,9 +1184,9 @@ export default function InboxPage() {
                   return (
                   <div
                     key={message.id}
-                    className={`w-full text-left py-1.5 px-2 border-b border-border hover:bg-accent/50 transition-colors ${
-                      selectedMessage?.id === message.id ? 'bg-accent' : ''
-                    } ${isSelected ? 'bg-primary/5' : ''}`}
+                    className={`w-full text-left py-2 px-3 border-b border-gray-100 dark:border-gray-800 hover:shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all cursor-pointer ${
+                      selectedMessage?.id === message.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-600' : ''
+                    } ${isSelected ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                   >
                     <div className="flex items-center gap-1.5">
                       {/* Checkbox */}
@@ -1360,10 +1360,10 @@ export default function InboxPage() {
           </div>
 
           {/* Reading Pane */}
-          <div className={`flex-1 flex flex-col ${selectedMessage ? 'block' : 'hidden md:block'}`}>
+          <div className={`flex-1 flex flex-col bg-white dark:bg-gray-900 ${selectedMessage ? 'block' : 'hidden md:block'}`}>
             {selectedMessage ? (
               <>
-                <div className="border-b border-border bg-card p-2">
+                <div className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={`https://logo.clearbit.com/${selectedMessage.from?.[0]?.email?.split('@')[1]}`} />
@@ -1383,37 +1383,35 @@ export default function InboxPage() {
                       {new Date(selectedMessage.date * 1000).toLocaleString()}
                     </div>
                   </div>
-                  {/* Action Buttons - Single Row */}
-                  <div className="flex items-center gap-1 overflow-x-auto">
-                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, false)}>
-                      <Reply className="h-3 w-3" />
+                  {/* Action Toolbar */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
+                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, false)} className="bg-blue-600 hover:bg-blue-700 text-white border-0">
+                      <Reply className="h-4 w-4 mr-1.5" />
+                      Reply
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, true)}>
-                      <ReplyAll className="h-3 w-3" />
+                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, true)} className="border-gray-300 dark:border-gray-700">
+                      <ReplyAll className="h-4 w-4 mr-1.5" />
+                      Reply All
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleForward(selectedMessage)}>
-                      <Forward className="h-3 w-3" />
+                    <Button variant="outline" size="sm" onClick={() => handleForward(selectedMessage)} className="border-gray-300 dark:border-gray-700">
+                      <Forward className="h-4 w-4 mr-1.5" />
+                      Forward
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleSnooze(selectedMessage.id)}>
-                      <Clock className="h-3 w-3" />
+                    <div className="flex-1" />
+                    <Button variant="ghost" size="sm" onClick={() => handleArchive(selectedMessage.id)}>
+                      <Archive className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleApplyLabel(selectedMessage.id)}>
-                      <Tag className="h-3 w-3" />
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(selectedMessage.id, false)}>
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => reportSpam(selectedMessage.id)}>
-                      <Shield className="h-3 w-3" />
+                    <Button variant="ghost" size="sm" onClick={() => handleToggleStar(selectedMessage.id, selectedMessage.starred || false)}>
+                      <Star className={`h-4 w-4 ${selectedMessage.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleToggleStar(selectedMessage.id, selectedMessage.starred || false)}>
-                      <Star className={`h-3 w-3 ${selectedMessage.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                    <Button variant="ghost" size="sm" onClick={() => handleSnooze(selectedMessage.id)}>
+                      <Clock className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleToggleRead(selectedMessage.id, selectedMessage.unread || false)}>
-                      <Mail className="h-3 w-3" />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleArchive(selectedMessage.id)}>
-                      <Archive className="h-3 w-3" />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDelete(selectedMessage.id, false)}>
-                      <Trash2 className="h-3 w-3" />
+                    <Button variant="ghost" size="sm" onClick={() => handleApplyLabel(selectedMessage.id)}>
+                      <Tag className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
