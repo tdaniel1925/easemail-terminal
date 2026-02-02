@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2, Zap } from 'lucide-react';
+import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2, Zap, Braces } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHotkeys } from 'react-hotkeys-hook';
 import dynamic from 'next/dynamic';
@@ -18,6 +18,7 @@ import { VoiceMessageRecorder } from '@/components/features/voice-message-record
 import { AttachmentUploader } from '@/components/email/attachment-uploader';
 import { TiptapEditor } from '@/components/ui/tiptap-editor';
 import { RecipientInput } from '@/components/ui/recipient-input';
+import { DEFAULT_VARIABLES, replaceTemplateVariables, getRecipientVariables, hasTemplateVariables } from '@/lib/template-variables';
 
 // Dynamically import emoji picker to avoid SSR issues
 const EmojiPicker = dynamic(
@@ -115,6 +116,9 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [showCannedResponses, setShowCannedResponses] = useState(false);
   const [cannedResponseSearch, setCannedResponseSearch] = useState('');
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
+
+  // Template variables states
+  const [showVariables, setShowVariables] = useState(false);
 
   // Save draft function
   const saveDraft = async (showToast: boolean = false) => {
@@ -218,6 +222,12 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     });
     setShowCannedResponses(false);
     toast.success(`✨ Inserted "${template.name}"`);
+  };
+
+  const insertVariable = (variable: string) => {
+    setBody((currentBody) => currentBody + variable);
+    setShowVariables(false);
+    toast.success(`Added ${variable}`);
   };
 
   const saveAsTemplate = async () => {
@@ -528,6 +538,20 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e) : [];
       const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e) : [];
 
+      // Replace template variables if present
+      let processedSubject = subject;
+      let processedBody = body;
+
+      if (hasTemplateVariables(subject) || hasTemplateVariables(body)) {
+        // Get variables for the first recipient
+        const primaryRecipient = toArray[0];
+        if (primaryRecipient) {
+          const variables = await getRecipientVariables(primaryRecipient);
+          processedSubject = replaceTemplateVariables(subject, variables);
+          processedBody = replaceTemplateVariables(body, variables);
+        }
+      }
+
       // Process attachments if any
       let processedAttachments: any[] = [];
       if (attachments.length > 0) {
@@ -561,8 +585,8 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           to: toArray.length === 1 ? toArray[0] : toArray,
           ...(ccArray.length > 0 && { cc: ccArray }),
           ...(bccArray.length > 0 && { bcc: bccArray }),
-          subject,
-          body,
+          subject: processedSubject,
+          body: processedBody,
           ...(processedAttachments.length > 0 && { attachments: processedAttachments }),
           ...(replyTo?.messageId && { messageId: replyTo.messageId, replyAll: replyTo.replyAll }),
         }),
@@ -787,6 +811,20 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Insert canned response (Ctrl/Cmd+/)</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => setShowVariables(!showVariables)}
+                    >
+                      <Braces className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Insert template variable</TooltipContent>
                 </Tooltip>
               </div>
               <div className="flex items-center gap-4">
@@ -1383,6 +1421,55 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                   </button>
                 ))
               )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Template Variables Dialog */}
+      {showVariables && (
+        <Dialog open={showVariables} onOpenChange={setShowVariables}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Insert Template Variable</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-2 mt-4">
+              <p className="text-sm text-muted-foreground mb-4">
+                Click a variable to insert it. Variables will be automatically replaced when sending.
+              </p>
+              {DEFAULT_VARIABLES.map((variable) => (
+                <button
+                  key={variable.key}
+                  onClick={() => insertVariable(variable.key)}
+                  className="w-full text-left p-3 border rounded-lg hover:bg-accent transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                          {variable.key}
+                        </code>
+                        <span className="text-sm font-medium">{variable.label}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {variable.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                How it works
+              </h4>
+              <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                <li>• Variables are replaced with actual values when sending</li>
+                <li>• Values are extracted from the first recipient's contact info</li>
+                <li>• Great for personalized email campaigns and templates</li>
+              </ul>
             </div>
           </DialogContent>
         </Dialog>
