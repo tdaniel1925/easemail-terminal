@@ -1215,14 +1215,14 @@ export default function InboxPage() {
                           {getInitials(message.from?.[0]?.name, message.from?.[0]?.email)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0 flex items-center gap-2">
+                      <div className="flex-1 min-w-0 flex items-start gap-2">
                         <span className={`font-medium truncate text-xs ${message.unread ? 'font-bold' : ''} w-32 shrink-0`}>
                           {message.from?.[0]?.name || message.from?.[0]?.email}
                         </span>
-                        <p className={`text-xs truncate flex-1 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                        <p className={`text-xs line-clamp-2 flex-1 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
                           {message.subject || '(no subject)'}
                         </p>
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex items-center gap-1 shrink-0 ml-auto">
                           {message.unread && (
                             <Badge variant="default" className="text-[9px] px-1 py-0">New</Badge>
                           )}
@@ -1271,14 +1271,14 @@ export default function InboxPage() {
                                 {getInitials(previewMessage.from?.[0]?.name, previewMessage.from?.[0]?.email)}
                               </AvatarFallback>
                             </Avatar>
-                            <div className="flex-1 min-w-0 flex items-center gap-2">
+                            <div className="flex-1 min-w-0 flex items-start gap-2">
                               <span className={`font-medium truncate text-xs ${hasUnread ? 'font-bold' : ''} w-32 shrink-0`}>
                                 {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
                               </span>
-                              <p className={`text-xs truncate flex-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
+                              <p className={`text-xs line-clamp-2 flex-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
                                 {previewMessage.subject || '(no subject)'}
                               </p>
-                              <div className="flex items-center gap-1 shrink-0">
+                              <div className="flex items-center gap-1 shrink-0 ml-auto">
                                 {threadCount > 1 && (
                                   <Badge variant="secondary" className="text-[9px] px-1 py-0">
                                     {threadCount}
@@ -1363,37 +1363,37 @@ export default function InboxPage() {
           <div className={`flex-1 flex flex-col ${selectedMessage ? 'block' : 'hidden md:block'}`}>
             {selectedMessage ? (
               <>
-                <div className="border-b border-border bg-card p-8">
-                  <h2 className="text-3xl font-bold mb-4">
+                <div className="border-b border-border bg-card p-4">
+                  <h2 className="text-xl font-bold mb-3">
                     {selectedMessage.subject || '(no subject)'}
                   </h2>
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12 ring-2 ring-border">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
                       <AvatarImage src={`https://logo.clearbit.com/${selectedMessage.from?.[0]?.email?.split('@')[1]}`} />
-                      <AvatarFallback className="text-base font-semibold">
+                      <AvatarFallback className="text-xs font-semibold">
                         {getInitials(selectedMessage.from?.[0]?.name, selectedMessage.from?.[0]?.email)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-semibold text-base">
+                      <p className="font-semibold text-sm">
                         {selectedMessage.from?.[0]?.name || selectedMessage.from?.[0]?.email}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         to {selectedMessage.to?.[0]?.email}
                       </p>
                     </div>
-                    <div className="ml-auto text-sm text-muted-foreground">
+                    <div className="ml-auto text-xs text-muted-foreground">
                       {new Date(selectedMessage.date * 1000).toLocaleString()}
                     </div>
                   </div>
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-2 mt-4 flex-wrap">
+                  <div className="flex items-center gap-1.5 mt-3 flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleReply(selectedMessage, false)}
                     >
-                      <Reply className="mr-2 h-4 w-4" />
+                      <Reply className="mr-1.5 h-3.5 w-3.5" />
                       Reply
                     </Button>
                     <Button
@@ -1401,7 +1401,7 @@ export default function InboxPage() {
                       size="sm"
                       onClick={() => handleReply(selectedMessage, true)}
                     >
-                      <ReplyAll className="mr-2 h-4 w-4" />
+                      <ReplyAll className="mr-1.5 h-3.5 w-3.5" />
                       Reply All
                     </Button>
                     <Button
@@ -1409,7 +1409,7 @@ export default function InboxPage() {
                       size="sm"
                       onClick={() => handleForward(selectedMessage)}
                     >
-                      <Forward className="mr-2 h-4 w-4" />
+                      <Forward className="mr-1.5 h-3.5 w-3.5" />
                       Forward
                     </Button>
                     <Button
@@ -1417,7 +1417,7 @@ export default function InboxPage() {
                       size="sm"
                       onClick={() => handleSnooze(selectedMessage.id)}
                     >
-                      <Clock className="mr-2 h-4 w-4" />
+                      <Clock className="mr-1.5 h-3.5 w-3.5" />
                       Snooze
                     </Button>
                     <Button
@@ -1425,7 +1425,7 @@ export default function InboxPage() {
                       size="sm"
                       onClick={() => handleApplyLabel(selectedMessage.id)}
                     >
-                      <Tag className="mr-2 h-4 w-4" />
+                      <Tag className="mr-1.5 h-3.5 w-3.5" />
                       Labels
                     </Button>
                     <Button
@@ -1433,16 +1433,16 @@ export default function InboxPage() {
                       size="sm"
                       onClick={() => reportSpam(selectedMessage.id)}
                     >
-                      <Shield className="mr-2 h-4 w-4" />
+                      <Shield className="mr-1.5 h-3.5 w-3.5" />
                       Report Spam
                     </Button>
-                    <div className="ml-auto flex items-center gap-2 flex-wrap">
+                    <div className="ml-auto flex items-center gap-1.5 flex-wrap">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleToggleStar(selectedMessage.id, selectedMessage.starred || false)}
                       >
-                        <Star className={`mr-2 h-4 w-4 ${selectedMessage.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                        <Star className={`mr-1.5 h-3.5 w-3.5 ${selectedMessage.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
                         {selectedMessage.starred ? 'Unstar' : 'Star'}
                       </Button>
                       <Button
@@ -1450,7 +1450,7 @@ export default function InboxPage() {
                         size="sm"
                         onClick={() => handleToggleRead(selectedMessage.id, selectedMessage.unread || false)}
                       >
-                        <Mail className="mr-2 h-4 w-4" />
+                        <Mail className="mr-1.5 h-3.5 w-3.5" />
                         {selectedMessage.unread ? 'Mark Read' : 'Mark Unread'}
                       </Button>
                       <Button
@@ -1458,7 +1458,7 @@ export default function InboxPage() {
                         size="sm"
                         onClick={() => handleArchive(selectedMessage.id)}
                       >
-                        <Archive className="mr-2 h-4 w-4" />
+                        <Archive className="mr-1.5 h-3.5 w-3.5" />
                         Archive
                       </Button>
                       <Button
@@ -1466,14 +1466,14 @@ export default function InboxPage() {
                         size="sm"
                         onClick={() => handleDelete(selectedMessage.id, false)}
                       >
-                        <Trash2 className="mr-2 h-4 w-4" />
+                        <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                         Delete
                       </Button>
                     </div>
                   </div>
                 </div>
-                <ScrollArea className="flex-1 p-8">
-                  <div className="prose dark:prose-invert max-w-full prose-lg" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
+                <ScrollArea className="flex-1 p-4">
+                  <div className="prose dark:prose-invert max-w-full prose-sm" style={{ maxWidth: '100%', overflowX: 'hidden' }}>
                     <div
                       className="email-body-content"
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMessage.body || selectedMessage.snippet) }}
