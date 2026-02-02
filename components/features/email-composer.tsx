@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Send, Loader2, X, Mic, Paperclip } from 'lucide-react';
+import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoiceInput } from '@/components/features/voice-input';
 import { VoiceMessageRecorder } from '@/components/features/voice-message-recorder';
@@ -61,6 +61,108 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [remixing, setRemixing] = useState(false);
   const [tone, setTone] = useState<'professional' | 'friendly' | 'brief' | 'detailed'>('professional');
   const [voiceAttachments, setVoiceAttachments] = useState<Array<{ blob: Blob; duration: number }>>([]);
+
+  // Draft-related state
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Save draft function
+  const saveDraft = async (showToast: boolean = false) => {
+    // Don't save empty drafts
+    if (!to && !subject && !body) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      // Parse recipients
+      const toArray = to ? to.split(',').map(e => e.trim()).filter(e => e) : [];
+      const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e) : [];
+      const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e) : [];
+
+      const draftData = {
+        to_recipients: toArray,
+        cc_recipients: ccArray,
+        bcc_recipients: bccArray,
+        subject: subject || '',
+        body: body || '',
+        reply_to_message_id: replyTo?.messageId,
+        is_forward: replyTo?.isForward || false,
+      };
+
+      if (draftId) {
+        // Update existing draft
+        const response = await fetch(`/api/drafts/${draftId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(draftData),
+        });
+
+        if (response.ok) {
+          setLastSaved(new Date());
+          if (showToast) toast.success('💾 Draft saved');
+        }
+      } else {
+        // Create new draft
+        const response = await fetch('/api/drafts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(draftData),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.draft) {
+          setDraftId(data.draft.id);
+          setLastSaved(new Date());
+          if (showToast) toast.success('💾 Draft saved');
+        }
+      }
+    } catch (error) {
+      console.error('Save draft error:', error);
+      if (showToast) toast.error('Failed to save draft');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Delete draft function
+  const deleteDraft = async () => {
+    if (!draftId) return;
+
+    try {
+      await fetch(`/api/drafts/${draftId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Delete draft error:', error);
+    }
+  };
+
+  // Auto-save effect - every 30 seconds
+  useEffect(() => {
+    // Clear any existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Set new timer
+    autoSaveTimerRef.current = setTimeout(() => {
+      if (to || subject || body) {
+        saveDraft(false); // Auto-save silently
+      }
+    }, 30000); // 30 seconds
+
+    // Cleanup
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [to, cc, bcc, subject, body]); // Re-run when any field changes
 
   const handleAIRemix = async () => {
     if (!body || body.length < 10) {
@@ -125,6 +227,9 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       const data = await response.json();
 
       if (response.ok) {
+        // Delete draft after successful send
+        await deleteDraft();
+
         toast.success(replyTo?.messageId ? '📧 Reply sent successfully!' : '📧 Email sent successfully!');
         onClose();
       } else {
@@ -142,7 +247,20 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>New Message</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>New Message</DialogTitle>
+            {/* Auto-save indicator */}
+            <div className="text-xs text-muted-foreground">
+              {saving ? (
+                <span className="flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Saving...
+                </span>
+              ) : lastSaved ? (
+                <span>Saved {new Date(lastSaved).toLocaleTimeString()}</span>
+              ) : null}
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4">
@@ -329,6 +447,24 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
               onTranscript={(text) => setBody(text)}
               tone={tone}
             />
+
+            <Button
+              variant="outline"
+              onClick={() => saveDraft(true)}
+              disabled={saving || (!to && !subject && !body)}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Draft
+                </>
+              )}
+            </Button>
           </div>
 
           <div className="flex gap-2">

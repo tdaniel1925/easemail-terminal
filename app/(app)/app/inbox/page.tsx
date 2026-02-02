@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
-  Reply, ReplyAll, Forward
+  Reply, ReplyAll, Forward, LogOut, Loader2
 } from 'lucide-react';
 import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
@@ -28,6 +28,7 @@ export default function InboxPage() {
   const [categories, setCategories] = useState<Record<string, EmailCategory>>({});
   const [categorizing, setCategorizing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'all' | EmailCategory>('all');
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -263,6 +264,28 @@ export default function InboxPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        toast.success('👋 Logged out successfully');
+        // Redirect to login page
+        window.location.href = '/login';
+      } else {
+        toast.error('Failed to logout');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to logout');
+    } finally {
+      setLoggingOut(false);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
@@ -382,6 +405,21 @@ export default function InboxPage() {
             </div>
             <Button variant="ghost" size="icon" onClick={fetchMessages}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              disabled={loggingOut}
+            >
+              {loggingOut ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </>
+              )}
             </Button>
           </div>
         </header>
