@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Paperclip, X, File, Loader2, Image as ImageIcon, FileText } from 'lucide-react';
+import { Paperclip, X, File, Loader2, Image as ImageIcon, FileText, Eye } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
 interface Attachment {
@@ -27,6 +28,8 @@ export function AttachmentUploader({
   maxFiles = 10,
 }: AttachmentUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<Record<string, string>>({});
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -118,6 +121,24 @@ export function AttachmentUploader({
     return <File className="h-4 w-4" />;
   };
 
+  // Generate image previews
+  useEffect(() => {
+    attachments.forEach((attachment) => {
+      if (attachment.type.startsWith('image/') && !imagePreviews[attachment.id]) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews((prev) => ({
+            ...prev,
+            [attachment.id]: reader.result as string,
+          }));
+        };
+        reader.readAsDataURL(attachment.file);
+      }
+    });
+  }, [attachments]);
+
+  const isImage = (type: string) => type.startsWith('image/');
+
   return (
     <div className="space-y-3">
       {/* Upload Area */}
@@ -162,18 +183,32 @@ export function AttachmentUploader({
       {/* Attachments List */}
       {attachments.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground">
-            Attachments ({attachments.length})
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium text-muted-foreground">
+              Attachments ({attachments.length}) - {formatFileSize(attachments.reduce((sum, a) => sum + a.size, 0))} total
+            </p>
+          </div>
           <div className="space-y-2">
             {attachments.map((attachment) => (
               <div
                 key={attachment.id}
                 className="flex items-center gap-3 p-2 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors"
               >
-                <div className="text-muted-foreground">
-                  {getFileIcon(attachment.type)}
-                </div>
+                {/* Thumbnail or Icon */}
+                {isImage(attachment.type) && imagePreviews[attachment.id] ? (
+                  <div className="relative h-12 w-12 flex-shrink-0 rounded overflow-hidden border border-border">
+                    <img
+                      src={imagePreviews[attachment.id]}
+                      alt={attachment.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground">
+                    {getFileIcon(attachment.type)}
+                  </div>
+                )}
+
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {attachment.name}
@@ -182,19 +217,51 @@ export function AttachmentUploader({
                     {formatFileSize(attachment.size)}
                   </p>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeAttachment(attachment.id)}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+
+                {/* Actions */}
+                <div className="flex gap-1">
+                  {isImage(attachment.type) && imagePreviews[attachment.id] && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPreviewImage(imagePreviews[attachment.id])}
+                      className="h-8 w-8 p-0"
+                      title="Preview image"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeAttachment(attachment.id)}
+                    className="h-8 w-8 p-0"
+                    title="Remove attachment"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
         </div>
+      )}
+
+      {/* Image Preview Dialog */}
+      {previewImage && (
+        <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+          <DialogContent className="max-w-4xl p-0">
+            <div className="relative">
+              <img
+                src={previewImage}
+                alt="Preview"
+                className="w-full h-auto max-h-[80vh] object-contain"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

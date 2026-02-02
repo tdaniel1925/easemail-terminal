@@ -19,6 +19,7 @@ import { AttachmentUploader } from '@/components/email/attachment-uploader';
 import { TiptapEditor } from '@/components/ui/tiptap-editor';
 import { RecipientInput } from '@/components/ui/recipient-input';
 import { DEFAULT_VARIABLES, replaceTemplateVariables, getRecipientVariables, hasTemplateVariables } from '@/lib/template-variables';
+import { hasURLs, detectURLs, highlightURLs } from '@/lib/link-utils';
 
 // Dynamically import emoji picker to avoid SSR issues
 const EmojiPicker = dynamic(
@@ -1292,8 +1293,23 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
                 {/* Preview Body */}
                 <div className="prose dark:prose-invert max-w-none">
-                  <div className="whitespace-pre-wrap">{body}</div>
+                  <div
+                    className="whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{ __html: highlightURLs(body.replace(/</g, '&lt;').replace(/>/g, '&gt;')) }}
+                  />
                 </div>
+
+                {/* Link Preview Info */}
+                {hasURLs(body) && (
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <div className="flex items-center gap-2 text-sm">
+                      <AlertCircle className="h-4 w-4 text-blue-600" />
+                      <span className="text-blue-900 dark:text-blue-100">
+                        {detectURLs(body).length} link(s) detected and will be clickable
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Attachments */}
                 {attachments.length > 0 && (
