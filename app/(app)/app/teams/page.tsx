@@ -51,12 +51,16 @@ export default function TeamsPage() {
       // Clean URL
       window.history.replaceState({}, '', '/app/teams');
     } else if (error) {
+      const details = params.get('details');
       const errorMessages: Record<string, string> = {
         'auth_failed': 'Microsoft authorization failed. Please try again.',
-        'token_exchange_failed': 'Failed to exchange authorization code. Please check your Azure App Registration redirect URI.',
-        'Unauthorized': 'Session expired. Please sign in again.',
+        'token_exchange_failed': 'Failed to exchange authorization code.',
+        'unauthorized': 'Session expired. Please sign in again.',
       };
-      toast.error(errorMessages[error] || 'Connection failed. Please try again.');
+      const errorMsg = errorMessages[error] || 'Connection failed. Please try again.';
+      const fullMsg = details ? `${errorMsg} Details: ${details}` : errorMsg;
+      toast.error(fullMsg, { duration: 10000 });
+      console.error('MS Teams connection error:', { error, details });
       // Clean URL
       window.history.replaceState({}, '', '/app/teams');
     }

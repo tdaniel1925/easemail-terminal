@@ -35,40 +35,73 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user || user.id !== userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.error('User verification failed:', { hasUser: !!user, userId, sessionUserId: user?.id });
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_APP_URL}/app/teams?error=unauthorized`
+      );
     }
 
     // Exchange code for tokens
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/teams/callback`;
-    const tokens = await getTokenFromCode(code, redirectUri);
+    console.log('Exchanging code for tokens with redirect URI:', redirectUri);
+
+    let tokens;
+    try {
+      tokens = await getTokenFromCode(code, redirectUri);
+      console.log('Token exchange successful');
+    } catch (tokenError: any) {
+      console.error('Token exchange error details:', {
+        message: tokenError?.message,
+        errorCode: tokenError?.errorCode,
+        errorMessage: tokenError?.errorMessage,
+        stack: tokenError?.stack,
+      });
+      throw new Error(`Token exchange failed: ${tokenError?.message || 'Unknown error'}`);
+    }
+
+    if (!tokens?.accessToken || !tokens?.refreshToken) {
+      console.error('Invalid tokens received:', { hasAccessToken: !!tokens?.accessToken, hasRefreshToken: !!tokens?.refreshToken });
+      throw new Error('Invalid tokens received from Microsoft');
+    }
 
     // Store tokens in database
-    const { error: dbError } = await (supabase
-      .from('ms_graph_tokens') as any)
-      .upsert({
-        user_id: user.id,
-        access_token: tokens.accessToken,
-        refresh_token: tokens.refreshToken!,
-        expires_at: tokens.expiresOn!.toISOString(),
-        scope: 'Calendars.ReadWrite OnlineMeetings.ReadWrite User.Read',
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id',
-      });
+    try {
+      const { error: dbError } = await (supabase
+        .from('ms_graph_tokens') as any)
+        .upsert({
+          user_id: user.id,
+          access_token: tokens.accessToken,
+          refresh_token: tokens.refreshToken,
+          expires_at: tokens.expiresOn!.toISOString(),
+          scope: 'Calendars.ReadWrite OnlineMeetings.ReadWrite User.Read',
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id',
+        });
 
-    if (dbError) {
-      console.error('Database error:', dbError);
-      throw dbError;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error(`Database error: ${dbError.message}`);
+      }
+      console.log('Tokens stored successfully in database');
+    } catch (dbError: any) {
+      console.error('Database operation failed:', dbError);
+      throw new Error(`Database error: ${dbError?.message || 'Unknown database error'}`);
     }
 
     // Redirect to Teams page with success
+    console.log('MS Teams connection successful for user:', user.id);
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL}/app/teams?connected=true`
     );
-  } catch (error) {
-    console.error('MS Graph callback error:', error);
+  } catch (error: any) {
+    console.error('MS Graph callback error:', {
+      message: error?.message,
+      name: error?.name,
+      stack: error?.stack,
+    });
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/app/teams?error=token_exchange_failed`
+      `${process.env.NEXT_PUBLIC_APP_URL}/app/teams?error=token_exchange_failed&details=${encodeURIComponent(error?.message || 'Unknown error')}`
     );
   }
 }
