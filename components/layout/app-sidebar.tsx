@@ -59,7 +59,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   if (!open) return null;
 
   return (
-    <div className="w-64 border-r border-border bg-card hidden lg:flex flex-col h-screen">
+    <div className="w-64 border-r border-border bg-card hidden lg:flex flex-col h-screen" data-sidebar="app-sidebar-single">
       {/* Header - Fixed */}
       <div className="p-6 border-b border-border flex-shrink-0">
         <div className="flex items-center justify-between mb-6">
