@@ -157,6 +157,112 @@ export default function InboxPage() {
     });
   };
 
+  const handleDelete = async (messageId: string, permanent: boolean = false) => {
+    try {
+      const response = await fetch(`/api/messages/${messageId}?permanent=${permanent}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(permanent ? '🗑️ Message permanently deleted' : '🗑️ Message moved to trash');
+        // Remove from local state
+        setMessages(messages.filter(m => m.id !== messageId));
+        if (selectedMessage?.id === messageId) {
+          setSelectedMessage(null);
+        }
+      } else {
+        toast.error(data.error || 'Failed to delete message');
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete message');
+    }
+  };
+
+  const handleToggleRead = async (messageId: string, currentUnread: boolean) => {
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ unread: !currentUnread }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(currentUnread ? '📧 Marked as read' : '✉️ Marked as unread');
+        // Update local state
+        setMessages(messages.map(m =>
+          m.id === messageId ? { ...m, unread: !currentUnread } : m
+        ));
+        if (selectedMessage?.id === messageId) {
+          setSelectedMessage({ ...selectedMessage, unread: !currentUnread });
+        }
+      } else {
+        toast.error(data.error || 'Failed to update message');
+      }
+    } catch (error) {
+      console.error('Toggle read error:', error);
+      toast.error('Failed to update message');
+    }
+  };
+
+  const handleToggleStar = async (messageId: string, currentStarred: boolean) => {
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ starred: !currentStarred }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(currentStarred ? 'Unstarred' : '⭐ Starred');
+        // Update local state
+        setMessages(messages.map(m =>
+          m.id === messageId ? { ...m, starred: !currentStarred } : m
+        ));
+        if (selectedMessage?.id === messageId) {
+          setSelectedMessage({ ...selectedMessage, starred: !currentStarred });
+        }
+      } else {
+        toast.error(data.error || 'Failed to update message');
+      }
+    } catch (error) {
+      console.error('Toggle star error:', error);
+      toast.error('Failed to update message');
+    }
+  };
+
+  const handleArchive = async (messageId: string) => {
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folders: ['archive'] }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('📦 Message archived');
+        // Remove from inbox view
+        setMessages(messages.filter(m => m.id !== messageId));
+        if (selectedMessage?.id === messageId) {
+          setSelectedMessage(null);
+        }
+      } else {
+        toast.error(data.error || 'Failed to archive message');
+      }
+    } catch (error) {
+      console.error('Archive error:', error);
+      toast.error('Failed to archive message');
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
@@ -354,6 +460,15 @@ export default function InboxPage() {
                               {category}
                             </Badge>
                           )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleStar(message.id, message.starred || false);
+                            }}
+                            className="ml-auto p-1 hover:bg-accent rounded"
+                          >
+                            <Star className={`h-4 w-4 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -417,21 +532,40 @@ export default function InboxPage() {
                       <Forward className="mr-2 h-4 w-4" />
                       Forward
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="ml-auto"
-                    >
-                      <Archive className="mr-2 h-4 w-4" />
-                      Archive
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </Button>
+                    <div className="ml-auto flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleStar(selectedMessage.id, selectedMessage.starred || false)}
+                      >
+                        <Star className={`mr-2 h-4 w-4 ${selectedMessage.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                        {selectedMessage.starred ? 'Unstar' : 'Star'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleRead(selectedMessage.id, selectedMessage.unread || false)}
+                      >
+                        <Mail className="mr-2 h-4 w-4" />
+                        {selectedMessage.unread ? 'Mark Read' : 'Mark Unread'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleArchive(selectedMessage.id)}
+                      >
+                        <Archive className="mr-2 h-4 w-4" />
+                        Archive
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(selectedMessage.id, false)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 <ScrollArea className="flex-1 p-6">
