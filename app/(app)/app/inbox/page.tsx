@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
-  Reply, ReplyAll, Forward, LogOut, Loader2, X
+  Reply, ReplyAll, Forward, LogOut, Loader2, X, Check, Minus
 } from 'lucide-react';
 import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
@@ -32,6 +32,8 @@ export default function InboxPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [selectedMessages, setSelectedMessages] = useState<Set<string>>(new Set());
+  const [bulkActionInProgress, setBulkActionInProgress] = useState(false);
 
   useEffect(() => {
     fetchMessages();
@@ -330,6 +332,166 @@ export default function InboxPage() {
     setSearchResults([]);
   };
 
+  // Bulk selection handlers
+  const toggleMessageSelection = (messageId: string) => {
+    const newSelection = new Set(selectedMessages);
+    if (newSelection.has(messageId)) {
+      newSelection.delete(messageId);
+    } else {
+      newSelection.add(messageId);
+    }
+    setSelectedMessages(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedMessages.size === filteredMessages.length && filteredMessages.length > 0) {
+      setSelectedMessages(new Set());
+    } else {
+      const allIds = new Set(filteredMessages.map(m => m.id));
+      setSelectedMessages(allIds);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedMessages(new Set());
+  };
+
+  // Bulk operations
+  const handleBulkDelete = async () => {
+    if (selectedMessages.size === 0) return;
+
+    try {
+      setBulkActionInProgress(true);
+      const messageIds = Array.from(selectedMessages);
+
+      // Delete all selected messages
+      await Promise.all(
+        messageIds.map(id =>
+          fetch(`/api/messages/${id}?permanent=false`, { method: 'DELETE' })
+        )
+      );
+
+      toast.success(`🗑️ ${messageIds.length} message(s) moved to trash`);
+
+      // Update local state
+      setMessages(messages.filter(m => !selectedMessages.has(m.id)));
+      setSearchResults(searchResults.filter(m => !selectedMessages.has(m.id)));
+      clearSelection();
+
+      if (selectedMessage && selectedMessages.has(selectedMessage.id)) {
+        setSelectedMessage(null);
+      }
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      toast.error('Failed to delete some messages');
+    } finally {
+      setBulkActionInProgress(false);
+    }
+  };
+
+  const handleBulkArchive = async () => {
+    if (selectedMessages.size === 0) return;
+
+    try {
+      setBulkActionInProgress(true);
+      const messageIds = Array.from(selectedMessages);
+
+      await Promise.all(
+        messageIds.map(id =>
+          fetch(`/api/messages/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folders: ['archive'] }),
+          })
+        )
+      );
+
+      toast.success(`📦 ${messageIds.length} message(s) archived`);
+
+      setMessages(messages.filter(m => !selectedMessages.has(m.id)));
+      setSearchResults(searchResults.filter(m => !selectedMessages.has(m.id)));
+      clearSelection();
+
+      if (selectedMessage && selectedMessages.has(selectedMessage.id)) {
+        setSelectedMessage(null);
+      }
+    } catch (error) {
+      console.error('Bulk archive error:', error);
+      toast.error('Failed to archive some messages');
+    } finally {
+      setBulkActionInProgress(false);
+    }
+  };
+
+  const handleBulkMarkRead = async (unread: boolean) => {
+    if (selectedMessages.size === 0) return;
+
+    try {
+      setBulkActionInProgress(true);
+      const messageIds = Array.from(selectedMessages);
+
+      await Promise.all(
+        messageIds.map(id =>
+          fetch(`/api/messages/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ unread }),
+          })
+        )
+      );
+
+      toast.success(`📧 ${messageIds.length} message(s) marked as ${unread ? 'unread' : 'read'}`);
+
+      // Update local state
+      setMessages(messages.map(m =>
+        selectedMessages.has(m.id) ? { ...m, unread } : m
+      ));
+      setSearchResults(searchResults.map(m =>
+        selectedMessages.has(m.id) ? { ...m, unread } : m
+      ));
+      clearSelection();
+    } catch (error) {
+      console.error('Bulk mark read error:', error);
+      toast.error('Failed to update some messages');
+    } finally {
+      setBulkActionInProgress(false);
+    }
+  };
+
+  const handleBulkStar = async (starred: boolean) => {
+    if (selectedMessages.size === 0) return;
+
+    try {
+      setBulkActionInProgress(true);
+      const messageIds = Array.from(selectedMessages);
+
+      await Promise.all(
+        messageIds.map(id =>
+          fetch(`/api/messages/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ starred }),
+          })
+        )
+      );
+
+      toast.success(`⭐ ${messageIds.length} message(s) ${starred ? 'starred' : 'unstarred'}`);
+
+      setMessages(messages.map(m =>
+        selectedMessages.has(m.id) ? { ...m, starred } : m
+      ));
+      setSearchResults(searchResults.map(m =>
+        selectedMessages.has(m.id) ? { ...m, starred } : m
+      ));
+      clearSelection();
+    } catch (error) {
+      console.error('Bulk star error:', error);
+      toast.error('Failed to update some messages');
+    } finally {
+      setBulkActionInProgress(false);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
@@ -517,6 +679,102 @@ export default function InboxPage() {
                 </p>
               </div>
             )}
+
+            {/* Bulk Actions Toolbar */}
+            {selectedMessages.size > 0 ? (
+              <div className="p-3 border-b border-border bg-primary/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearSelection}
+                      className="h-8"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Clear ({selectedMessages.size})
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleBulkMarkRead(false)}
+                      disabled={bulkActionInProgress}
+                      className="h-8"
+                    >
+                      <Mail className="h-4 w-4 mr-1" />
+                      Read
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleBulkMarkRead(true)}
+                      disabled={bulkActionInProgress}
+                      className="h-8"
+                    >
+                      <Mail className="h-4 w-4 mr-1" />
+                      Unread
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleBulkStar(true)}
+                      disabled={bulkActionInProgress}
+                      className="h-8"
+                    >
+                      <Star className="h-4 w-4 mr-1" />
+                      Star
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleBulkArchive}
+                      disabled={bulkActionInProgress}
+                      className="h-8"
+                    >
+                      <Archive className="h-4 w-4 mr-1" />
+                      Archive
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleBulkDelete}
+                      disabled={bulkActionInProgress}
+                      className="h-8 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : filteredMessages.length > 0 && (
+              <div className="p-2 border-b border-border flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleSelectAll}
+                  className="h-8"
+                >
+                  <div className={`h-4 w-4 rounded border flex items-center justify-center ${
+                    selectedMessages.size === filteredMessages.length && filteredMessages.length > 0
+                      ? 'bg-primary border-primary'
+                      : 'border-input'
+                  }`}>
+                    {selectedMessages.size === filteredMessages.length && filteredMessages.length > 0 && (
+                      <Check className="h-3 w-3 text-primary-foreground" />
+                    )}
+                    {selectedMessages.size > 0 && selectedMessages.size < filteredMessages.length && (
+                      <Minus className="h-3 w-3" />
+                    )}
+                  </div>
+                  <span className="ml-2 text-xs">
+                    {selectedMessages.size > 0 ? `${selectedMessages.size} selected` : 'Select all'}
+                  </span>
+                </Button>
+              </div>
+            )}
             <ScrollArea className="h-full">
               {loading ? (
                 <div className="flex items-center justify-center h-64">
@@ -548,15 +806,36 @@ export default function InboxPage() {
               ) : (
                 filteredMessages.map((message) => {
                   const category = categories[message.id];
+                  const isSelected = selectedMessages.has(message.id);
                   return (
-                  <button
+                  <div
                     key={message.id}
-                    onClick={() => setSelectedMessage(message)}
                     className={`w-full text-left p-4 border-b border-border hover:bg-accent transition-colors ${
                       selectedMessage?.id === message.id ? 'bg-accent' : ''
-                    }`}
+                    } ${isSelected ? 'bg-primary/5' : ''}`}
                   >
                     <div className="flex items-start gap-3">
+                      {/* Checkbox */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMessageSelection(message.id);
+                        }}
+                        className="mt-2"
+                      >
+                        <div className={`h-4 w-4 rounded border flex items-center justify-center ${
+                          isSelected ? 'bg-primary border-primary' : 'border-input hover:border-primary'
+                        }`}>
+                          {isSelected && (
+                            <Check className="h-3 w-3 text-primary-foreground" />
+                          )}
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => setSelectedMessage(message)}
+                        className="flex-1 flex items-start gap-3 text-left"
+                      >
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={`https://logo.clearbit.com/${message.from?.[0]?.email?.split('@')[1]}`} />
                         <AvatarFallback>
@@ -598,8 +877,9 @@ export default function InboxPage() {
                           </button>
                         </div>
                       </div>
+                      </button>
                     </div>
-                  </button>
+                  </div>
                   );
                 })
               )}
