@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { to, subject, body } = await request.json();
+    const { to, cc, bcc, subject, body } = await request.json();
 
     // Get user's email account
     const { data: account } = (await supabase
@@ -27,10 +27,26 @@ export async function POST(request: NextRequest) {
 
     // Send email via Nylas
     const nylasClient = nylas();
+
+    // Prepare recipients
+    const toRecipients = Array.isArray(to)
+      ? to.map((email: string) => ({ email }))
+      : [{ email: to }];
+
+    const ccRecipients = cc && cc.length > 0
+      ? (Array.isArray(cc) ? cc.map((email: string) => ({ email })) : [{ email: cc }])
+      : undefined;
+
+    const bccRecipients = bcc && bcc.length > 0
+      ? (Array.isArray(bcc) ? bcc.map((email: string) => ({ email })) : [{ email: bcc }])
+      : undefined;
+
     const message = await nylasClient.messages.send({
       identifier: account.grant_id,
       requestBody: {
-        to: [{ email: to }],
+        to: toRecipients,
+        ...(ccRecipients && { cc: ccRecipients }),
+        ...(bccRecipients && { bcc: bccRecipients }),
         subject,
         body,
       },

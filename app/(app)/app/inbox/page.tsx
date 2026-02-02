@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
-  Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles
+  Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
+  Reply, ReplyAll, Forward
 } from 'lucide-react';
 import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
@@ -22,6 +23,7 @@ export default function InboxPage() {
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [composing, setComposing] = useState(false);
+  const [replyMode, setReplyMode] = useState<{ mode: 'reply' | 'replyAll' | 'forward'; message: any } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [categories, setCategories] = useState<Record<string, EmailCategory>>({});
   const [categorizing, setCategorizing] = useState(false);
@@ -116,6 +118,43 @@ export default function InboxPage() {
       return email[0].toUpperCase();
     }
     return '?';
+  };
+
+  const handleReply = (message: any, replyAll: boolean = false) => {
+    const recipients = replyAll
+      ? [
+          message.from?.[0]?.email,
+          ...(message.to?.map((r: any) => r.email) || []),
+          ...(message.cc?.map((r: any) => r.email) || []),
+        ].filter((email, index, self) => email && self.indexOf(email) === index) // Remove duplicates
+      : [message.from?.[0]?.email];
+
+    setReplyMode({
+      mode: replyAll ? 'replyAll' : 'reply',
+      message: {
+        messageId: message.id,
+        to: recipients,
+        subject: message.subject,
+        body: message.body || message.snippet,
+        from: message.from?.[0]?.name || message.from?.[0]?.email,
+        date: message.date,
+        replyAll,
+      },
+    });
+  };
+
+  const handleForward = (message: any) => {
+    setReplyMode({
+      mode: 'forward',
+      message: {
+        to: '',
+        subject: message.subject,
+        body: message.body || message.snippet,
+        from: message.from?.[0]?.name || message.from?.[0]?.email,
+        date: message.date,
+        isForward: true,
+      },
+    });
   };
 
   return (
@@ -352,6 +391,48 @@ export default function InboxPage() {
                       {new Date(selectedMessage.date * 1000).toLocaleString()}
                     </div>
                   </div>
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReply(selectedMessage, false)}
+                    >
+                      <Reply className="mr-2 h-4 w-4" />
+                      Reply
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReply(selectedMessage, true)}
+                    >
+                      <ReplyAll className="mr-2 h-4 w-4" />
+                      Reply All
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleForward(selectedMessage)}
+                    >
+                      <Forward className="mr-2 h-4 w-4" />
+                      Forward
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto"
+                    >
+                      <Archive className="mr-2 h-4 w-4" />
+                      Archive
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </Button>
+                  </div>
                 </div>
                 <ScrollArea className="flex-1 p-6">
                   <div
@@ -378,6 +459,14 @@ export default function InboxPage() {
       {/* Composer Dialog */}
       {composing && (
         <EmailComposer onClose={() => setComposing(false)} />
+      )}
+
+      {/* Reply/Forward Dialog */}
+      {replyMode && (
+        <EmailComposer
+          onClose={() => setReplyMode(null)}
+          replyTo={replyMode.message}
+        />
       )}
     </div>
   );

@@ -15,15 +15,48 @@ import { VoiceMessageRecorder } from '@/components/features/voice-message-record
 interface EmailComposerProps {
   onClose: () => void;
   replyTo?: {
-    to: string;
+    messageId?: string;
+    to: string | string[];
+    cc?: string[];
     subject: string;
+    body?: string;
+    from?: string;
+    date?: number;
+    replyAll?: boolean;
+    isForward?: boolean;
   };
 }
 
 export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
-  const [to, setTo] = useState(replyTo?.to || '');
-  const [subject, setSubject] = useState(replyTo?.subject || '');
-  const [body, setBody] = useState('');
+  // Format recipients
+  const formatRecipients = (recipients?: string | string[]) => {
+    if (!recipients) return '';
+    return Array.isArray(recipients) ? recipients.join(', ') : recipients;
+  };
+
+  // Prepare initial values
+  const initialTo = formatRecipients(replyTo?.to);
+  const initialCc = formatRecipients(replyTo?.cc);
+  const initialSubject = replyTo?.subject
+    ? (replyTo.isForward
+        ? `Fwd: ${replyTo.subject.replace(/^(Re:|Fwd:)\s*/i, '')}`
+        : `Re: ${replyTo.subject.replace(/^Re:\s*/i, '')}`)
+    : '';
+
+  // Format quoted message
+  const quotedBody = replyTo?.body && !replyTo.isForward
+    ? `\n\n---\nOn ${replyTo.date ? new Date(replyTo.date * 1000).toLocaleString() : 'previous date'}, ${replyTo.from || 'sender'} wrote:\n\n${replyTo.body.replace(/^/gm, '> ')}`
+    : replyTo?.isForward && replyTo?.body
+    ? `\n\n---------- Forwarded message ---------\nFrom: ${replyTo.from}\nDate: ${replyTo.date ? new Date(replyTo.date * 1000).toLocaleString() : ''}\nSubject: ${replyTo.subject}\n\n${replyTo.body}`
+    : '';
+
+  const [to, setTo] = useState(initialTo);
+  const [cc, setCc] = useState(initialCc);
+  const [bcc, setBcc] = useState('');
+  const [showCc, setShowCc] = useState(!!initialCc);
+  const [showBcc, setShowBcc] = useState(false);
+  const [subject, setSubject] = useState(initialSubject);
+  const [body, setBody] = useState(quotedBody);
   const [sending, setSending] = useState(false);
   const [remixing, setRemixing] = useState(false);
   const [tone, setTone] = useState<'professional' | 'friendly' | 'brief' | 'detailed'>('professional');
@@ -67,16 +100,32 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
     try {
       setSending(true);
-      const response = await fetch('/api/messages/send', {
+
+      // Parse recipients (comma-separated)
+      const toArray = to.split(',').map(e => e.trim()).filter(e => e);
+      const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e) : [];
+      const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e) : [];
+
+      // Use reply endpoint if this is a reply, otherwise use send endpoint
+      const endpoint = replyTo?.messageId ? '/api/messages/reply' : '/api/messages/send';
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, body }),
+        body: JSON.stringify({
+          to: toArray.length === 1 ? toArray[0] : toArray,
+          ...(ccArray.length > 0 && { cc: ccArray }),
+          ...(bccArray.length > 0 && { bcc: bccArray }),
+          subject,
+          body,
+          ...(replyTo?.messageId && { messageId: replyTo.messageId, replyAll: replyTo.replyAll }),
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('📧 Email sent successfully!');
+        toast.success(replyTo?.messageId ? '📧 Reply sent successfully!' : '📧 Email sent successfully!');
         onClose();
       } else {
         toast.error(data.error || 'Failed to send email');
@@ -99,15 +148,97 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
         <div className="flex-1 overflow-y-auto space-y-4">
           {/* To */}
           <div className="space-y-2">
-            <Label htmlFor="to">To</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="to">To</Label>
+              <div className="flex gap-2">
+                {!showCc && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowCc(true)}
+                    className="h-6 text-xs"
+                  >
+                    Cc
+                  </Button>
+                )}
+                {!showBcc && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowBcc(true)}
+                    className="h-6 text-xs"
+                  >
+                    Bcc
+                  </Button>
+                )}
+              </div>
+            </div>
             <Input
               id="to"
               type="email"
-              placeholder="recipient@example.com"
+              placeholder="recipient@example.com (separate multiple with commas)"
               value={to}
               onChange={(e) => setTo(e.target.value)}
             />
           </div>
+
+          {/* CC */}
+          {showCc && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="cc">Cc</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowCc(false);
+                    setCc('');
+                  }}
+                  className="h-6 text-xs"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              <Input
+                id="cc"
+                type="email"
+                placeholder="cc@example.com (separate multiple with commas)"
+                value={cc}
+                onChange={(e) => setCc(e.target.value)}
+              />
+            </div>
+          )}
+
+          {/* BCC */}
+          {showBcc && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="bcc">Bcc</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowBcc(false);
+                    setBcc('');
+                  }}
+                  className="h-6 text-xs"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              <Input
+                id="bcc"
+                type="email"
+                placeholder="bcc@example.com (separate multiple with commas)"
+                value={bcc}
+                onChange={(e) => setBcc(e.target.value)}
+              />
+            </div>
+          )}
 
           {/* Subject */}
           <div className="space-y-2">
