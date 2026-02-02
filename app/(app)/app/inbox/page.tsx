@@ -34,25 +34,58 @@ export default function InboxPage() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedMessages, setSelectedMessages] = useState<Set<string>>(new Set());
   const [bulkActionInProgress, setBulkActionInProgress] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     fetchMessages();
     fetchCategories();
   }, []);
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (reset: boolean = true) => {
     try {
-      setLoading(true);
+      if (reset) {
+        setLoading(true);
+      }
       const response = await fetch('/api/messages');
       const data = await response.json();
 
       if (data.messages) {
         setMessages(data.messages);
+        setNextCursor(data.nextCursor || null);
+        setHasMore(!!data.nextCursor);
       }
     } catch (error) {
       console.error('Failed to fetch messages:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreMessages = async () => {
+    if (!nextCursor || loadingMore) return;
+
+    try {
+      setLoadingMore(true);
+      const response = await fetch(`/api/messages?page_token=${encodeURIComponent(nextCursor)}`);
+      const data = await response.json();
+
+      if (data.messages) {
+        // Append new messages to existing list
+        setMessages(prevMessages => [...prevMessages, ...data.messages]);
+        setNextCursor(data.nextCursor || null);
+        setHasMore(!!data.nextCursor);
+
+        if (data.messages.length > 0) {
+          toast.success(`Loaded ${data.messages.length} more message(s)`);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load more messages:', error);
+      toast.error('Failed to load more messages');
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -630,7 +663,7 @@ export default function InboxPage() {
                 <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
               )}
             </div>
-            <Button variant="ghost" size="icon" onClick={fetchMessages}>
+            <Button variant="ghost" size="icon" onClick={() => fetchMessages(true)}>
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
             <Button
@@ -882,6 +915,30 @@ export default function InboxPage() {
                   </div>
                   );
                 })
+              )}
+
+              {/* Load More Button */}
+              {!loading && !searchQuery && filteredMessages.length > 0 && hasMore && (
+                <div className="p-4 border-t border-border">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={loadMoreMessages}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Loading more...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Load More Messages
+                      </>
+                    )}
+                  </Button>
+                </div>
               )}
             </ScrollArea>
           </div>

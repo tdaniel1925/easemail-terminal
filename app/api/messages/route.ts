@@ -26,23 +26,25 @@ export async function GET(request: NextRequest) {
 
     const grantId = accounts.grant_id;
 
-    // Fetch messages from Nylas (with caching)
-    const messages = await getCachedOrFetch(
-      `messages:${grantId}`,
-      async () => {
-        const nylasClient = nylas();
-        const response = await nylasClient.messages.list({
-          identifier: grantId,
-          queryParams: {
-            limit: 50,
-          },
-        });
-        return response.data;
-      },
-      300 // Cache for 5 minutes
-    );
+    // Get pagination parameters
+    const searchParams = request.nextUrl.searchParams;
+    const pageToken = searchParams.get('page_token');
+    const limit = parseInt(searchParams.get('limit') || '50');
 
-    return NextResponse.json({ messages });
+    // Fetch messages from Nylas (disable caching for pagination)
+    const nylasClient = nylas();
+    const response = await nylasClient.messages.list({
+      identifier: grantId,
+      queryParams: {
+        limit,
+        ...(pageToken && { page_token: pageToken }),
+      },
+    });
+
+    return NextResponse.json({
+      messages: response.data,
+      nextCursor: response.nextCursor || null,
+    });
   } catch (error) {
     console.error('Fetch messages error:', error);
     return NextResponse.json(
