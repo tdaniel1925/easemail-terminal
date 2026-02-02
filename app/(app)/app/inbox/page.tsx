@@ -1363,113 +1363,58 @@ export default function InboxPage() {
           <div className={`flex-1 flex flex-col ${selectedMessage ? 'block' : 'hidden md:block'}`}>
             {selectedMessage ? (
               <>
-                <div className="border-b border-border bg-card p-4">
-                  <h2 className="text-xl font-bold mb-3">
-                    {selectedMessage.subject || '(no subject)'}
-                  </h2>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
+                <div className="border-b border-border bg-card p-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Avatar className="h-6 w-6">
                       <AvatarImage src={`https://logo.clearbit.com/${selectedMessage.from?.[0]?.email?.split('@')[1]}`} />
-                      <AvatarFallback className="text-xs font-semibold">
+                      <AvatarFallback className="text-[10px] font-semibold">
                         {getInitials(selectedMessage.from?.[0]?.name, selectedMessage.from?.[0]?.email)}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-semibold text-sm">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-xs truncate">
                         {selectedMessage.from?.[0]?.name || selectedMessage.from?.[0]?.email}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        to {selectedMessage.to?.[0]?.email}
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        {selectedMessage.subject || '(no subject)'}
                       </p>
                     </div>
-                    <div className="ml-auto text-xs text-muted-foreground">
+                    <div className="text-[10px] text-muted-foreground shrink-0">
                       {new Date(selectedMessage.date * 1000).toLocaleString()}
                     </div>
                   </div>
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-1.5 mt-3 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleReply(selectedMessage, false)}
-                    >
-                      <Reply className="mr-1.5 h-3.5 w-3.5" />
-                      Reply
+                  {/* Action Buttons - Single Row */}
+                  <div className="flex items-center gap-1 overflow-x-auto">
+                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, false)}>
+                      <Reply className="h-3 w-3" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleReply(selectedMessage, true)}
-                    >
-                      <ReplyAll className="mr-1.5 h-3.5 w-3.5" />
-                      Reply All
+                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, true)}>
+                      <ReplyAll className="h-3 w-3" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleForward(selectedMessage)}
-                    >
-                      <Forward className="mr-1.5 h-3.5 w-3.5" />
-                      Forward
+                    <Button variant="outline" size="sm" onClick={() => handleForward(selectedMessage)}>
+                      <Forward className="h-3 w-3" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSnooze(selectedMessage.id)}
-                    >
-                      <Clock className="mr-1.5 h-3.5 w-3.5" />
-                      Snooze
+                    <Button variant="outline" size="sm" onClick={() => handleSnooze(selectedMessage.id)}>
+                      <Clock className="h-3 w-3" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleApplyLabel(selectedMessage.id)}
-                    >
-                      <Tag className="mr-1.5 h-3.5 w-3.5" />
-                      Labels
+                    <Button variant="outline" size="sm" onClick={() => handleApplyLabel(selectedMessage.id)}>
+                      <Tag className="h-3 w-3" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => reportSpam(selectedMessage.id)}
-                    >
-                      <Shield className="mr-1.5 h-3.5 w-3.5" />
-                      Report Spam
+                    <Button variant="outline" size="sm" onClick={() => reportSpam(selectedMessage.id)}>
+                      <Shield className="h-3 w-3" />
                     </Button>
-                    <div className="ml-auto flex items-center gap-1.5 flex-wrap">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleStar(selectedMessage.id, selectedMessage.starred || false)}
-                      >
-                        <Star className={`mr-1.5 h-3.5 w-3.5 ${selectedMessage.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                        {selectedMessage.starred ? 'Unstar' : 'Star'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleRead(selectedMessage.id, selectedMessage.unread || false)}
-                      >
-                        <Mail className="mr-1.5 h-3.5 w-3.5" />
-                        {selectedMessage.unread ? 'Mark Read' : 'Mark Unread'}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleArchive(selectedMessage.id)}
-                      >
-                        <Archive className="mr-1.5 h-3.5 w-3.5" />
-                        Archive
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(selectedMessage.id, false)}
-                      >
-                        <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                        Delete
-                      </Button>
-                    </div>
+                    <Button variant="outline" size="sm" onClick={() => handleToggleStar(selectedMessage.id, selectedMessage.starred || false)}>
+                      <Star className={`h-3 w-3 ${selectedMessage.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleToggleRead(selectedMessage.id, selectedMessage.unread || false)}>
+                      <Mail className="h-3 w-3" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleArchive(selectedMessage.id)}>
+                      <Archive className="h-3 w-3" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleDelete(selectedMessage.id, false)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
                 <ScrollArea className="flex-1 p-4">
