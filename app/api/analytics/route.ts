@@ -10,24 +10,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin of any organization
-    const { data: memberships } = await supabase
-      .from('organization_members')
-      .select('organization_id, role')
-      .eq('user_id', user.id)
-      .in('role', ['OWNER', 'ADMIN']);
+    // Check if user is super admin
+    const { data: userData } = (await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: any; error: any };
 
-    if (!memberships || memberships.length === 0) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    if (!userData?.is_super_admin) {
+      return NextResponse.json({ error: 'Super admin access required' }, { status: 403 });
     }
 
-    const orgIds = (memberships as any[]).map((m: any) => m.organization_id);
-
-    // Get organization details
+    // Get ALL organization details (super admins can see everything)
     const { data: organizations } = await supabase
       .from('organizations')
-      .select('*')
-      .in('id', orgIds);
+      .select('*');
+
+    const orgIds = (organizations as any[])?.map((org: any) => org.id) || [];
 
     // Get usage stats for all organizations
     const usagePromises = orgIds.map(async (orgId) => {

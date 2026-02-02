@@ -19,16 +19,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
-    const { data: memberships } = await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('user_id', user.id)
-      .in('role', ['OWNER', 'ADMIN']);
+    // Check if user is super admin
+    const { data: userData } = (await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: any };
 
-    if (!memberships || memberships.length === 0) {
+    if (!userData?.is_super_admin) {
       return NextResponse.json(
-        { error: 'Admin access required' },
+        { error: 'Super admin access required' },
         { status: 403 }
       );
     }
@@ -64,16 +64,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
-    const { data: memberships } = await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('user_id', user.id)
-      .in('role', ['OWNER', 'ADMIN']);
+    // Check if user is super admin
+    const { data: userData } = (await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: any };
 
-    if (!memberships || memberships.length === 0) {
+    if (!userData?.is_super_admin) {
       return NextResponse.json(
-        { error: 'Admin access required' },
+        { error: 'Super admin access required' },
         { status: 403 }
       );
     }
@@ -122,16 +122,16 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
-    const { data: memberships } = await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('user_id', user.id)
-      .in('role', ['OWNER', 'ADMIN']);
+    // Check if user is super admin
+    const { data: userData } = (await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: any };
 
-    if (!memberships || memberships.length === 0) {
+    if (!userData?.is_super_admin) {
       return NextResponse.json(
-        { error: 'Admin access required' },
+        { error: 'Super admin access required' },
         { status: 403 }
       );
     }
