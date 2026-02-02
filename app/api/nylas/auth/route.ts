@@ -20,6 +20,16 @@ export async function POST(request: NextRequest) {
 
     const nylasProvider = providerMap[provider] || 'google';
 
+    // Define scopes based on provider
+    // Microsoft has different scope requirements than Google
+    const scopeMap: { [key: string]: string[] } = {
+      google: ['email', 'calendar', 'contacts'],
+      microsoft: ['email'], // Microsoft calendar requires separate consent
+      imap: ['email'],
+    };
+
+    const scopes = scopeMap[nylasProvider] || ['email'];
+
     // Build Nylas OAuth URL
     const nylasClient = nylas();
     const oauthConfig = getNylasOAuthConfig();
@@ -27,7 +37,7 @@ export async function POST(request: NextRequest) {
       clientId: oauthConfig.clientId,
       redirectUri: oauthConfig.redirectUri,
       provider: nylasProvider as any,
-      scope: ['email', 'calendar', 'contacts'],
+      scope: scopes,
       state: user.id, // Pass user ID in state for callback
     });
 
