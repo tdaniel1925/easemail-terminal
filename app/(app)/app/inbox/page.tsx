@@ -1000,6 +1000,85 @@ export default function InboxPage() {
                   );
                 })}
               </div>
+
+              {/* Custom Labels */}
+              <div className="space-y-1">
+                <div className="px-3 py-2 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">
+                    Labels
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => setShowCreateLabel(true)}
+                  >
+                    <Tag className="h-3 w-3" />
+                  </Button>
+                </div>
+                {labels.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-muted-foreground">
+                    No labels yet
+                  </div>
+                ) : (
+                  labels.map((label) => (
+                    <button
+                      key={label.id}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: label.color }}
+                        />
+                        <span className="text-sm">{label.name}</span>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {/* Account Selector */}
+              <div className="space-y-1">
+                <div className="px-3 py-2">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">
+                    Accounts
+                  </span>
+                </div>
+                <div className="px-2 space-y-1">
+                  {accounts.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-muted-foreground">
+                      No accounts connected
+                    </div>
+                  ) : (
+                    accounts.map((account) => (
+                      <button
+                        key={account.id}
+                        onClick={() => setSelectedAccount(account.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent transition-colors ${
+                          selectedAccount === account.id ? 'bg-accent' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="h-2 w-2 rounded-full bg-green-500" />
+                          <span className="text-sm truncate">{account.email}</span>
+                        </div>
+                        {account.is_primary && (
+                          <Badge variant="secondary" className="text-xs shrink-0">
+                            Primary
+                          </Badge>
+                        )}
+                      </button>
+                    ))
+                  )}
+                  <Link href="/app/settings/email-accounts">
+                    <Button variant="outline" size="sm" className="w-full mt-2">
+                      <Tag className="mr-2 h-3 w-3" />
+                      Manage Accounts
+                    </Button>
+                  </Link>
+                </div>
+              </div>
             </nav>
           </ScrollArea>
         </div>

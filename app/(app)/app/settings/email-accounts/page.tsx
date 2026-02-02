@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from 'sonner';
-import { Loader2, Mail, Plus, Trash2, Star, CheckCircle2 } from 'lucide-react';
+import { Loader2, Mail, Plus, Trash2, Star, CheckCircle2, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface EmailAccount {
@@ -103,6 +103,23 @@ export default function EmailAccountsSettingsPage() {
     }
   };
 
+  const getSyncStatus = (syncState: string) => {
+    switch (syncState?.toLowerCase()) {
+      case 'synced':
+      case 'active':
+        return { icon: CheckCircle2, color: 'text-green-500', label: 'Synced' };
+      case 'syncing':
+        return { icon: RefreshCw, color: 'text-blue-500 animate-spin', label: 'Syncing...' };
+      case 'error':
+      case 'failed':
+        return { icon: XCircle, color: 'text-red-500', label: 'Sync Failed' };
+      case 'paused':
+        return { icon: AlertCircle, color: 'text-orange-500', label: 'Paused' };
+      default:
+        return { icon: CheckCircle2, color: 'text-green-500', label: 'Connected' };
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -170,15 +187,35 @@ export default function EmailAccountsSettingsPage() {
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="outline">{account.provider}</Badge>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <CheckCircle2 className="h-3 w-3 text-green-500" />
-                        {account.sync_state || 'Synced'}
-                      </div>
+                      {(() => {
+                        const status = getSyncStatus(account.sync_state);
+                        const StatusIcon = status.icon;
+                        return (
+                          <div className={`flex items-center gap-1 text-xs ${status.color}`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {status.label}
+                          </div>
+                        );
+                      })()}
+                      <span className="text-xs text-muted-foreground">
+                        Added {new Date(account.created_at).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      toast.success('Re-syncing account...');
+                      fetchAccounts();
+                    }}
+                    title="Re-sync account"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
                   {!account.is_primary && (
                     <Button
                       variant="outline"

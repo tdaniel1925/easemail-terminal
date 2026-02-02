@@ -29,11 +29,12 @@ export async function POST(request: NextRequest) {
     } as any);
 
     // Call OpenAI to remix
-    const remixed = await aiRemix(text, tone as AITone);
+    const result = await aiRemix(text, tone as AITone);
 
     return NextResponse.json({
       original: text,
-      remixed,
+      remixed: result.body,
+      suggestedSubject: result.suggestedSubject,
       tone,
     });
   } catch (error) {

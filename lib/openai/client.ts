@@ -16,12 +16,12 @@ function getOpenAIClient(): OpenAI {
 
 export type AITone = 'professional' | 'friendly' | 'brief' | 'detailed';
 
-export async function aiRemix(text: string, tone: AITone = 'professional'): Promise<string> {
+export async function aiRemix(text: string, tone: AITone = 'professional'): Promise<{ body: string; suggestedSubject: string }> {
   const toneInstructions = {
-    professional: 'Rewrite this into a professional, polished email. Fix spelling and grammar.',
-    friendly: 'Rewrite this into a friendly, warm email while keeping it professional. Fix spelling and grammar.',
-    brief: 'Rewrite this into a brief, concise email. Get to the point quickly. Fix spelling and grammar.',
-    detailed: 'Rewrite this into a detailed, comprehensive email. Expand on key points. Fix spelling and grammar.',
+    professional: 'Rewrite this into a professional, polished email. Fix spelling and grammar. Also suggest a concise, professional subject line.',
+    friendly: 'Rewrite this into a friendly, warm email while keeping it professional. Fix spelling and grammar. Also suggest a friendly but professional subject line.',
+    brief: 'Rewrite this into a brief, concise email. Get to the point quickly. Fix spelling and grammar. Also suggest a short, clear subject line.',
+    detailed: 'Rewrite this into a detailed, comprehensive email. Expand on key points. Fix spelling and grammar. Also suggest a descriptive subject line.',
   };
 
   const openai = getOpenAIClient();
@@ -30,18 +30,23 @@ export async function aiRemix(text: string, tone: AITone = 'professional'): Prom
     messages: [
       {
         role: 'system',
-        content: toneInstructions[tone],
+        content: `${toneInstructions[tone]} Return a JSON object with two fields: "body" (the rewritten email) and "suggestedSubject" (a concise subject line, max 60 characters).`,
       },
       {
         role: 'user',
         content: text,
       },
     ],
+    response_format: { type: 'json_object' },
     temperature: 0.7,
     max_tokens: 1000,
   });
 
-  return completion.choices[0].message.content || text;
+  const result = JSON.parse(completion.choices[0].message.content || '{"body":"","suggestedSubject":""}');
+  return {
+    body: result.body || text,
+    suggestedSubject: result.suggestedSubject || '',
+  };
 }
 
 export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {

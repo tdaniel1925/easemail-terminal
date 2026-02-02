@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { VoiceInput } from '@/components/features/voice-input';
@@ -82,6 +83,11 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
   const [scheduling, setScheduling] = useState(false);
+
+  // AI Remix subject confirmation state
+  const [showSubjectConfirm, setShowSubjectConfirm] = useState(false);
+  const [suggestedSubject, setSuggestedSubject] = useState('');
+  const [pendingBody, setPendingBody] = useState('');
 
   // Save draft function
   const saveDraft = async (showToast: boolean = false) => {
@@ -331,8 +337,21 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       const data = await response.json();
 
       if (data.remixed) {
-        setBody(data.remixed);
-        toast.success('✨ Email remixed!');
+        // If user already has a subject and AI suggested one, confirm
+        if (subject && data.suggestedSubject) {
+          setPendingBody(data.remixed);
+          setSuggestedSubject(data.suggestedSubject);
+          setShowSubjectConfirm(true);
+        } else {
+          // No existing subject, just apply everything
+          setBody(data.remixed);
+          if (data.suggestedSubject && !subject) {
+            setSubject(data.suggestedSubject);
+            toast.success('✨ Email remixed with suggested subject!');
+          } else {
+            toast.success('✨ Email remixed!');
+          }
+        }
       } else {
         toast.error(data.error || 'Failed to remix');
       }
@@ -342,6 +361,17 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     } finally {
       setRemixing(false);
     }
+  };
+
+  const applyAISubject = (useAISubject: boolean) => {
+    setBody(pendingBody);
+    if (useAISubject && suggestedSubject) {
+      setSubject(suggestedSubject);
+    }
+    setShowSubjectConfirm(false);
+    setPendingBody('');
+    setSuggestedSubject('');
+    toast.success('✨ Email remixed!');
   };
 
   const handleSend = async () => {
@@ -605,93 +635,132 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-border">
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              onClick={() => {
-                fetchTemplates();
-                setShowTemplates(true);
-              }}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Use Template
-            </Button>
+        <TooltipProvider>
+          <div className="flex items-center justify-between pt-4 border-t border-border">
+            <div className="flex gap-2 flex-wrap">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      fetchTemplates();
+                      setShowTemplates(true);
+                    }}
+                  >
+                    <FileText className="mr-2 h-4 w-4" />
+                    Use Template
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Load a saved email template</TooltipContent>
+              </Tooltip>
 
-            <Button
-              variant="outline"
-              onClick={() => setShowSaveTemplate(true)}
-              disabled={!body}
-            >
-              <BookmarkPlus className="mr-2 h-4 w-4" />
-              Save as Template
-            </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSaveTemplate(true)}
+                    disabled={!body}
+                  >
+                    <BookmarkPlus className="mr-2 h-4 w-4" />
+                    Save as Template
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Save this email as a reusable template</TooltipContent>
+              </Tooltip>
 
-            <Button
-              variant="outline"
-              onClick={handleAIRemix}
-              disabled={remixing || body.length < 10}
-            >
-              {remixing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Remixing...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  AI Remix
-                </>
-              )}
-            </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={handleAIRemix}
+                    disabled={remixing || body.length < 10}
+                  >
+                    {remixing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Remixing...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        AI Remix
+                      </>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Polish your email with AI and get a subject suggestion</TooltipContent>
+              </Tooltip>
 
-            <VoiceInput
-              onTranscript={(text) => setBody(text)}
-              tone={tone}
-            />
+              <VoiceInput
+                onTranscript={(text) => setBody(text)}
+                tone={tone}
+              />
 
-            <Button
-              variant="outline"
-              onClick={() => saveDraft(true)}
-              disabled={saving || (!to && !subject && !body)}
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Draft
-                </>
-              )}
-            </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => saveDraft(true)}
+                    disabled={saving || (!to && !subject && !body)}
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save Draft
+                      </>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Save as draft (auto-saves every 30s)</TooltipContent>
+              </Tooltip>
+            </div>
+
+            <div className="flex gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={onClose}>
+                    Cancel
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Close without sending</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={() => setShowSchedule(true)}>
+                    <Clock className="mr-2 h-4 w-4" />
+                    Schedule
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Schedule this email to send later</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={handleSend} disabled={sending}>
+                    {sending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Now
+                      </>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Send email immediately</TooltipContent>
+              </Tooltip>
+            </div>
           </div>
-
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button variant="outline" onClick={() => setShowSchedule(true)}>
-              <Clock className="mr-2 h-4 w-4" />
-              Schedule
-            </Button>
-            <Button onClick={handleSend} disabled={sending}>
-              {sending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  Send Now
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
+        </TooltipProvider>
       </DialogContent>
 
       {/* Templates Selection Dialog */}
@@ -833,6 +902,43 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                       Schedule Send
                     </>
                   )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Subject Confirmation Dialog */}
+      {showSubjectConfirm && (
+        <Dialog open={showSubjectConfirm} onOpenChange={setShowSubjectConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Use AI-Suggested Subject?</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label className="text-sm text-muted-foreground">Your Current Subject:</Label>
+                <div className="mt-1 p-3 bg-accent/50 rounded-lg">
+                  <p className="font-medium">{subject}</p>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm text-muted-foreground">AI-Suggested Subject:</Label>
+                <div className="mt-1 p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <p className="font-medium text-blue-900 dark:text-blue-100">{suggestedSubject}</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Would you like to replace your current subject with the AI-suggested one?
+              </p>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => applyAISubject(false)}>
+                  Keep Mine
+                </Button>
+                <Button onClick={() => applyAISubject(true)}>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Use AI Subject
                 </Button>
               </div>
             </div>
