@@ -44,6 +44,8 @@ export default function TeamsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [meetingUrl, setMeetingUrl] = useState('');
   const [scheduleForm, setScheduleForm] = useState({
     subject: '',
     startDate: '',
@@ -174,7 +176,8 @@ export default function TeamsPage() {
       const data = await response.json();
       if (response.ok && data.meeting?.onlineMeeting?.joinUrl) {
         toast.success('Meeting created! Opening Teams...');
-        window.open(data.meeting.onlineMeeting.joinUrl, '_blank');
+        setMeetingUrl(data.meeting.onlineMeeting.joinUrl);
+        setShowMeetingModal(true);
         fetchMeetings(); // Refresh meetings list
       } else {
         toast.error('Failed to create instant meeting');
@@ -420,7 +423,7 @@ export default function TeamsPage() {
                         {searchQuery ? 'Try a different search term' : 'You have no upcoming Teams meetings in the next 14 days'}
                       </p>
                       {!searchQuery && (
-                        <Button>
+                        <Button onClick={handleScheduleMeeting}>
                           <Plus className="mr-2 h-4 w-4" />
                           Schedule Meeting
                         </Button>
@@ -471,7 +474,10 @@ export default function TeamsPage() {
                                 <Button
                                   size="sm"
                                   className="bg-purple-600 hover:bg-purple-700"
-                                  onClick={() => window.open(meeting.onlineMeeting!.joinUrl, '_blank')}
+                                  onClick={() => {
+                                    setMeetingUrl(meeting.onlineMeeting!.joinUrl);
+                                    setShowMeetingModal(true);
+                                  }}
                                 >
                                   <Video className="mr-2 h-4 w-4" />
                                   Join
@@ -590,6 +596,49 @@ export default function TeamsPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Teams Meeting Modal Overlay */}
+      <Dialog open={showMeetingModal} onOpenChange={setShowMeetingModal}>
+        <DialogContent className="max-w-[95vw] w-full h-[95vh] p-0 gap-0">
+          <DialogHeader className="p-4 border-b">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5 text-purple-600" />
+                Microsoft Teams Meeting
+              </DialogTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    window.open(meetingUrl, '_blank');
+                  }}
+                >
+                  Open in New Tab
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowMeetingModal(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 w-full h-full overflow-hidden">
+            {meetingUrl && (
+              <iframe
+                src={meetingUrl}
+                className="w-full h-full border-0"
+                allow="camera; microphone; fullscreen; display-capture; autoplay"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals"
+                title="Microsoft Teams Meeting"
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
