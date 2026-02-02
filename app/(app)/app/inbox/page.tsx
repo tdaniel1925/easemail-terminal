@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
-  Reply, ReplyAll, Forward, LogOut, Loader2, X, Check, Minus
+  Reply, ReplyAll, Forward, LogOut, Loader2, X, Check, Minus, Tag, Shield, AlertTriangle
 } from 'lucide-react';
 import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
@@ -43,10 +45,29 @@ export default function InboxPage() {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string>('unified'); // 'unified' or account ID
 
+  // Snooze state
+  const [showSnooze, setShowSnooze] = useState(false);
+  const [snoozeMessageId, setSnoozeMessageId] = useState<string | null>(null);
+  const [snoozeUntil, setSnoozeUntil] = useState('');
+  const [snoozing, setSnoozing] = useState(false);
+
+  // Labels state
+  const [labels, setLabels] = useState<any[]>([]);
+  const [showLabels, setShowLabels] = useState(false);
+  const [labelMessageId, setLabelMessageId] = useState<string | null>(null);
+  const [messageLabels, setMessageLabels] = useState<Record<string, any[]>>({});
+  const [showCreateLabel, setShowCreateLabel] = useState(false);
+  const [newLabelName, setNewLabelName] = useState('');
+  const [newLabelColor, setNewLabelColor] = useState('#3B82F6');
+
+  // Spam state
+  const [detectingSpam, setDetectingSpam] = useState(false);
+
   useEffect(() => {
     fetchAccounts();
     fetchMessages();
     fetchCategories();
+    fetchLabels();
   }, []);
 
   useEffect(() => {
@@ -397,6 +418,260 @@ export default function InboxPage() {
   const clearSearch = () => {
     setSearchQuery('');
     setSearchResults([]);
+  };
+
+  // Snooze handlers
+  const fetchLabels = async () => {
+    try {
+      const response = await fetch('/api/labels');
+      const data = await response.json();
+      if (response.ok && data.labels) {
+        setLabels(data.labels);
+      }
+    } catch (error) {
+      console.error('Failed to fetch labels:', error);
+    }
+  };
+
+  const handleSnooze = async (messageId: string) => {
+    setSnoozeMessageId(messageId);
+    setShowSnooze(true);
+  };
+
+  const confirmSnooze = async () => {
+    if (!snoozeMessageId || !snoozeUntil) {
+      toast.error('Please select a time');
+      return;
+    }
+
+    try {
+      setSnoozing(true);
+      const message = messages.find(m => m.id === snoozeMessageId);
+
+      const response = await fetch('/api/snooze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId: snoozeMessageId,
+          threadId: message?.thread_id,
+          snoozeUntil,
+          originalFolder: 'inbox',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message);
+        setMessages(messages.filter(m => m.id !== snoozeMessageId));
+        setShowSnooze(false);
+        setSnoozeMessageId(null);
+        setSnoozeUntil('');
+      } else {
+        toast.error(data.error || 'Failed to snooze');
+      }
+    } catch (error) {
+      console.error('Snooze error:', error);
+      toast.error('Failed to snooze email');
+    } finally {
+      setSnoozing(false);
+    }
+  };
+
+  const quickSnooze = async (messageId: string, hours: number) => {
+    const snoozeDate = new Date();
+    snoozeDate.setHours(snoozeDate.getHours() + hours);
+
+    try {
+      const message = messages.find(m => m.id === messageId);
+
+      const response = await fetch('/api/snooze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId,
+          threadId: message?.thread_id,
+          snoozeUntil: snoozeDate.toISOString(),
+          originalFolder: 'inbox',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`Snoozed for ${hours} hour(s)`);
+        setMessages(messages.filter(m => m.id !== messageId));
+      } else {
+        toast.error(data.error || 'Failed to snooze');
+      }
+    } catch (error) {
+      console.error('Quick snooze error:', error);
+      toast.error('Failed to snooze email');
+    }
+  };
+
+  // Label handlers
+  const handleApplyLabel = async (messageId: string) => {
+    setLabelMessageId(messageId);
+    setShowLabels(true);
+
+    // Fetch current labels for this message
+    try {
+      const response = await fetch(`/api/messages/${messageId}/labels`);
+      const data = await response.json();
+      if (response.ok && data.labels) {
+        setMessageLabels(prev => ({ ...prev, [messageId]: data.labels }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch message labels:', error);
+    }
+  };
+
+  const toggleLabelOnMessage = async (labelId: string) => {
+    if (!labelMessageId) return;
+
+    const currentLabels = messageLabels[labelMessageId] || [];
+    const hasLabel = currentLabels.some((l: any) => l.id === labelId);
+
+    try {
+      if (hasLabel) {
+        // Remove label
+        const response = await fetch(`/api/messages/${labelMessageId}/labels?labelId=${labelId}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          setMessageLabels(prev => ({
+            ...prev,
+            [labelMessageId]: currentLabels.filter((l: any) => l.id !== labelId),
+          }));
+          toast.success('Label removed');
+        }
+      } else {
+        // Add label
+        const response = await fetch(`/api/messages/${labelMessageId}/labels`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ labelId }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          const label = labels.find(l => l.id === labelId);
+          setMessageLabels(prev => ({
+            ...prev,
+            [labelMessageId]: [...currentLabels, label],
+          }));
+          toast.success('Label added');
+        }
+      }
+    } catch (error) {
+      console.error('Toggle label error:', error);
+      toast.error('Failed to update label');
+    }
+  };
+
+  const createLabel = async () => {
+    if (!newLabelName.trim()) {
+      toast.error('Label name is required');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/labels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newLabelName,
+          color: newLabelColor,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Label created');
+        setLabels([...labels, data.label]);
+        setNewLabelName('');
+        setNewLabelColor('#3B82F6');
+        setShowCreateLabel(false);
+      } else {
+        toast.error(data.error || 'Failed to create label');
+      }
+    } catch (error) {
+      console.error('Create label error:', error);
+      toast.error('Failed to create label');
+    }
+  };
+
+  // Spam handlers
+  const detectSpam = async (messageId: string) => {
+    const message = messages.find(m => m.id === messageId);
+    if (!message) return;
+
+    try {
+      setDetectingSpam(true);
+      const response = await fetch('/api/spam/detect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId,
+          subject: message.subject,
+          body: message.snippet || message.body,
+          senderEmail: message.from?.[0]?.email,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.isSpam) {
+          toast.warning(`⚠️ Spam detected (${data.spamScore}% confidence)\n${data.reasons[0] || ''}`, {
+            duration: 5000,
+          });
+        } else {
+          toast.success('✅ Message appears safe');
+        }
+      }
+    } catch (error) {
+      console.error('Spam detection error:', error);
+    } finally {
+      setDetectingSpam(false);
+    }
+  };
+
+  const reportSpam = async (messageId: string) => {
+    const message = messages.find(m => m.id === messageId);
+    if (!message) return;
+
+    try {
+      const response = await fetch('/api/spam/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messageId,
+          senderEmail: message.from?.[0]?.email,
+          subject: message.subject,
+          isSpam: true,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('🛡️ Reported as spam and moved to spam folder');
+        setMessages(messages.filter(m => m.id !== messageId));
+        if (selectedMessage?.id === messageId) {
+          setSelectedMessage(null);
+        }
+      } else {
+        toast.error(data.error || 'Failed to report spam');
+      }
+    } catch (error) {
+      console.error('Report spam error:', error);
+      toast.error('Failed to report spam');
+    }
   };
 
   // Bulk selection handlers
@@ -1235,6 +1510,30 @@ export default function InboxPage() {
                       <Forward className="mr-2 h-4 w-4" />
                       Forward
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSnooze(selectedMessage.id)}
+                    >
+                      <Clock className="mr-2 h-4 w-4" />
+                      Snooze
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleApplyLabel(selectedMessage.id)}
+                    >
+                      <Tag className="mr-2 h-4 w-4" />
+                      Labels
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => reportSpam(selectedMessage.id)}
+                    >
+                      <Shield className="mr-2 h-4 w-4" />
+                      Report Spam
+                    </Button>
                     <div className="ml-auto flex items-center gap-2">
                       <Button
                         variant="outline"
@@ -1304,6 +1603,198 @@ export default function InboxPage() {
           onClose={() => setReplyMode(null)}
           replyTo={replyMode.message}
         />
+      )}
+
+      {/* Snooze Dialog */}
+      {showSnooze && (
+        <Dialog open={showSnooze} onOpenChange={setShowSnooze}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Snooze Email</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label htmlFor="snooze-until">Snooze until</Label>
+                <Input
+                  id="snooze-until"
+                  type="datetime-local"
+                  value={snoozeUntil}
+                  onChange={(e) => setSnoozeUntil(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (snoozeMessageId) {
+                      quickSnooze(snoozeMessageId, 1);
+                      setShowSnooze(false);
+                    }
+                  }}
+                >
+                  1 hour
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (snoozeMessageId) {
+                      quickSnooze(snoozeMessageId, 3);
+                      setShowSnooze(false);
+                    }
+                  }}
+                >
+                  3 hours
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (snoozeMessageId) {
+                      quickSnooze(snoozeMessageId, 24);
+                      setShowSnooze(false);
+                    }
+                  }}
+                >
+                  Tomorrow
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (snoozeMessageId) {
+                      quickSnooze(snoozeMessageId, 168);
+                      setShowSnooze(false);
+                    }
+                  }}
+                >
+                  Next week
+                </Button>
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="ghost" onClick={() => setShowSnooze(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={confirmSnooze} disabled={snoozing || !snoozeUntil}>
+                  {snoozing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Snoozing...
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      Snooze
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Labels Dialog */}
+      {showLabels && (
+        <Dialog open={showLabels} onOpenChange={setShowLabels}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Manage Labels</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              {labels.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Tag className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No labels yet. Create your first label!</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {labels.map((label: any) => {
+                    const hasLabel = labelMessageId && messageLabels[labelMessageId]?.some((l: any) => l.id === label.id);
+                    return (
+                      <button
+                        key={label.id}
+                        onClick={() => toggleLabelOnMessage(label.id)}
+                        className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: label.color }}
+                          />
+                          <span className="font-medium">{label.name}</span>
+                        </div>
+                        {hasLabel && (
+                          <Check className="h-4 w-4 text-primary" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              <div className="pt-4 border-t">
+                {!showCreateLabel ? (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setShowCreateLabel(true)}
+                  >
+                    <Tag className="mr-2 h-4 w-4" />
+                    Create New Label
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="label-name">Label Name</Label>
+                      <Input
+                        id="label-name"
+                        placeholder="e.g., Important"
+                        value={newLabelName}
+                        onChange={(e) => setNewLabelName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="label-color">Color</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="label-color"
+                          type="color"
+                          value={newLabelColor}
+                          onChange={(e) => setNewLabelColor(e.target.value)}
+                          className="w-20 h-10"
+                        />
+                        <Input
+                          value={newLabelColor}
+                          onChange={(e) => setNewLabelColor(e.target.value)}
+                          placeholder="#3B82F6"
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowCreateLabel(false);
+                          setNewLabelName('');
+                          setNewLabelColor('#3B82F6');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button size="sm" onClick={createLabel}>
+                        Create
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
