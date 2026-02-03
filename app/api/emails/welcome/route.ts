@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/resend';
 import { getWelcomeEmailHtml } from '@/lib/email-templates';

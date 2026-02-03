@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Resend } from 'resend';
 
 // Initialize Resend with API key

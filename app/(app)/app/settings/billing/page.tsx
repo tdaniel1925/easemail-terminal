@@ -177,11 +177,11 @@ export default function BillingPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat('en-US', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    }).toLocaleDateString();
+    });
   };
 
   if (loading) {
