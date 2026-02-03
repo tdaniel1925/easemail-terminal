@@ -40,10 +40,22 @@ export function AttachmentUploader({
   };
 
   const validateFile = (file: File): boolean => {
+    // Validate file exists
+    if (!file || !(file instanceof File)) {
+      toast.error('Invalid file');
+      return false;
+    }
+
     // Check file size
     const maxSizeBytes = maxSize * 1024 * 1024;
     if (file.size > maxSizeBytes) {
-      toast.error(`File ${file.name} is too large. Max size: ${maxSize}MB`);
+      toast.error(`File "${file.name}" is too large. Max size: ${maxSize}MB`);
+      return false;
+    }
+
+    // Check minimum file size (prevent empty files)
+    if (file.size === 0) {
+      toast.error(`File "${file.name}" is empty`);
       return false;
     }
 
@@ -53,12 +65,36 @@ export function AttachmentUploader({
       return false;
     }
 
+    // Check file name length
+    if (file.name.length > 255) {
+      toast.error(`File name "${file.name.substring(0, 50)}..." is too long`);
+      return false;
+    }
+
+    // Block potentially dangerous file types
+    const dangerousExtensions = ['.exe', '.bat', '.cmd', '.com', '.scr', '.pif', '.vbs', '.js'];
+    const fileName = file.name.toLowerCase();
+    if (dangerousExtensions.some(ext => fileName.endsWith(ext))) {
+      toast.error(`File type not allowed for security reasons: ${file.name}`);
+      return false;
+    }
+
     return true;
   };
 
   const addFiles = (files: FileList | File[]) => {
+    if (!files || files.length === 0) {
+      return;
+    }
+
     const fileArray = Array.from(files);
     const validFiles: Attachment[] = [];
+
+    // Check if adding these files would exceed max files limit
+    if (attachments.length + fileArray.length > maxFiles) {
+      toast.error(`Cannot add ${fileArray.length} files. Maximum ${maxFiles} files allowed. You currently have ${attachments.length} file(s).`);
+      return;
+    }
 
     fileArray.forEach((file) => {
       if (validateFile(file)) {
@@ -66,13 +102,24 @@ export function AttachmentUploader({
           id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           name: file.name,
           size: file.size,
-          type: file.type,
+          type: file.type || 'application/octet-stream',
           file,
         });
       }
     });
 
     if (validFiles.length > 0) {
+      // Check total size after adding new files
+      const currentTotalSize = attachments.reduce((sum, a) => sum + (a.size || 0), 0);
+      const newFilesSize = validFiles.reduce((sum, f) => sum + (f.size || 0), 0);
+      const totalSize = currentTotalSize + newFilesSize;
+      const maxTotalSize = maxSize * 1024 * 1024 * maxFiles; // Max total size
+
+      if (totalSize > maxTotalSize) {
+        toast.error(`Total attachment size would exceed limit of ${maxSize * maxFiles}MB`);
+        return;
+      }
+
       onAttachmentsChange([...attachments, ...validFiles]);
       toast.success(`${validFiles.length} file(s) added`);
     }
@@ -124,18 +171,30 @@ export function AttachmentUploader({
   // Generate image previews
   useEffect(() => {
     attachments.forEach((attachment) => {
-      if (attachment.type.startsWith('image/') && !imagePreviews[attachment.id]) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviews((prev) => ({
-            ...prev,
-            [attachment.id]: reader.result as string,
-          }));
-        };
-        reader.readAsDataURL(attachment.file);
+      if (attachment?.type?.startsWith('image/') && !imagePreviews[attachment.id] && attachment.file) {
+        try {
+          const reader = new FileReader();
+
+          reader.onloadend = () => {
+            if (reader.result && typeof reader.result === 'string') {
+              setImagePreviews((prev) => ({
+                ...prev,
+                [attachment.id]: reader.result as string,
+              }));
+            }
+          };
+
+          reader.onerror = () => {
+            console.error('Failed to read image file:', attachment.name);
+          };
+
+          reader.readAsDataURL(attachment.file);
+        } catch (error) {
+          console.error('Error generating image preview:', error);
+        }
       }
     });
-  }, [attachments]);
+  }, [attachments, imagePreviews]);
 
   const isImage = (type: string) => type.startsWith('image/');
 

@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
 
     const nylasClient = nylas();
 
-    // Fetch messages from all accounts in parallel
-    const accountMessages = await Promise.all(
+    // Fetch messages from all accounts in parallel using Promise.allSettled for fault tolerance
+    const accountMessagesResults = await Promise.allSettled(
       accounts.map(async (account) => {
         try {
           const response = await nylasClient.messages.list({
@@ -56,6 +56,16 @@ export async function GET(request: NextRequest) {
         }
       })
     );
+
+    // Extract successful results
+    const accountMessages = accountMessagesResults.map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return result.value;
+      } else {
+        console.error(`Account ${accounts[index].email} message fetch failed:`, result.reason);
+        return [];
+      }
+    });
 
     // Flatten and sort by date (newest first)
     const allMessages = accountMessages

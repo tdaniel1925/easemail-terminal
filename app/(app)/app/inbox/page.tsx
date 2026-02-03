@@ -228,10 +228,17 @@ export default function InboxPage() {
   const filteredMessages = getFilteredMessages();
 
   const getInitials = (name?: string, email?: string) => {
-    if (name) {
-      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    if (name && typeof name === 'string' && name.trim().length > 0) {
+      const parts = name.trim().split(/\s+/).filter(p => p.length > 0);
+      if (parts.length > 0) {
+        return parts
+          .slice(0, 2)
+          .map(p => p[0] || '')
+          .join('')
+          .toUpperCase() || '?';
+      }
     }
-    if (email) {
+    if (email && typeof email === 'string' && email.length > 0) {
       return email[0].toUpperCase();
     }
     return '?';
@@ -904,12 +911,15 @@ export default function InboxPage() {
       if (!threads.has(threadId)) {
         threads.set(threadId, []);
       }
-      threads.get(threadId)!.push(message);
+      const thread = threads.get(threadId);
+      if (thread) {
+        thread.push(message);
+      }
     });
 
     // Sort messages within each thread by date (oldest first)
     threads.forEach((messages, threadId) => {
-      messages.sort((a, b) => a.date - b.date);
+      messages.sort((a, b) => (a.date || 0) - (b.date || 0));
     });
 
     return threads;

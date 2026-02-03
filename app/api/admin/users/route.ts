@@ -32,26 +32,50 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ users: [] });
     }
 
-    // Get organization counts for each user
-    const usersWithStats = await Promise.all(
+    // Get organization counts for each user using Promise.allSettled for fault tolerance
+    const statsResults = await Promise.allSettled(
       allUsers.map(async (u: any) => {
-        const { count: orgCount } = await supabase
-          .from('organization_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', u.id);
+        try {
+          const { count: orgCount } = await supabase
+            .from('organization_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', u.id);
 
-        const { count: emailCount } = await supabase
-          .from('email_accounts')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', u.id);
+          const { count: emailCount } = await supabase
+            .from('email_accounts')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', u.id);
 
-        return {
-          ...u,
-          organization_count: orgCount || 0,
-          email_account_count: emailCount || 0,
-        };
+          return {
+            ...u,
+            organization_count: orgCount || 0,
+            email_account_count: emailCount || 0,
+          };
+        } catch (error) {
+          console.error(`Failed to fetch stats for user ${u.id}:`, error);
+          // Return user with zero stats on error
+          return {
+            ...u,
+            organization_count: 0,
+            email_account_count: 0,
+          };
+        }
       })
     );
+
+    // Extract successful results, fallback to user data on failures
+    const usersWithStats = statsResults.map((result, index) => {
+      if (result.status === 'fulfilled') {
+        return result.value;
+      } else {
+        console.error(`User stats fetch failed for ${allUsers[index].id}:`, result.reason);
+        return {
+          ...allUsers[index],
+          organization_count: 0,
+          email_account_count: 0,
+        };
+      }
+    });
 
     return NextResponse.json({ users: usersWithStats });
   } catch (error) {

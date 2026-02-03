@@ -540,16 +540,27 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e) : [];
 
       // Replace template variables if present
-      let processedSubject = subject;
-      let processedBody = body;
+      let processedSubject = subject || '';
+      let processedBody = body || '';
 
-      if (hasTemplateVariables(subject) || hasTemplateVariables(body)) {
+      // Safe check for template variables
+      const subjectHasVars = typeof processedSubject === 'string' && hasTemplateVariables(processedSubject);
+      const bodyHasVars = typeof processedBody === 'string' && hasTemplateVariables(processedBody);
+
+      if (subjectHasVars || bodyHasVars) {
         // Get variables for the first recipient
-        const primaryRecipient = toArray[0];
-        if (primaryRecipient) {
-          const variables = await getRecipientVariables(primaryRecipient);
-          processedSubject = replaceTemplateVariables(subject, variables);
-          processedBody = replaceTemplateVariables(body, variables);
+        const primaryRecipient = toArray && toArray.length > 0 ? toArray[0] : null;
+        if (primaryRecipient && typeof primaryRecipient === 'string') {
+          try {
+            const variables = await getRecipientVariables(primaryRecipient);
+            if (variables && typeof variables === 'object') {
+              processedSubject = replaceTemplateVariables(processedSubject, variables);
+              processedBody = replaceTemplateVariables(processedBody, variables);
+            }
+          } catch (error) {
+            console.error('Error processing template variables:', error);
+            // Continue with unprocessed variables rather than failing
+          }
         }
       }
 
