@@ -5,16 +5,9 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { CreateOrganizationWizard } from '@/components/admin/create-organization-wizard';
 import { toast } from 'sonner';
 import {
   Building2,
@@ -23,7 +16,6 @@ import {
   Users,
   Crown,
   Loader2,
-  Settings,
   TrendingUp,
 } from 'lucide-react';
 
@@ -45,14 +37,7 @@ export default function AdminOrganizationsPage() {
   const [filteredOrgs, setFilteredOrgs] = useState<Organization[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-
-  // Create org form
-  const [newOrgName, setNewOrgName] = useState('');
-  const [newOrgOwnerEmail, setNewOrgOwnerEmail] = useState('');
-  const [newOrgPlan, setNewOrgPlan] = useState('FREE');
-  const [newOrgSeats, setNewOrgSeats] = useState('1');
-  const [creating, setCreating] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     fetchOrganizations();
@@ -90,44 +75,10 @@ export default function AdminOrganizationsPage() {
     }
   };
 
-  const handleCreateOrganization = async () => {
-    if (!newOrgName || !newOrgOwnerEmail) {
-      toast.error('Organization name and owner email are required');
-      return;
-    }
-
-    try {
-      setCreating(true);
-      const response = await fetch('/api/admin/organizations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: newOrgName,
-          owner_email: newOrgOwnerEmail,
-          plan: newOrgPlan,
-          seats: parseInt(newOrgSeats),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success('Organization created successfully!');
-        setShowCreateDialog(false);
-        setNewOrgName('');
-        setNewOrgOwnerEmail('');
-        setNewOrgPlan('FREE');
-        setNewOrgSeats('1');
-        fetchOrganizations();
-      } else {
-        toast.error(data.error || 'Failed to create organization');
-      }
-    } catch (error) {
-      console.error('Create organization error:', error);
-      toast.error('Failed to create organization');
-    } finally {
-      setCreating(false);
-    }
+  const handleWizardComplete = () => {
+    setShowWizard(false);
+    fetchOrganizations();
+    toast.success('Organization created successfully!');
   };
 
   const getPlanBadgeColor = (plan: string) => {
@@ -158,7 +109,7 @@ export default function AdminOrganizationsPage() {
           <h1 className="text-3xl font-bold">Organization Management</h1>
           <p className="text-muted-foreground">System-wide organization administration</p>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
+        <Button onClick={() => setShowWizard(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Create Organization
         </Button>
@@ -292,86 +243,13 @@ export default function AdminOrganizationsPage() {
         )}
       </div>
 
-      {/* Create Organization Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Organization</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Label htmlFor="org-name">Organization Name *</Label>
-              <Input
-                id="org-name"
-                placeholder="Acme Inc."
-                value={newOrgName}
-                onChange={(e) => setNewOrgName(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="owner-email">Owner Email *</Label>
-              <Input
-                id="owner-email"
-                type="email"
-                placeholder="owner@company.com"
-                value={newOrgOwnerEmail}
-                onChange={(e) => setNewOrgOwnerEmail(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                User must already exist in the system
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="plan">Plan</Label>
-              <Select value={newOrgPlan} onValueChange={setNewOrgPlan}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FREE">Free</SelectItem>
-                  <SelectItem value="PRO">Pro</SelectItem>
-                  <SelectItem value="BUSINESS">Business</SelectItem>
-                  <SelectItem value="ENTERPRISE">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="seats">Seats</Label>
-              <Input
-                id="seats"
-                type="number"
-                min="1"
-                value={newOrgSeats}
-                onChange={(e) => setNewOrgSeats(e.target.value)}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="ghost"
-                onClick={() => setShowCreateDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleCreateOrganization} disabled={creating}>
-                {creating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Organization
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+      {/* Create Organization Wizard */}
+      <Dialog open={showWizard} onOpenChange={setShowWizard}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <CreateOrganizationWizard
+            onComplete={handleWizardComplete}
+            onCancel={() => setShowWizard(false)}
+          />
         </DialogContent>
       </Dialog>
     </div>
