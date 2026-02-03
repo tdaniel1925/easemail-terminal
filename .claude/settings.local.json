@@ -4,7 +4,16 @@
       "Bash(for file in app/api/emails/*/route.ts)",
       "Bash(do sed -i '1i// @ts-nocheck' \"$file\")",
       "Bash(done)",
-      "Bash(for file in app/api/invoices/route.ts app/api/organization/route.ts app/api/organization/seats/route.ts app/api/payment-methods/route.ts)"
+      "Bash(for file in app/api/invoices/route.ts app/api/organization/route.ts app/api/organization/seats/route.ts app/api/payment-methods/route.ts)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd comprehensive calendar enhancements and dashboard improvements\n\nDashboard improvements:\n- Display user''s actual name in greeting from profile\n- Update quick action buttons to Inbox, Calendar, MS Teams, Contacts\n- Change \"View details\" button text to \"Go there\"\n- Replace \"Best Time to Focus\" with \"Today 's Events\" showing top 3 events\n- Add \"More\" link when there are additional events beyond top 3\n\nCalendar enhancements:\n- Add 4 view modes: Day, Week, Month, and Agenda views\n- Implement search functionality for events (title, description, location)\n- Add calendar source filters with show/hide toggles for Teams and Email calendars\n- Add color coding: blue for email calendar events, purple for Teams meetings\n- Display color legend for easy reference\n- Implement meeting analytics dashboard with weekly stats\n- Add conflict detection for overlapping meetings with visual indicators\n- Add smart \"Join Now\" button that adapts based on meeting timing\n- Implement RSVP buttons (Accept, Tentative, Decline) in event modal\n- Add time zone display support\n- Add recurring event indicators and detection\n- Show attendee count when available\n- Add quick action buttons (set reminder, open in external calendar)\n- Enhance event detail modal with comprehensive information\n- Add conflict badges and alerts throughout all views\n- Improve calendar sizing with larger, more readable cells\n- Add starting soon and happening now banners for upcoming meetings\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Bash(git commit:*)",
+      "Bash(npx vercel logs:*)",
+      "Bash(npx vercel:*)",
+      "Bash(timeout 15 npx vercel logs:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []

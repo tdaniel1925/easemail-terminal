@@ -8,7 +8,10 @@ import {
   Building2,
   Webhook,
   Shield,
-  Settings
+  Settings,
+  CreditCard,
+  TrendingUp,
+  Briefcase
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -35,6 +38,26 @@ export default function AdminLayout({
       title: 'Organizations',
       href: '/app/admin/organizations',
       icon: Building2,
+    },
+    {
+      title: 'Billing',
+      href: '/app/admin/billing',
+      icon: CreditCard,
+    },
+    {
+      title: 'Revenue',
+      href: '/app/admin/revenue',
+      icon: TrendingUp,
+    },
+    {
+      title: 'Sales Pipeline',
+      href: '/app/admin/sales',
+      icon: Briefcase,
+    },
+    {
+      title: 'System',
+      href: '/app/admin/system',
+      icon: Settings,
     },
   ];
 
