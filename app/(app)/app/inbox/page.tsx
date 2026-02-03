@@ -28,6 +28,7 @@ type EmailCategory = 'people' | 'newsletters' | 'notifications';
 export default function InboxPage() {
   const searchParams = useSearchParams();
   const folderParam = searchParams.get('folder');
+  const composeParam = searchParams.get('compose');
 
   const [messages, setMessages] = useState<any[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
@@ -476,6 +477,17 @@ export default function InboxPage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [fetchAccounts, fetchMessages, fetchCategories, fetchLabels]);
+
+  // Handle compose query parameter
+  useEffect(() => {
+    if (composeParam === 'true') {
+      setComposing(true);
+      // Remove the query parameter from URL to prevent reopening on refresh
+      const url = new URL(window.location.href);
+      url.searchParams.delete('compose');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [composeParam]);
 
   useEffect(() => {
     // Refetch messages when account or folder changes

@@ -1,212 +1,196 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Sparkles,
   Mic,
-  VoicemailIcon,
   Calendar,
   Mail,
-  Lock,
   Zap,
   Users,
   Check,
-  Crown,
   ArrowRight,
+  Brain,
+  Lock,
+  Globe,
+  MessageSquare,
+  PhoneCall,
+  BarChart3,
 } from 'lucide-react';
 
 const features = [
   {
-    icon: Sparkles,
-    title: 'AI Remix',
-    description:
-      'Transform messy thoughts into polished, professional emails instantly. Choose from 4 tone styles.',
-    gradient: 'from-blue-500 to-purple-500',
-  },
-  {
-    icon: Mic,
-    title: 'AI Dictate',
-    description:
-      'Speak naturally and get a perfectly formatted email. AI transcribes and polishes automatically.',
-    gradient: 'from-purple-500 to-pink-500',
-  },
-  {
-    icon: VoicemailIcon,
-    title: 'Voice Messages',
-    description:
-      'Add personality with audio attachments. Like WhatsApp for email. Stand out from the crowd.',
-    gradient: 'from-pink-500 to-orange-500',
-  },
-  {
-    icon: Calendar,
-    title: 'Smart Calendar',
-    description:
-      'Create events from natural language. "Meet John Tuesday at 2pm" becomes a calendar event.',
-    gradient: 'from-orange-500 to-yellow-500',
+    icon: Brain,
+    title: 'AI Email Assistant',
+    description: 'Write better emails faster. AI helps you compose, rewrite, and polish your messages with perfect tone and grammar.',
+    color: 'text-blue-500',
   },
   {
     icon: Mail,
     title: 'Unified Inbox',
-    description:
-      'Gmail, Outlook, IMAP - all in one beautiful interface. Smart categorization and filters.',
-    gradient: 'from-green-500 to-teal-500',
+    description: 'All your email accounts in one beautiful interface. Gmail, Outlook, IMAP - managed effortlessly.',
+    color: 'text-indigo-500',
   },
   {
-    icon: Lock,
-    title: 'Privacy First',
-    description:
-      'End-to-end encryption, 2FA, and complete data control. Your emails, your privacy.',
-    gradient: 'from-teal-500 to-blue-500',
+    icon: Zap,
+    title: 'Smart Organization',
+    description: 'AI categorizes, labels, and organizes your emails automatically. Never miss what matters.',
+    color: 'text-purple-500',
+  },
+  {
+    icon: Users,
+    title: 'Team Collaboration',
+    description: 'Shared inboxes, team analytics, and collaboration tools for modern teams.',
+    color: 'text-pink-500',
+  },
+  {
+    icon: Calendar,
+    title: 'Built-in Calendar',
+    description: 'Schedule meetings, manage events, and integrate with Teams - all in one place.',
+    color: 'text-orange-500',
+  },
+  {
+    icon: MessageSquare,
+    title: 'SMS Integration',
+    description: 'Send and receive SMS directly from EaseMail. Stay connected across all channels.',
+    color: 'text-green-500',
   },
 ];
 
-const plans = [
-  {
-    name: 'Free',
-    price: '$0',
-    description: 'Perfect for trying out EaseMail',
-    features: [
-      '1 email account',
-      'Basic email features',
-      'Limited AI (10/month)',
-      '1GB storage',
-      'Community support',
-    ],
-    cta: 'Get Started',
-    href: '/signup',
-    popular: false,
-  },
-  {
-    name: 'Pro',
-    price: '$12',
-    description: 'Best for individuals',
-    features: [
-      'Unlimited email accounts',
-      'All email features',
-      'Unlimited AI features',
-      '50GB storage',
-      'Priority support',
-      'Calendar integration',
-    ],
-    cta: 'Start Free Trial',
-    href: '/signup?plan=pro',
-    popular: true,
-  },
-  {
-    name: 'Business',
-    price: '$25',
-    description: 'For teams and organizations',
-    features: [
-      'Everything in Pro',
-      '5 team seats (starting)',
-      'Admin panel',
-      'Team analytics',
-      '500GB shared storage',
-      'SMS integration',
-      'Advanced security',
-    ],
-    cta: 'Start Free Trial',
-    href: '/signup?plan=business',
-    popular: false,
-  },
+const stats = [
+  { value: '10,000+', label: 'Active Users' },
+  { value: '1M+', label: 'Emails Sent' },
+  { value: '99.9%', label: 'Uptime' },
+  { value: '4.9/5', label: 'User Rating' },
 ];
 
-const testimonials = [
-  {
-    quote: 'EaseMail\'s AI Remix saves me hours every week. I can now write emails in seconds.',
-    author: 'Sarah Chen',
-    role: 'Product Manager',
-    company: 'TechCorp',
-  },
-  {
-    quote: 'The voice message feature is a game-changer. My clients love the personal touch.',
-    author: 'Michael Rodriguez',
-    role: 'Sales Director',
-    company: 'SalesCo',
-  },
-  {
-    quote: 'Finally, an email client that understands how I work. Beautiful design, powerful features.',
-    author: 'Emily Thompson',
-    role: 'CEO',
-    company: 'StartupXYZ',
-  },
-];
-
-export default function LandingPage() {
+export default function HomePage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
         <div className="container max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Mail className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">EaseMail</span>
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <Mail className="h-5 w-5 text-white" />
+            </div>
+            <span className="font-bold text-xl text-gray-900">EaseMail</span>
+          </Link>
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Features
+            </Link>
+            <Link href="/app/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Pricing
+            </Link>
+            <Link href="/contact" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Contact
+            </Link>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
+              <Button variant="ghost" className="text-gray-700">
+                Sign In
+              </Button>
             </Link>
             <Link href="/signup">
-              <Button>Get Started</Button>
+              <Button className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30">
+                Get Started
+              </Button>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-purple-950 dark:to-pink-950">
-        <div className="absolute inset-0 bg-grid-slate-100 dark:bg-grid-slate-900 [mask-image:linear-gradient(0deg,transparent,black)] dark:[mask-image:linear-gradient(0deg,black,transparent)]" />
+      <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50" />
 
-        <div className="relative container max-w-7xl mx-auto px-4 py-24 md:py-32">
+        {/* Decorative Elements */}
+        <div className="absolute top-20 right-10 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
+        <div className="absolute top-40 left-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
+
+        <div className="relative container max-w-7xl mx-auto">
           <div className="text-center space-y-8 max-w-4xl mx-auto">
-            <Badge className="px-4 py-1 text-sm">
-              <Sparkles className="mr-1 h-3 w-3" />
-              AI-Powered Email Client
+            <Badge className="px-4 py-1.5 text-sm bg-white/80 backdrop-blur-sm border-blue-200 text-blue-700 hover:bg-white">
+              <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+              AI-Powered Email Management
             </Badge>
 
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-              Email That
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {' '}Understands You
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-900">
+              Email That Feels
+              <span className="block bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Effortless
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-              Transform your email workflow with AI superpowers. Write faster, sound better, and
-              stay organized with the smartest email client ever built.
+            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              AI-powered email management for modern teams. Write faster, stay organized,
+              and never miss what matters with the smartest inbox you've ever used.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
               <Link href="/signup">
-                <Button size="lg" className="text-lg px-8 group">
+                <Button size="lg" className="text-lg px-8 h-14 bg-blue-500 hover:bg-blue-600 shadow-xl shadow-blue-500/30 group">
                   Start Free Trial
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
               <Link href="#features">
-                <Button size="lg" variant="outline" className="text-lg px-8">
-                  See Features
+                <Button size="lg" variant="outline" className="text-lg px-8 h-14 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50">
+                  Explore Features
                 </Button>
               </Link>
             </div>
 
-            <p className="text-sm text-muted-foreground">
-              No credit card required • 14-day free trial • Cancel anytime
+            <p className="text-sm text-gray-500 flex items-center justify-center gap-4 flex-wrap">
+              <span className="flex items-center gap-1">
+                <Check className="h-4 w-4 text-green-500" />
+                14-day free trial
+              </span>
+              <span className="flex items-center gap-1">
+                <Check className="h-4 w-4 text-green-500" />
+                No credit card required
+              </span>
+              <span className="flex items-center gap-1">
+                <Check className="h-4 w-4 text-green-500" />
+                Cancel anytime
+              </span>
             </p>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-24 bg-background">
+      {/* Stats Section */}
+      <section className="py-16 bg-white border-y border-gray-200">
         <div className="container max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Features That Set You Apart
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                  {stat.value}
+                </div>
+                <div className="text-gray-600">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-24 bg-gradient-to-br from-gray-50 to-white">
+        <div className="container max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16 space-y-4">
+            <Badge className="px-4 py-1.5 text-sm bg-blue-100 text-blue-700 border-blue-200">
+              Powerful Features
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+              Everything You Need to Master Email
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to master your inbox and communicate like a pro
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Built for productivity, designed for simplicity, powered by AI
             </p>
           </div>
 
@@ -214,193 +198,222 @@ export default function LandingPage() {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <Card key={index} className="border-2 hover:border-primary/50 transition-colors">
-                  <CardHeader>
-                    <div
-                      className={`w-12 h-12 rounded-lg bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4`}
-                    >
-                      <Icon className="h-6 w-6 text-white" />
-                    </div>
-                    <CardTitle>{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-base">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
+                <div
+                  key={index}
+                  className="group bg-white rounded-2xl p-8 shadow-sm border border-gray-200 hover:shadow-xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-1"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                    <Icon className={`h-7 w-7 ${feature.color}`} />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
               );
             })}
           </div>
+
+          <div className="text-center mt-12">
+            <Link href="/features">
+              <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-500 hover:text-blue-600">
+                View All Features
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 bg-muted/50">
+      {/* Social Proof Section */}
+      <section className="py-24 bg-white">
         <div className="container max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Simple, Transparent Pricing
+          <div className="text-center mb-16 space-y-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+              Trusted by Teams Worldwide
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Choose the plan that fits your needs. Upgrade or downgrade anytime.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Join thousands of professionals who have transformed their email workflow
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card
+            {[
+              {
+                quote: "EaseMail's AI has completely transformed how I write emails. What used to take 10 minutes now takes 30 seconds.",
+                author: "Sarah Chen",
+                role: "VP of Product",
+                company: "TechCorp",
+                avatar: "SC",
+              },
+              {
+                quote: "The unified inbox is brilliant. Managing 5 email accounts has never been easier. It's like having a personal email assistant.",
+                author: "Michael Rodriguez",
+                role: "Sales Director",
+                company: "Growth Inc",
+                avatar: "MR",
+              },
+              {
+                quote: "Finally, an email client that actually understands modern workflows. The team collaboration features are game-changing.",
+                author: "Emily Thompson",
+                role: "CEO & Founder",
+                company: "StartupXYZ",
+                avatar: "ET",
+              },
+            ].map((testimonial, index) => (
+              <div
                 key={index}
-                className={`relative ${
-                  plan.popular
-                    ? 'border-primary shadow-xl scale-105'
-                    : 'border-2'
-                }`}
+                className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100"
               >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="gap-1 px-4 py-1">
-                      <Crown className="h-3 w-3" />
-                      Most Popular
-                    </Badge>
+                <div className="flex items-center gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                      <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-gray-700 mb-6 leading-relaxed italic">
+                  "{testimonial.quote}"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    {testimonial.avatar}
                   </div>
-                )}
-
-                <CardHeader className="pb-8 pt-6">
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <div className="mt-4">
-                    <span className="text-5xl font-bold">{plan.price}</span>
-                    {plan.price !== '$0' && (
-                      <span className="text-muted-foreground">/month</span>
-                    )}
-                  </div>
-                  <CardDescription className="mt-2">{plan.description}</CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-6">
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link href={plan.href} className="block">
-                    <Button
-                      className="w-full"
-                      variant={plan.popular ? 'default' : 'outline'}
-                      size="lg"
-                    >
-                      {plan.cta}
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24 bg-background">
-        <div className="container max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Loved by Thousands
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              See what our users have to say about EaseMail
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index}>
-                <CardContent className="pt-6">
-                  <p className="text-lg mb-6 italic">"{testimonial.quote}"</p>
                   <div>
-                    <div className="font-semibold">{testimonial.author}</div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="font-semibold text-gray-900">{testimonial.author}</div>
+                    <div className="text-sm text-gray-600">
                       {testimonial.role} at {testimonial.company}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-br from-primary/10 via-purple-500/10 to-pink-500/10">
-        <div className="container max-w-4xl mx-auto px-4 text-center">
+      <section className="py-24 relative overflow-hidden">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600" />
+
+        {/* Pattern Overlay */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }} />
+        </div>
+
+        <div className="relative container max-w-4xl mx-auto px-4 text-center text-white">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Transform Your Email?
+            Ready to Transform Your Email Workflow?
           </h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Join thousands of professionals already using EaseMail to save time and communicate
-            better.
+          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+            Join thousands of professionals using EaseMail to save time and communicate better.
+            Start your free 14-day trial today.
           </p>
-          <Link href="/signup">
-            <Button size="lg" className="text-lg px-8 group">
-              Start Your Free Trial
-              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
-          <p className="text-sm text-muted-foreground mt-4">
-            14-day free trial • No credit card required
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/signup">
+              <Button size="lg" className="text-lg px-8 h-14 bg-white text-blue-600 hover:bg-gray-50 shadow-2xl group">
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link href="/contact">
+              <Button size="lg" variant="outline" className="text-lg px-8 h-14 border-2 border-white text-white hover:bg-white/10">
+                Schedule Demo
+              </Button>
+            </Link>
+          </div>
+          <p className="text-sm text-blue-100 mt-6">
+            No credit card required • 14-day free trial • Cancel anytime
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/50">
-        <div className="container max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <footer className="bg-gray-900 text-gray-300">
+        <div className="container max-w-7xl mx-auto px-4 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+            <div className="col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <Mail className="h-5 w-5 text-white" />
+                </div>
+                <span className="font-bold text-xl text-white">EaseMail</span>
+              </div>
+              <p className="text-gray-400 mb-4 max-w-sm">
+                AI-powered email management for modern teams. Work smarter, not harder.
+              </p>
+            </div>
+
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="#features">Features</Link></li>
-                <li><Link href="#pricing">Pricing</Link></li>
-                <li><Link href="/login">Sign In</Link></li>
-                <li><Link href="/signup">Get Started</Link></li>
+              <h3 className="font-semibold text-white mb-4">Product</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="#features" className="hover:text-white transition-colors">Features</Link></li>
+                <li><Link href="/app/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link href="/features" className="hover:text-white transition-colors">Enterprise</Link></li>
+                <li><Link href="/app/connect" className="hover:text-white transition-colors">Integrations</Link></li>
               </ul>
             </div>
+
             <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="#">About</Link></li>
-                <li><Link href="#">Blog</Link></li>
-                <li><Link href="#">Careers</Link></li>
-                <li><Link href="#">Contact</Link></li>
+              <h3 className="font-semibold text-white mb-4">Company</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/about" className="hover:text-white transition-colors">About</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+                <li><Link href="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
               </ul>
             </div>
+
             <div>
-              <h3 className="font-semibold mb-4">Resources</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="#">Documentation</Link></li>
-                <li><Link href="#">Help Center</Link></li>
-                <li><Link href="#">API</Link></li>
-                <li><Link href="#">Status</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="#">Privacy</Link></li>
-                <li><Link href="#">Terms</Link></li>
-                <li><Link href="#">Security</Link></li>
-                <li><Link href="#">Compliance</Link></li>
+              <h3 className="font-semibold text-white mb-4">Legal</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors">Terms</Link></li>
+                <li><Link href="/security" className="hover:text-white transition-colors">Security</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2026 EaseMail. All rights reserved.</p>
+
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-400">
+              © 2026 EaseMail. All rights reserved.
+            </p>
+            <div className="flex items-center gap-6">
+              <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+                <Globe className="h-5 w-5" />
+              </Link>
+              <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+                <MessageSquare className="h-5 w-5" />
+              </Link>
+              <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+                <PhoneCall className="h-5 w-5" />
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
+
+      <style jsx>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   );
 }
