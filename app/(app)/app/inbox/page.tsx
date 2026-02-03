@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,6 +70,9 @@ export default function InboxPage() {
 
   // Spam state
   const [detectingSpam, setDetectingSpam] = useState(false);
+
+  // Infinite scroll ref
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const fetchAccounts = useCallback(async () => {
     try {
@@ -500,6 +503,30 @@ export default function InboxPage() {
     // Refetch messages when account or folder changes
     fetchMessages(true);
   }, [selectedAccount, folderParam, fetchMessages]);
+
+  // Infinite scroll with IntersectionObserver
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMoreMessages();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore, loadingMore, loading, loadMoreMessages]);
 
   const handleSnooze = async (messageId: string) => {
     setSnoozeMessageId(messageId);
@@ -1455,27 +1482,14 @@ export default function InboxPage() {
                 })
               )}
 
-              {/* Load More Button */}
-              {!loading && !searchQuery && filteredMessages.length > 0 && hasMore && (
-                <div className="p-4 border-t border-border">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={loadMoreMessages}
-                    disabled={loadingMore}
-                  >
-                    {loadingMore ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Loading more...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Load More Messages
-                      </>
-                    )}
-                  </Button>
+              {/* Infinite scroll trigger */}
+              <div ref={loadMoreRef} className="h-4" />
+
+              {/* Loading indicator for infinite scroll */}
+              {loadingMore && (
+                <div className="flex items-center justify-center p-4 border-t border-border">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-sm text-muted-foreground">Loading more messages...</span>
                 </div>
               )}
             </ScrollArea>
