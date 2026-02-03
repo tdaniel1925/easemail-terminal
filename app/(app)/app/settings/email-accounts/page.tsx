@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { DeleteAccountDialog } from '@/components/dialogs/delete-account-dialog';
 import { toast } from 'sonner';
 import { Loader2, Mail, Plus, Trash2, Star, CheckCircle2, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -21,6 +22,8 @@ interface EmailAccount {
 export default function EmailAccountsSettingsPage() {
   const [accounts, setAccounts] = useState<EmailAccount[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<EmailAccount | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -68,21 +71,28 @@ export default function EmailAccountsSettingsPage() {
     }
   };
 
-  const handleRemove = async (accountId: string) => {
-    if (!confirm('Are you sure you want to remove this email account?')) {
-      return;
-    }
+  const handleRemoveClick = (account: EmailAccount) => {
+    setAccountToDelete(account);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleRemoveConfirm = async () => {
+    if (!accountToDelete) return;
 
     try {
-      const response = await fetch(`/api/email-accounts/${accountId}`, {
+      const response = await fetch(`/api/email-accounts/${accountToDelete.id}`, {
         method: 'DELETE',
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        toast.success('Email account removed');
+        toast.success('Email account and associated data deleted successfully');
+        setDeleteDialogOpen(false);
+        setAccountToDelete(null);
         fetchAccounts();
       } else {
-        toast.error('Failed to remove account');
+        toast.error(data.error || 'Failed to remove account');
       }
     } catch (error) {
       console.error('Remove account error:', error);
@@ -228,7 +238,7 @@ export default function EmailAccountsSettingsPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleRemove(account.id)}
+                    onClick={() => handleRemoveClick(account)}
                     className="text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -282,6 +292,16 @@ export default function EmailAccountsSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Account Confirmation Dialog */}
+      {accountToDelete && (
+        <DeleteAccountDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          accountEmail={accountToDelete.email}
+          onConfirm={handleRemoveConfirm}
+        />
+      )}
     </div>
   );
 }
