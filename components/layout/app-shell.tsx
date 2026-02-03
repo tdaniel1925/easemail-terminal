@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AppSidebar } from './app-sidebar';
+import { Chatbot } from '@/components/chatbot/chatbot';
 import { useRouter } from 'next/navigation';
 
 interface AppShellProps {
@@ -28,6 +29,7 @@ export function AppShell({ children }: AppShellProps) {
       <div className="flex-1 overflow-auto">
         {children}
       </div>
+      <Chatbot />
     </div>
   );
 }
