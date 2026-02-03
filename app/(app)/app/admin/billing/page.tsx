@@ -26,6 +26,7 @@ import {
   Clock,
   FileText,
   ExternalLink,
+  TrendingUp,
 } from 'lucide-react';
 
 interface Organization {
