@@ -1256,7 +1256,7 @@ export default function InboxPage() {
                     {isExpanded && (
                       <div className="bg-accent/30 border-t border-border">
                         {/* Action Toolbar */}
-                        <div className="flex items-center gap-2 p-4 border-b border-border bg-card">
+                        <div className="flex items-center gap-2 p-4 px-8 border-b border-border bg-card">
                           <Button size="sm" onClick={() => handleReply(message, false)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                             <Reply className="h-4 w-4 mr-1.5" />
                             Reply
@@ -1288,10 +1288,10 @@ export default function InboxPage() {
                         </div>
 
                         {/* Email Body */}
-                        <div className="p-8 bg-background">
-                          <div className="prose dark:prose-invert max-w-none prose-sm">
+                        <div className="p-8 px-12 bg-background">
+                          <div className="prose dark:prose-invert max-w-4xl mx-auto prose-sm">
                             <div
-                              className="email-body-content"
+                              className="email-body-content break-words"
                               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.body || message.snippet) }}
                             />
                           </div>
