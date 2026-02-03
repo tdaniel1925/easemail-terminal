@@ -6,9 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
-  Mail, PenSquare, Inbox, Send, Star, Trash2, Archive, Clock, Menu,
-  Users, Newspaper, Bell, Sparkles, Calendar, UserCircle, Video, Tag,
-  Settings, BarChart3
+  PenSquare, Inbox, Send, Star, Trash2, Archive, Clock, Menu,
+  Tag, Settings, BarChart3
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -184,53 +183,6 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               </div>
             </div>
           )}
-
-          {/* Apps */}
-          <div className="space-y-0.5 mt-4">
-            <div className="px-4 py-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Apps
-              </span>
-            </div>
-            {[
-              { icon: Mail, label: 'Home', href: '/app/home' },
-              { icon: UserCircle, label: 'Contacts', href: '/app/contacts' },
-              { icon: Calendar, label: 'Calendar', href: '/app/calendar' },
-              { icon: Video, label: 'MS Teams', href: '/app/teams' },
-            ].map((item) => (
-              <Link key={item.label} href={item.href}>
-                <button
-                  className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
-                    isActive(item.href) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
-                  }`}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span className="text-sm">{item.label}</span>
-                </button>
-              </Link>
-            ))}
-          </div>
-
-          {/* Smart Categories */}
-          <div className="space-y-0.5 mt-4">
-            <div className="px-4 py-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Smart Categories
-              </span>
-            </div>
-            {[
-              { icon: Users, label: 'People', href: '/app/inbox?category=people' },
-              { icon: Newspaper, label: 'Newsletters', href: '/app/inbox?category=newsletters' },
-              { icon: Bell, label: 'Notifications', href: '/app/inbox?category=notifications' },
-            ].map((item) => (
-              <Link key={item.label} href={item.href}>
-                <button className="w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors text-foreground/80">
-                  <item.icon className="h-5 w-5" />
-                  <span className="text-sm">{item.label}</span>
-                </button>
-              </Link>
-            ))}
-          </div>
 
           {/* Custom Labels */}
           <div className="space-y-0.5 mt-4">

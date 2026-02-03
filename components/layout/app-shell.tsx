@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AppSidebar } from './app-sidebar';
+import { AppHeader } from './app-header';
 import { Chatbot } from '@/components/chatbot/chatbot';
 import { useRouter } from 'next/navigation';
 
@@ -26,8 +27,11 @@ export function AppShell({ children }: AppShellProps) {
         onToggle={() => setSidebarOpen(!sidebarOpen)}
         onCompose={handleCompose}
       />
-      <div className="flex-1 overflow-auto">
-        {children}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <AppHeader />
+        <div className="flex-1 overflow-auto">
+          {children}
+        </div>
       </div>
       <Chatbot />
     </div>
