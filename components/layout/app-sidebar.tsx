@@ -56,15 +56,40 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
     }
   };
 
-  const fetchFolders = async () => {
+  const fetchFolders = async (retryCount = 0) => {
     try {
+      console.log('Fetching folders from API... (attempt', retryCount + 1, ')');
       const response = await fetch('/api/folders');
       const data = await response.json();
-      if (data.folders) {
+
+      console.log('Folders API response:', {
+        status: response.status,
+        ok: response.ok,
+        data,
+      });
+
+      if (response.status === 401 && retryCount < 2) {
+        // Retry after a delay if unauthorized (session might still be loading)
+        console.log('Session not ready, retrying in 1 second...');
+        setTimeout(() => fetchFolders(retryCount + 1), 1000);
+        return;
+      }
+
+      if (response.ok && data.folders) {
+        console.log('Setting folders:', data.folders.length, 'folders');
         setFolders(data.folders);
+      } else {
+        console.error('Folders API error:', data.error || 'Unknown error', 'status:', response.status);
+        setFolders([]);
       }
     } catch (error) {
       console.error('Failed to fetch folders:', error);
+      if (retryCount < 2) {
+        console.log('Retrying after error in 1 second...');
+        setTimeout(() => fetchFolders(retryCount + 1), 1000);
+      } else {
+        setFolders([]);
+      }
     }
   };
 
@@ -122,11 +147,11 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
           </div>
 
           {/* Custom Folders */}
-          {folders.length > 0 && (
+          {folders.length > 0 ? (
             <div className="space-y-0.5 mt-4">
               <div className="px-4 py-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Folders
+                  Folders ({folders.length})
                 </span>
               </div>
               {folders.map((folder) => (
@@ -146,6 +171,17 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
                   </button>
                 </Link>
               ))}
+            </div>
+          ) : (
+            <div className="space-y-0.5 mt-4">
+              <div className="px-4 py-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Folders (0)
+                </span>
+              </div>
+              <div className="px-4 py-2 text-xs text-muted-foreground">
+                No folders available
+              </div>
             </div>
           )}
 
