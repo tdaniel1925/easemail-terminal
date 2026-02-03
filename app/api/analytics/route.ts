@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
     }, {});
 
     // Calculate stats for each organization (in memory, no more queries)
-    const usageStats = orgIds.map((orgId) => {
+    const usageStats = (orgIds || []).map((orgId) => {
       const members = membersByOrg[orgId] || [];
       const usage = usageByOrg[orgId] || [];
 
@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
 
     // Aggregate analytics
     const analytics = {
-      organizations: organizations?.map((org: any, index) => ({
+      organizations: (organizations || []).map((org: any, index) => ({
         ...org,
         stats: usageStats[index],
       })),
@@ -153,12 +153,12 @@ export async function GET(request: NextRequest) {
       totalEmailAccounts: usageStats.reduce((sum, s) => sum + s.emailAccountCount, 0),
       totalUsage: usageStats.reduce((sum, s) => sum + s.totalUsage, 0),
       featureBreakdown: usageStats.reduce((acc: any, stat) => {
-        Object.entries(stat.featureUsage).forEach(([feature, count]) => {
+        Object.entries(stat.featureUsage || {}).forEach(([feature, count]) => {
           acc[feature] = (acc[feature] || 0) + (count as number);
         });
         return acc;
       }, {}),
-      dailyUsage: dailyUsageArray,
+      dailyUsage: dailyUsageArray || [],
       planDistribution: planDistribution || {},
     };
 
@@ -166,7 +166,18 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Analytics error:', error);
     return NextResponse.json(
-      { error: 'Failed to get analytics' },
+      {
+        error: 'Failed to get analytics',
+        analytics: {
+          organizations: [],
+          totalMembers: 0,
+          totalEmailAccounts: 0,
+          totalUsage: 0,
+          featureBreakdown: {},
+          dailyUsage: [],
+          planDistribution: {},
+        }
+      },
       { status: 500 }
     );
   }
