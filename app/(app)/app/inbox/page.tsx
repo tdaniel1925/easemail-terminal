@@ -1362,8 +1362,8 @@ export default function InboxPage() {
                         </div>
 
                         {/* Email Body */}
-                        <div className="p-8 px-12 bg-background">
-                          <div className="prose dark:prose-invert max-w-4xl mx-auto prose-sm">
+                        <div className="py-8 px-4 bg-background">
+                          <div className="prose dark:prose-invert max-w-5xl mx-auto prose-sm prose-img:max-w-full prose-img:h-auto prose-img:rounded-lg prose-img:shadow-sm">
                             <div
                               className="email-body-content break-words"
                               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.body || message.snippet) }}
