@@ -1389,20 +1389,20 @@ export default function InboxPage() {
           <div className={`flex-1 flex flex-col bg-card ${selectedMessage ? 'block' : 'hidden md:block'}`}>
             {selectedMessage ? (
               <>
-                <div className="border-b border-border bg-card p-3">
-                  <div className="flex items-start gap-3 mb-3">
+                <div className="border-b border-border bg-card p-5">
+                  <div className="flex items-start gap-4 mb-4">
                     <Avatar className="h-10 w-10 shrink-0">
                       <AvatarImage src={`https://logo.clearbit.com/${selectedMessage.from?.[0]?.email?.split('@')[1]}`} />
                       <AvatarFallback className="text-sm font-semibold">
                         {getInitials(selectedMessage.from?.[0]?.name, selectedMessage.from?.[0]?.email)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline justify-between gap-2 mb-1">
+                    <div className="flex-1 min-w-0 pr-4">
+                      <div className="flex items-baseline justify-between gap-3 mb-1">
                         <p className="font-semibold text-sm truncate">
                           {selectedMessage.from?.[0]?.name || selectedMessage.from?.[0]?.email}
                         </p>
-                        <span className="text-xs text-muted-foreground shrink-0">
+                        <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
                           {new Date(selectedMessage.date * 1000).toLocaleString()}
                         </span>
                       </div>
@@ -1412,11 +1412,11 @@ export default function InboxPage() {
                     </div>
                   </div>
                   {/* Subject Line */}
-                  <h2 className="text-xl font-semibold mb-3 px-1">
+                  <h2 className="text-xl font-semibold mb-4 px-1 truncate">
                     {selectedMessage.subject || '(no subject)'}
                   </h2>
                   {/* Action Toolbar */}
-                  <div className="flex items-center gap-2 pt-2 border-t border-border">
+                  <div className="flex items-center gap-2 pt-3 border-t border-border">
                     <Button size="sm" onClick={() => handleReply(selectedMessage, false)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                       <Reply className="h-4 w-4 mr-1.5" />
                       Reply
@@ -1447,10 +1447,10 @@ export default function InboxPage() {
                     </Button>
                   </div>
                 </div>
-                <ScrollArea className="flex-1 p-6">
+                <ScrollArea className="flex-1 p-8">
                   <div className="prose dark:prose-invert max-w-3xl mx-auto prose-sm">
                     <div
-                      className="email-body-content"
+                      className="email-body-content px-2"
                       dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMessage.body || selectedMessage.snippet) }}
                     />
                   </div>

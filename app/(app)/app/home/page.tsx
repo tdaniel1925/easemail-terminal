@@ -152,17 +152,17 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section with Gradient */}
-      <div className={`${currentGradient} relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+      {/* Hero Section with Background Image */}
+      <div className="relative overflow-hidden bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/images/dashboard-bg.jpg)' }}>
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
 
         <div className="relative container max-w-7xl mx-auto px-8 pt-24 pb-36">
           <div className="text-center text-white">
-            <h1 className="text-6xl md:text-7xl font-bold mb-6 drop-shadow-lg">
+            <h1 className="text-6xl md:text-7xl font-bold mb-6 drop-shadow-2xl">
               {getGreeting()}, {userName}
             </h1>
-            <p className="text-2xl md:text-3xl opacity-90 drop-shadow-md font-medium">
+            <p className="text-2xl md:text-3xl opacity-95 drop-shadow-xl font-medium">
               {formatDate(new Date())}
             </p>
           </div>
