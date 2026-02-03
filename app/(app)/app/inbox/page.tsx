@@ -100,9 +100,11 @@ export default function InboxPage() {
 
       // Add folder filtering
       if (folderParam) {
-        endpoint += `${endpoint.includes('?') ? '&' : '?'}folder=${folderParam}`;
+        console.log('Filtering by folder:', folderParam);
+        endpoint += `${endpoint.includes('?') ? '&' : '?'}folder=${encodeURIComponent(folderParam)}`;
       }
 
+      console.log('Fetching messages from:', endpoint);
       const response = await fetch(endpoint);
       const data = await response.json();
 
@@ -123,7 +125,21 @@ export default function InboxPage() {
 
     try {
       setLoadingMore(true);
-      const response = await fetch(`/api/messages?page_token=${encodeURIComponent(nextCursor)}`);
+
+      // Build endpoint with folder parameter if present
+      let endpoint = `/api/messages?page_token=${encodeURIComponent(nextCursor)}`;
+      if (selectedAccount === 'unified') {
+        endpoint = `/api/messages/unified?page_token=${encodeURIComponent(nextCursor)}`;
+      } else if (selectedAccount !== 'primary') {
+        endpoint = `/api/messages?accountId=${selectedAccount}&page_token=${encodeURIComponent(nextCursor)}`;
+      }
+
+      // Add folder parameter
+      if (folderParam) {
+        endpoint += `&folder=${encodeURIComponent(folderParam)}`;
+      }
+
+      const response = await fetch(endpoint);
       const data = await response.json();
 
       if (data.messages) {

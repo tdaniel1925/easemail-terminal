@@ -48,6 +48,15 @@ export async function GET(request: NextRequest) {
       identifier: grantId,
     });
 
+    console.log('Folders fetched:', response.data.length, 'folders');
+    if (response.data.length > 0) {
+      console.log('Sample folder:', {
+        id: response.data[0].id,
+        name: response.data[0].name,
+        attributes: response.data[0].attributes,
+      });
+    }
+
     return NextResponse.json({
       folders: response.data,
     });

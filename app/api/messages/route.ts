@@ -49,15 +49,25 @@ export async function GET(request: NextRequest) {
 
     const grantId = account.grant_id;
 
-    // Fetch messages from Nylas (disable caching for pagination)
+    // Build query params
+    const queryParams: any = {
+      limit,
+    };
+
+    if (pageToken) {
+      queryParams.page_token = pageToken;
+    }
+
+    if (folderId) {
+      console.log('Filtering messages by folder ID:', folderId);
+      queryParams.in = [folderId];
+    }
+
+    // Fetch messages from Nylas
     const nylasClient = nylas();
     const response = await nylasClient.messages.list({
       identifier: grantId,
-      queryParams: {
-        limit,
-        ...(pageToken && { page_token: pageToken }),
-        ...(folderId && { in: [folderId] }),
-      },
+      queryParams,
     });
 
     return NextResponse.json({

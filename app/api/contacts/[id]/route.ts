@@ -43,6 +43,12 @@ export async function PUT(
       },
     });
 
+    // Track usage
+    await supabase.from('usage_tracking').insert({
+      user_id: user.id,
+      feature: 'contact_update',
+    } as any);
+
     return NextResponse.json({ contact });
   } catch (error) {
     console.error('Update contact error:', error);
@@ -83,6 +89,12 @@ export async function DELETE(
       identifier: account.grant_id,
       contactId: id,
     });
+
+    // Track usage
+    await supabase.from('usage_tracking').insert({
+      user_id: user.id,
+      feature: 'contact_delete',
+    } as any);
 
     return NextResponse.json({ success: true });
   } catch (error) {

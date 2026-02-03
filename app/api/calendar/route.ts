@@ -61,6 +61,26 @@ export async function POST(request: NextRequest) {
 
     const { title, startTime, endTime, description, location } = await request.json();
 
+    // Validation
+    if (!title || title.trim() === '') {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    }
+
+    if (!startTime || !endTime) {
+      return NextResponse.json({ error: 'Start time and end time are required' }, { status: 400 });
+    }
+
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid date format' }, { status: 400 });
+    }
+
+    if (endDate <= startDate) {
+      return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 });
+    }
+
     const { data: account } = (await supabase
       .from('email_accounts')
       .select('*')
@@ -77,13 +97,13 @@ export async function POST(request: NextRequest) {
     const event = await nylasClient.events.create({
       identifier: account.grant_id,
       requestBody: {
-        title,
+        title: title.trim(),
         when: {
-          startTime: Math.floor(new Date(startTime).getTime() / 1000),
-          endTime: Math.floor(new Date(endTime).getTime() / 1000),
+          startTime: Math.floor(startDate.getTime() / 1000),
+          endTime: Math.floor(endDate.getTime() / 1000),
         },
-        description,
-        location,
+        description: description || '',
+        location: location || '',
       },
       queryParams: {
         calendarId: 'primary',
@@ -97,10 +117,19 @@ export async function POST(request: NextRequest) {
     } as any);
 
     return NextResponse.json({ event });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create event error:', error);
+
+    // Provide more specific error messages
+    if (error?.message?.includes('calendar')) {
+      return NextResponse.json(
+        { error: 'Failed to create event. Please check your calendar permissions.' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'Failed to create event' },
+      { error: error?.message || 'Failed to create event' },
       { status: 500 }
     );
   }
