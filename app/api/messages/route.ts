@@ -80,7 +80,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Fetch messages error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch messages' },
+      {
+        error: 'Failed to fetch messages',
+        messages: [],
+        nextCursor: null
+      },
       { status: 500 }
     );
   }

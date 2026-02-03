@@ -92,7 +92,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Search messages error:', error);
     return NextResponse.json(
-      { error: 'Failed to search messages' },
+      {
+        error: 'Failed to search messages',
+        messages: [],
+        count: 0
+      },
       { status: 500 }
     );
   }
