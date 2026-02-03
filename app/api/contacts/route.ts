@@ -39,11 +39,14 @@ export async function GET(request: NextRequest) {
       120 // Cache for 2 minutes
     );
 
-    return NextResponse.json({ contacts });
+    return NextResponse.json({ contacts: contacts || [] });
   } catch (error) {
     console.error('Fetch contacts error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch contacts' },
+      {
+        error: 'Failed to fetch contacts',
+        contacts: []
+      },
       { status: 500 }
     );
   }

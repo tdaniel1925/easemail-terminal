@@ -17,14 +17,17 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error.message, accounts: [] }, { status: 400 });
     }
 
-    return NextResponse.json({ accounts });
+    return NextResponse.json({ accounts: accounts || [] });
   } catch (error) {
     console.error('Get email accounts error:', error);
     return NextResponse.json(
-      { error: 'Failed to get email accounts' },
+      {
+        error: 'Failed to get email accounts',
+        accounts: []
+      },
       { status: 500 }
     );
   }

@@ -20,12 +20,12 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Fetch labels error:', error);
-      return NextResponse.json({ error: 'Failed to fetch labels' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch labels', labels: [] }, { status: 500 });
     }
 
     // Get message count for each label
     const labelsWithCounts = await Promise.all(
-      labels.map(async (label: any) => {
+      (labels || []).map(async (label: any) => {
         const { count } = await supabaseClient
           .from('message_labels')
           .select('*', { count: 'exact', head: true })
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ labels: labelsWithCounts });
   } catch (error) {
     console.error('Fetch labels error:', error);
-    return NextResponse.json({ error: 'Failed to fetch labels' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch labels', labels: [] }, { status: 500 });
   }
 }
 

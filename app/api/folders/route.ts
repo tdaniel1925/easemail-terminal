@@ -66,7 +66,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Fetch folders error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch folders' },
+      {
+        error: 'Failed to fetch folders',
+        folders: []
+      },
       { status: 500 }
     );
   }

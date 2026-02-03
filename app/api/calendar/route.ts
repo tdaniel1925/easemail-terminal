@@ -40,11 +40,14 @@ export async function GET(request: NextRequest) {
       60 // Cache for 1 minute
     );
 
-    return NextResponse.json({ events });
+    return NextResponse.json({ events: events || [] });
   } catch (error) {
     console.error('Fetch events error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch events' },
+      {
+        error: 'Failed to fetch events',
+        events: []
+      },
       { status: 500 }
     );
   }
