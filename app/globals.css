@@ -148,6 +148,36 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* Calendar improvements - make it larger and fill space */
+.rdp {
+  --rdp-cell-size: 60px;
+  --rdp-accent-color: hsl(var(--primary));
+  font-size: 1rem;
+}
+
+.rdp-months {
+  width: 100%;
+}
+
+.rdp-month {
+  width: 100%;
+}
+
+.rdp-table {
+  width: 100%;
+  max-width: none;
+}
+
+.rdp-cell {
+  padding: 0.5rem;
+}
+
+.rdp-day {
+  width: 100%;
+  height: var(--rdp-cell-size);
+  font-size: 1rem;
+}
+
 .email-body-content pre,
 .email-body-content code {
   max-width: 100%;

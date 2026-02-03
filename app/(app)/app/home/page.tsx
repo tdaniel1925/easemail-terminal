@@ -15,7 +15,9 @@ import {
   TrendingUp,
   Sparkles,
   ArrowRight,
-  BarChart3
+  BarChart3,
+  Video,
+  Users
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
@@ -60,6 +62,8 @@ export default function HomePage() {
     avgResponseTime: '2h',
     topSender: 'team@company.com',
   });
+  const [todayEvents, setTodayEvents] = useState<any[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
   const [currentGradient] = useState(() =>
     gradientBackgrounds[Math.floor(Math.random() * gradientBackgrounds.length)]
   );
@@ -67,11 +71,13 @@ export default function HomePage() {
   useEffect(() => {
     fetchUserData();
     fetchStats();
+    fetchTodayEvents();
 
     // Auto-refresh dashboard every 30 seconds (only when page is visible)
     const refreshInterval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         fetchStats(); // Refresh stats silently
+        fetchTodayEvents(); // Refresh events silently
       }
     }, 30000);
 
@@ -79,6 +85,7 @@ export default function HomePage() {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         fetchStats();
+        fetchTodayEvents();
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -94,7 +101,9 @@ export default function HomePage() {
       const response = await fetch('/api/user');
       const data = await response.json();
       if (data.user) {
-        setUserName(data.user.user_metadata?.name || 'there');
+        // Get name from user metadata or user table
+        const name = data.user.user_metadata?.name || data.user.name || '';
+        setUserName(name);
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
@@ -110,6 +119,30 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error('Failed to fetch stats:', error);
+    }
+  };
+
+  const fetchTodayEvents = async () => {
+    try {
+      setLoadingEvents(true);
+      const today = new Date();
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+
+      const response = await fetch(`/api/calendar?start=${startOfDay}&end=${endOfDay}`);
+      const data = await response.json();
+      if (data.events) {
+        // Sort by start time and take top 3
+        const sortedEvents = data.events.sort((a: any, b: any) =>
+          new Date(a.when.start_time).getTime() - new Date(b.when.start_time).getTime()
+        );
+        setTodayEvents(sortedEvents);
+      }
+    } catch (error) {
+      console.error('Failed to fetch today events:', error);
+      setTodayEvents([]);
+    } finally {
+      setLoadingEvents(false);
     }
   };
 
@@ -129,23 +162,21 @@ export default function HomePage() {
       color: 'bg-blue-500',
     },
     {
-      title: 'Starred',
-      icon: Star,
-      count: stats.starred,
-      href: '/app/inbox?filter=starred',
-      color: 'bg-yellow-500',
-    },
-    {
       title: 'Calendar',
       icon: Calendar,
       href: '/app/calendar',
       color: 'bg-purple-500',
     },
     {
-      title: 'Sent',
-      icon: Send,
-      count: stats.sent,
-      href: '/app/inbox?folder=sent',
+      title: 'MS Teams',
+      icon: Video,
+      href: '/app/teams',
+      color: 'bg-indigo-500',
+    },
+    {
+      title: 'Contacts',
+      icon: Users,
+      href: '/app/contacts',
       color: 'bg-green-500',
     },
   ];
@@ -160,7 +191,7 @@ export default function HomePage() {
         <div className="relative container max-w-7xl mx-auto px-8 pt-24 pb-36">
           <div className="text-center text-white">
             <h1 className="text-6xl md:text-7xl font-bold mb-6 drop-shadow-2xl">
-              {getGreeting()}, {userName}
+              {getGreeting()}{userName ? `, ${userName}` : ''}
             </h1>
             <p className="text-2xl md:text-3xl opacity-95 drop-shadow-xl font-medium">
               {formatDate(new Date())}
@@ -194,7 +225,7 @@ export default function HomePage() {
                   </div>
                   <h3 className="font-semibold text-base mb-1">{action.title}</h3>
                   <div className="flex items-center text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                    View details
+                    Go there
                     <ArrowRight className="ml-1 h-3 w-3" />
                   </div>
                 </CardContent>
@@ -249,41 +280,71 @@ export default function HomePage() {
             </CardContent>
           </Card>
 
-          {/* Focus Time Recommendations */}
+          {/* Today's Events */}
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-1.5 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                  <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                    <Calendar className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h2 className="text-base font-bold">Today's Events</h2>
                 </div>
-                <h2 className="text-base font-bold">Best Time to Focus</h2>
               </div>
 
-              <div className="space-y-4">
-                {focusTimeRecommendations.map((rec, index) => {
-                  const Icon = rec.icon;
-                  return (
-                    <div
-                      key={index}
-                      className="p-5 rounded-xl border-2 border-border bg-gradient-to-r from-muted/50 to-transparent hover:border-primary/50 transition-all"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900">
-                          <Icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-bold text-lg mb-1">{rec.time}</div>
-                          <div className="text-sm text-muted-foreground">{rec.reason}</div>
+              {loadingEvents ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : todayEvents.length > 0 ? (
+                <div className="space-y-3">
+                  {todayEvents.slice(0, 3).map((event, index) => {
+                    const startTime = new Date(event.when.start_time);
+                    return (
+                      <div
+                        key={index}
+                        className="p-4 rounded-xl border-2 border-border bg-gradient-to-r from-muted/50 to-transparent hover:border-primary/50 transition-all cursor-pointer"
+                        onClick={() => router.push('/app/calendar')}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900">
+                            <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-sm mb-1 truncate">{event.title}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
-                <Button className="w-full mt-6" variant="outline" size="lg">
-                  View Full Analytics
-                </Button>
-              </div>
+                  {todayEvents.length > 3 && (
+                    <Button
+                      variant="ghost"
+                      className="w-full mt-2"
+                      onClick={() => router.push('/app/calendar')}
+                    >
+                      More ({todayEvents.length - 3} more events)
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                  <p className="text-sm text-muted-foreground">No events scheduled for today</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4"
+                    onClick={() => router.push('/app/calendar')}
+                  >
+                    View Calendar
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
