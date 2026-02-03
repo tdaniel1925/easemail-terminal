@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,6 +26,9 @@ import DOMPurify from 'dompurify';
 type EmailCategory = 'people' | 'newsletters' | 'notifications';
 
 export default function InboxPage() {
+  const searchParams = useSearchParams();
+  const folderParam = searchParams.get('folder');
+
   const [messages, setMessages] = useState<any[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -94,6 +98,11 @@ export default function InboxPage() {
         endpoint = `/api/messages?accountId=${selectedAccount}`;
       }
 
+      // Add folder filtering
+      if (folderParam) {
+        endpoint += `${endpoint.includes('?') ? '&' : '?'}folder=${folderParam}`;
+      }
+
       const response = await fetch(endpoint);
       const data = await response.json();
 
@@ -107,7 +116,7 @@ export default function InboxPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedAccount]);
+  }, [selectedAccount, folderParam]);
 
   const loadMoreMessages = async () => {
     if (!nextCursor || loadingMore) return;
@@ -453,9 +462,9 @@ export default function InboxPage() {
   }, [fetchAccounts, fetchMessages, fetchCategories, fetchLabels]);
 
   useEffect(() => {
-    // Refetch messages when account changes
+    // Refetch messages when account or folder changes
     fetchMessages(true);
-  }, [selectedAccount, fetchMessages]);
+  }, [selectedAccount, folderParam, fetchMessages]);
 
   const handleSnooze = async (messageId: string) => {
     setSnoozeMessageId(messageId);

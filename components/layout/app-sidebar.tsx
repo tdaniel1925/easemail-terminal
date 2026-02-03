@@ -24,10 +24,12 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   const pathname = usePathname();
   const [accounts, setAccounts] = useState<any[]>([]);
   const [labels, setLabels] = useState<any[]>([]);
+  const [folders, setFolders] = useState<any[]>([]);
 
   useEffect(() => {
     fetchAccounts();
     fetchLabels();
+    fetchFolders();
   }, []);
 
   const fetchAccounts = async () => {
@@ -51,6 +53,18 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
       }
     } catch (error) {
       console.error('Failed to fetch labels:', error);
+    }
+  };
+
+  const fetchFolders = async () => {
+    try {
+      const response = await fetch('/api/folders');
+      const data = await response.json();
+      if (data.folders) {
+        setFolders(data.folders);
+      }
+    } catch (error) {
+      console.error('Failed to fetch folders:', error);
     }
   };
 
@@ -106,6 +120,34 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               </Link>
             ))}
           </div>
+
+          {/* Custom Folders */}
+          {folders.length > 0 && (
+            <div className="space-y-0.5 mt-4">
+              <div className="px-4 py-2">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Folders
+                </span>
+              </div>
+              {folders.map((folder) => (
+                <Link key={folder.id} href={`/app/inbox?folder=${folder.id}`}>
+                  <button
+                    className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors text-foreground/80`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Tag className="h-5 w-5" />
+                      <span className="text-sm truncate">{folder.name}</span>
+                    </div>
+                    {folder.unread_count > 0 && (
+                      <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs shrink-0">
+                        {folder.unread_count}
+                      </Badge>
+                    )}
+                  </button>
+                </Link>
+              ))}
+            </div>
+          )}
 
           {/* Apps */}
           <div className="space-y-0.5 mt-4">

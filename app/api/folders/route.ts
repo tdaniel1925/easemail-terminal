@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nylas } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
-import { getCachedOrFetch } from '@/lib/redis/client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,33 +11,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get pagination parameters
     const searchParams = request.nextUrl.searchParams;
-    const pageToken = searchParams.get('page_token');
-    const limit = parseInt(searchParams.get('limit') || '50');
     const accountId = searchParams.get('accountId');
-    const folderId = searchParams.get('folder');
 
     // Get user's email account(s)
     let account: any;
     if (accountId) {
-      // Fetch specific account
-      const { data: specificAccount } = (await supabase
+      const { data: specificAccount } = await supabase
         .from('email_accounts')
         .select('*')
         .eq('user_id', user.id)
         .eq('id', accountId)
-        .single()) as { data: any };
+        .single();
 
       account = specificAccount;
     } else {
-      // Fetch primary account
-      const { data: primaryAccount } = (await supabase
+      const { data: primaryAccount } = await supabase
         .from('email_accounts')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_primary', true)
-        .single()) as { data: any };
+        .single();
 
       account = primaryAccount;
     }
@@ -49,25 +42,19 @@ export async function GET(request: NextRequest) {
 
     const grantId = account.grant_id;
 
-    // Fetch messages from Nylas (disable caching for pagination)
+    // Fetch folders from Nylas
     const nylasClient = nylas();
-    const response = await nylasClient.messages.list({
+    const response = await nylasClient.folders.list({
       identifier: grantId,
-      queryParams: {
-        limit,
-        ...(pageToken && { page_token: pageToken }),
-        ...(folderId && { in: [folderId] }),
-      },
     });
 
     return NextResponse.json({
-      messages: response.data,
-      nextCursor: response.nextCursor || null,
+      folders: response.data,
     });
   } catch (error) {
-    console.error('Fetch messages error:', error);
+    console.error('Fetch folders error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch messages' },
+      { error: 'Failed to fetch folders' },
       { status: 500 }
     );
   }
