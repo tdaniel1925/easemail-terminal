@@ -1199,7 +1199,7 @@ export default function InboxPage() {
                         className={`mt-1 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}
                       >
                         <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
-                          isSelected ? 'bg-primary border-primary' : 'border-foreground/30 bg-background hover:border-primary'
+                          isSelected ? 'bg-primary border-primary' : 'border-gray-600 bg-background hover:border-primary'
                         }`}>
                           {isSelected && (
                             <Check className="h-3.5 w-3.5 text-primary-foreground" />
@@ -1227,10 +1227,10 @@ export default function InboxPage() {
                       </Avatar>
 
                       {/* Content - 3 Lines */}
-                      <div className="flex-1 min-w-0 pr-4">
+                      <div className="flex-1 min-w-0 pr-8">
                         {/* First Line: Sender and Date */}
-                        <div className="flex items-baseline justify-between gap-3 mb-1.5">
-                          <span className={`text-sm truncate ${message.unread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
+                        <div className="flex items-baseline justify-between gap-4 mb-1.5">
+                          <span className={`text-sm truncate overflow-hidden text-ellipsis ${message.unread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
                             {message.from?.[0]?.name || message.from?.[0]?.email}
                           </span>
                           <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
@@ -1239,12 +1239,12 @@ export default function InboxPage() {
                         </div>
 
                         {/* Second Line: Subject */}
-                        <div className={`text-sm ${message.unread ? 'font-medium text-foreground' : 'text-foreground/90'} truncate mb-1.5`}>
+                        <div className={`text-sm ${message.unread ? 'font-medium text-foreground' : 'text-foreground/90'} truncate overflow-hidden text-ellipsis mb-1.5`}>
                           {message.subject || '(no subject)'}
                         </div>
 
                         {/* Third Line: Preview */}
-                        <div className="text-sm text-muted-foreground truncate">
+                        <div className="text-sm text-muted-foreground truncate overflow-hidden text-ellipsis">
                           {message.snippet}
                         </div>
                       </div>
@@ -1286,11 +1286,11 @@ export default function InboxPage() {
                           </Avatar>
 
                           {/* Content - 3 Lines */}
-                          <div className="flex-1 min-w-0 pr-4">
+                          <div className="flex-1 min-w-0 pr-8">
                             {/* First Line: Sender and Date */}
-                            <div className="flex items-baseline justify-between gap-3 mb-1.5">
-                              <div className="flex items-center gap-2 truncate">
-                                <span className={`text-sm truncate ${hasUnread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
+                            <div className="flex items-baseline justify-between gap-4 mb-1.5">
+                              <div className="flex items-center gap-2 truncate overflow-hidden min-w-0">
+                                <span className={`text-sm truncate overflow-hidden text-ellipsis ${hasUnread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
                                   {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
                                 </span>
                                 {threadCount > 1 && (
@@ -1305,12 +1305,12 @@ export default function InboxPage() {
                             </div>
 
                             {/* Second Line: Subject */}
-                            <div className={`text-sm ${hasUnread ? 'font-medium text-foreground' : 'text-foreground/90'} truncate mb-1.5`}>
+                            <div className={`text-sm ${hasUnread ? 'font-medium text-foreground' : 'text-foreground/90'} truncate overflow-hidden text-ellipsis mb-1.5`}>
                               {previewMessage.subject || '(no subject)'}
                             </div>
 
                             {/* Third Line: Preview */}
-                            <div className="text-sm text-muted-foreground truncate">
+                            <div className="text-sm text-muted-foreground truncate overflow-hidden text-ellipsis">
                               {previewMessage.snippet}
                             </div>
                           </div>
@@ -1333,10 +1333,10 @@ export default function InboxPage() {
                                     {getInitials(msg.from?.[0]?.name, msg.from?.[0]?.email)}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div className="flex-1 min-w-0 pr-4">
+                                <div className="flex-1 min-w-0 pr-8">
                                   {/* First Line: Sender and Date */}
-                                  <div className="flex items-baseline justify-between gap-3 mb-1.5">
-                                    <span className="text-sm text-foreground truncate">
+                                  <div className="flex items-baseline justify-between gap-4 mb-1.5">
+                                    <span className="text-sm text-foreground truncate overflow-hidden text-ellipsis">
                                       {msg.from?.[0]?.name || msg.from?.[0]?.email}
                                     </span>
                                     <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
@@ -1345,7 +1345,7 @@ export default function InboxPage() {
                                   </div>
 
                                   {/* Second Line: Preview */}
-                                  <div className="text-sm text-muted-foreground truncate">
+                                  <div className="text-sm text-muted-foreground truncate overflow-hidden text-ellipsis">
                                     {msg.snippet || ''}
                                   </div>
                                 </div>
