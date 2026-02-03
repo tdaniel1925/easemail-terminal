@@ -1184,22 +1184,22 @@ export default function InboxPage() {
                   return (
                   <div
                     key={message.id}
-                    className={`w-full text-left py-2 px-3 border-b border-border hover:bg-accent/50 transition-all cursor-pointer group ${
+                    className={`w-full text-left py-3 px-4 border-b border-border hover:bg-accent/50 transition-all cursor-pointer group ${
                       selectedMessage?.id === message.id ? 'bg-accent' : ''
                     } ${isSelected ? 'bg-accent/30' : ''}`}
                     onClick={() => setSelectedMessage(message)}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                       {/* Checkbox */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleMessageSelection(message.id);
                         }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        className={`mt-0.5 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}
                       >
                         <div className={`h-4 w-4 rounded border flex items-center justify-center ${
-                          isSelected ? 'bg-primary border-primary opacity-100' : 'border-input hover:border-primary'
+                          isSelected ? 'bg-primary border-primary' : 'border-input hover:border-primary'
                         }`}>
                           {isSelected && (
                             <Check className="h-3 w-3 text-primary-foreground" />
@@ -1213,41 +1213,41 @@ export default function InboxPage() {
                           e.stopPropagation();
                           handleToggleStar(message.id, message.starred || false);
                         }}
-                        className={`${message.starred ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}
+                        className={`mt-0.5 ${message.starred ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}
                       >
                         <Star className={`h-4 w-4 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
                       </button>
 
                       {/* Avatar */}
-                      <Avatar className="h-8 w-8 shrink-0">
+                      <Avatar className="h-10 w-10 shrink-0 mt-0.5">
                         <AvatarImage src={`https://logo.clearbit.com/${message.from?.[0]?.email?.split('@')[1]}`} />
-                        <AvatarFallback className="text-xs">
+                        <AvatarFallback className="text-sm">
                           {getInitials(message.from?.[0]?.name, message.from?.[0]?.email)}
                         </AvatarFallback>
                       </Avatar>
 
-                      {/* Content - Single Line */}
-                      <div className="flex-1 min-w-0 flex items-center gap-2">
-                        {/* Sender Name */}
-                        <span className={`text-sm truncate shrink-0 w-40 ${message.unread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
-                          {message.from?.[0]?.name || message.from?.[0]?.email}
-                        </span>
+                      {/* Content - 2 Lines */}
+                      <div className="flex-1 min-w-0">
+                        {/* First Line: Sender and Date */}
+                        <div className="flex items-baseline justify-between gap-2 mb-1">
+                          <span className={`text-sm ${message.unread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
+                            {message.from?.[0]?.name || message.from?.[0]?.email}
+                          </span>
+                          <span className="text-xs text-muted-foreground shrink-0">
+                            {formatDate(message.date * 1000)}
+                          </span>
+                        </div>
 
-                        {/* Subject & Preview */}
-                        <span className="text-sm truncate flex-1">
-                          <span className={message.unread ? 'font-semibold text-foreground' : 'text-foreground'}>
-                            {message.subject || '(no subject)'}
-                          </span>
-                          <span className="text-muted-foreground ml-2">
-                            - {message.snippet}
-                          </span>
-                        </span>
+                        {/* Second Line: Subject */}
+                        <div className={`text-sm ${message.unread ? 'font-medium text-foreground' : 'text-foreground/90'} truncate mb-0.5`}>
+                          {message.subject || '(no subject)'}
+                        </div>
+
+                        {/* Third Line: Preview */}
+                        <div className="text-sm text-muted-foreground line-clamp-1">
+                          {message.snippet}
+                        </div>
                       </div>
-
-                      {/* Date - Right Aligned */}
-                      <span className="text-xs text-muted-foreground shrink-0 ml-auto">
-                        {formatDate(message.date * 1000)}
-                      </span>
                     </div>
                   </div>
                   );
@@ -1264,74 +1264,93 @@ export default function InboxPage() {
                   return (
                     <div key={threadId} className="border-b border-border">
                       {/* Thread Preview */}
-                      <div className={`w-full text-left py-1.5 px-2 hover:bg-accent/50 transition-colors ${
-                        selectedMessage?.id === previewMessage.id ? 'bg-accent' : ''
-                      }`}>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => toggleThread(threadId)}
-                            className="flex-1 flex items-center gap-1.5 text-left min-w-0"
-                          >
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={`https://logo.clearbit.com/${previewMessage.from?.[0]?.email?.split('@')[1]}`} />
-                              <AvatarFallback className="text-[10px] font-semibold">
-                                {getInitials(previewMessage.from?.[0]?.name, previewMessage.from?.[0]?.email)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0 flex items-start gap-2">
-                              <span className={`font-medium truncate text-sm ${hasUnread ? 'font-bold' : ''} w-32 shrink-0`}>
-                                {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
-                              </span>
-                              <p className={`text-sm line-clamp-2 flex-1 ${hasUnread ? 'font-semibold' : 'text-muted-foreground'}`}>
-                                {previewMessage.subject || '(no subject)'}
-                              </p>
-                              <div className="flex items-center gap-1 shrink-0 ml-auto">
+                      <div
+                        className={`w-full text-left py-3 px-4 hover:bg-accent/50 transition-all cursor-pointer group ${
+                          selectedMessage?.id === previewMessage.id ? 'bg-accent' : ''
+                        }`}
+                        onClick={() => toggleThread(threadId)}
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Checkbox placeholder for alignment */}
+                          <div className="w-4 h-4 shrink-0 mt-0.5" />
+
+                          {/* Star placeholder for alignment */}
+                          <div className="w-4 h-4 shrink-0 mt-0.5" />
+
+                          {/* Avatar */}
+                          <Avatar className="h-10 w-10 shrink-0 mt-0.5">
+                            <AvatarImage src={`https://logo.clearbit.com/${previewMessage.from?.[0]?.email?.split('@')[1]}`} />
+                            <AvatarFallback className="text-sm">
+                              {getInitials(previewMessage.from?.[0]?.name, previewMessage.from?.[0]?.email)}
+                            </AvatarFallback>
+                          </Avatar>
+
+                          {/* Content - 2 Lines */}
+                          <div className="flex-1 min-w-0">
+                            {/* First Line: Sender and Date */}
+                            <div className="flex items-baseline justify-between gap-2 mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-sm ${hasUnread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
+                                  {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
+                                </span>
                                 {threadCount > 1 && (
-                                  <Badge variant="secondary" className="text-[9px] px-1 py-0">
+                                  <Badge variant="secondary" className="text-xs px-1.5 py-0">
                                     {threadCount}
                                   </Badge>
                                 )}
-                                {hasUnread && (
-                                  <Badge variant="default" className="text-[9px] px-1 py-0">New</Badge>
-                                )}
-                                <span className="text-[10px] text-muted-foreground">
-                                  {formatDate(previewMessage.date * 1000)}
-                                </span>
                               </div>
+                              <span className="text-xs text-muted-foreground shrink-0">
+                                {formatDate(previewMessage.date * 1000)}
+                              </span>
                             </div>
-                          </button>
+
+                            {/* Second Line: Subject */}
+                            <div className={`text-sm ${hasUnread ? 'font-medium text-foreground' : 'text-foreground/90'} truncate mb-0.5`}>
+                              {previewMessage.subject || '(no subject)'}
+                            </div>
+
+                            {/* Third Line: Preview */}
+                            <div className="text-sm text-muted-foreground line-clamp-1">
+                              {previewMessage.snippet}
+                            </div>
+                          </div>
                         </div>
                       </div>
 
                       {/* Expanded Thread Messages */}
                       {isExpanded && threadMessages.length > 1 && (
-                        <div className="bg-accent/30 border-t border-border">
+                        <div className="bg-accent/20">
                           {threadMessages.slice(0, -1).map((msg) => (
-                            <button
+                            <div
                               key={msg.id}
                               onClick={() => setSelectedMessage(msg)}
-                              className="w-full text-left p-3 pl-16 border-b border-border/50 hover:bg-accent/50 transition-colors flex items-start gap-3"
+                              className="w-full text-left py-3 px-4 pl-20 border-b border-border/50 hover:bg-accent/50 transition-colors cursor-pointer"
                             >
-                              <Avatar className="h-8 w-8">
-                                <AvatarImage src={`https://logo.clearbit.com/${msg.from?.[0]?.email?.split('@')[1]}`} />
-                                <AvatarFallback className="text-xs">
-                                  {getInitials(msg.from?.[0]?.name, msg.from?.[0]?.email)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                  <span className="text-sm truncate">
-                                    {msg.from?.[0]?.name || msg.from?.[0]?.email}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {formatDate(msg.date * 1000)}
-                                  </span>
+                              <div className="flex items-start gap-3">
+                                <Avatar className="h-10 w-10 shrink-0">
+                                  <AvatarImage src={`https://logo.clearbit.com/${msg.from?.[0]?.email?.split('@')[1]}`} />
+                                  <AvatarFallback className="text-sm">
+                                    {getInitials(msg.from?.[0]?.name, msg.from?.[0]?.email)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  {/* First Line: Sender and Date */}
+                                  <div className="flex items-baseline justify-between gap-2 mb-1">
+                                    <span className="text-sm text-foreground">
+                                      {msg.from?.[0]?.name || msg.from?.[0]?.email}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground shrink-0">
+                                      {formatDate(msg.date * 1000)}
+                                    </span>
+                                  </div>
+
+                                  {/* Second Line: Preview */}
+                                  <div className="text-sm text-muted-foreground line-clamp-1">
+                                    {msg.snippet || ''}
+                                  </div>
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {msg.snippet || ''}
-                                </p>
                               </div>
-                            </button>
+                            </div>
                           ))}
                         </div>
                       )}
