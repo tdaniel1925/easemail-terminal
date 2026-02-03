@@ -1228,24 +1228,24 @@ export default function InboxPage() {
                       </Avatar>
 
                       {/* Content - 3 Lines */}
-                      <div className="flex-1 min-w-0 pr-8">
+                      <div className="flex-1 min-w-0 pr-12">
                         {/* First Line: Sender and Date */}
                         <div className="flex items-baseline justify-between gap-4 mb-1.5">
-                          <span className={`text-sm truncate overflow-hidden text-ellipsis ${message.unread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
+                          <span className={`text-sm line-clamp-1 ${message.unread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
                             {message.from?.[0]?.name || message.from?.[0]?.email}
                           </span>
-                          <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
+                          <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap ml-2">
                             {formatDate(message.date * 1000)}
                           </span>
                         </div>
 
-                        {/* Second Line: Subject */}
-                        <div className={`text-sm ${message.unread ? 'font-medium text-foreground' : 'text-foreground/90'} truncate overflow-hidden text-ellipsis mb-1.5`}>
+                        {/* Second Line: Subject - wraps to 2 lines */}
+                        <div className={`text-sm ${message.unread ? 'font-medium text-foreground' : 'text-foreground/90'} line-clamp-2 mb-1.5 break-words`}>
                           {message.subject || '(no subject)'}
                         </div>
 
-                        {/* Third Line: Preview */}
-                        <div className="text-sm text-muted-foreground truncate overflow-hidden text-ellipsis">
+                        {/* Third Line: Preview - wraps to 2 lines */}
+                        <div className="text-sm text-muted-foreground line-clamp-2 break-words">
                           {message.snippet}
                         </div>
                       </div>
@@ -1335,11 +1335,11 @@ export default function InboxPage() {
                           </Avatar>
 
                           {/* Content - 3 Lines */}
-                          <div className="flex-1 min-w-0 pr-8">
+                          <div className="flex-1 min-w-0 pr-12">
                             {/* First Line: Sender and Date */}
                             <div className="flex items-baseline justify-between gap-4 mb-1.5">
-                              <div className="flex items-center gap-2 truncate overflow-hidden min-w-0">
-                                <span className={`text-sm truncate overflow-hidden text-ellipsis ${hasUnread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <span className={`text-sm line-clamp-1 ${hasUnread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
                                   {previewMessage.from?.[0]?.name || previewMessage.from?.[0]?.email}
                                 </span>
                                 {threadCount > 1 && (
@@ -1348,18 +1348,18 @@ export default function InboxPage() {
                                   </Badge>
                                 )}
                               </div>
-                              <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
+                              <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap ml-2">
                                 {formatDate(previewMessage.date * 1000)}
                               </span>
                             </div>
 
-                            {/* Second Line: Subject */}
-                            <div className={`text-sm ${hasUnread ? 'font-medium text-foreground' : 'text-foreground/90'} truncate overflow-hidden text-ellipsis mb-1.5`}>
+                            {/* Second Line: Subject - wraps to 2 lines */}
+                            <div className={`text-sm ${hasUnread ? 'font-medium text-foreground' : 'text-foreground/90'} line-clamp-2 mb-1.5 break-words`}>
                               {previewMessage.subject || '(no subject)'}
                             </div>
 
-                            {/* Third Line: Preview */}
-                            <div className="text-sm text-muted-foreground truncate overflow-hidden text-ellipsis">
+                            {/* Third Line: Preview - wraps to 2 lines */}
+                            <div className="text-sm text-muted-foreground line-clamp-2 break-words">
                               {previewMessage.snippet}
                             </div>
                           </div>
@@ -1382,19 +1382,19 @@ export default function InboxPage() {
                                     {getInitials(msg.from?.[0]?.name, msg.from?.[0]?.email)}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div className="flex-1 min-w-0 pr-8">
+                                <div className="flex-1 min-w-0 pr-12">
                                   {/* First Line: Sender and Date */}
                                   <div className="flex items-baseline justify-between gap-4 mb-1.5">
-                                    <span className="text-sm text-foreground truncate overflow-hidden text-ellipsis">
+                                    <span className="text-sm text-foreground line-clamp-1">
                                       {msg.from?.[0]?.name || msg.from?.[0]?.email}
                                     </span>
-                                    <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
+                                    <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap ml-2">
                                       {formatDate(msg.date * 1000)}
                                     </span>
                                   </div>
 
-                                  {/* Second Line: Preview */}
-                                  <div className="text-sm text-muted-foreground truncate overflow-hidden text-ellipsis">
+                                  {/* Second Line: Preview - wraps to 2 lines */}
+                                  <div className="text-sm text-muted-foreground line-clamp-2 break-words">
                                     {msg.snippet || ''}
                                   </div>
                                 </div>
