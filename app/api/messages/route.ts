@@ -70,8 +70,11 @@ export async function GET(request: NextRequest) {
       queryParams,
     });
 
+    // Ensure messages is always an array
+    const messages = response.data || [];
+
     return NextResponse.json({
-      messages: response.data,
+      messages,
       nextCursor: response.nextCursor || null,
     });
   } catch (error) {

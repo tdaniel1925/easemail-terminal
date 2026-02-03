@@ -38,6 +38,11 @@ export async function GET(request: NextRequest) {
             },
           });
 
+          // Ensure response.data exists and is an array
+          if (!response.data || !Array.isArray(response.data)) {
+            return [];
+          }
+
           // Add account info to each message
           return response.data.map((message: any) => ({
             ...message,
