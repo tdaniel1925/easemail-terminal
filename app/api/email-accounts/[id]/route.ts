@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+interface AccountToDelete {
+  email: string;
+  is_primary: boolean;
+  grant_id: string;
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -17,14 +23,14 @@ export async function DELETE(
     const accountId = id;
 
     // Get account info before deletion
-    const { data: accountToDelete } = await supabase
+    const { data: accountToDelete, error: fetchError } = await supabase
       .from('email_accounts')
       .select('email, is_primary, grant_id')
       .eq('id', accountId)
       .eq('user_id', user.id)
-      .single();
+      .single<AccountToDelete>();
 
-    if (!accountToDelete) {
+    if (fetchError || !accountToDelete) {
       return NextResponse.json({ error: 'Account not found' }, { status: 404 });
     }
 
@@ -59,14 +65,14 @@ export async function DELETE(
 
     // If this was the primary account, set another one as primary
     if (accountToDelete.is_primary) {
-      const { data: remainingAccounts } = await supabase
+      const { data: remainingAccounts } = (await supabase
         .from('email_accounts')
         .select('id')
         .eq('user_id', user.id)
-        .limit(1);
+        .limit(1)) as { data: { id: string }[] | null };
 
       if (remainingAccounts && remainingAccounts.length > 0) {
-        await supabase
+        await (supabase as any)
           .from('email_accounts')
           .update({ is_primary: true })
           .eq('id', remainingAccounts[0].id);
