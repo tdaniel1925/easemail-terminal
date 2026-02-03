@@ -15,6 +15,8 @@ interface EmailAccount {
 }
 
 export async function POST(request: NextRequest) {
+  let userId: string | undefined;
+
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -22,6 +24,8 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return errorResponse('Unauthorized', 401);
     }
+
+    userId = user.id;
 
     // Parse and validate request body
     const body = await request.json();
@@ -39,18 +43,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user's email account with proper error handling
-    const { data: account, error: accountError } = await safeQuery<EmailAccount>(
-      () => supabase
-        .from('email_accounts')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_primary', true)
-        .single(),
-      'Email account'
-    );
+    const { data: account, error: accountError } = (await supabase
+      .from('email_accounts')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_primary', true)
+      .single()) as { data: EmailAccount | null; error: any };
 
     if (accountError || !account) {
-      logger.error('No email account found for user', undefined, { userId: user.id });
+      logger.error('No email account found for user', undefined, { userId: user.id, error: accountError });
       return errorResponse('No email account connected. Please connect an account first.', 400);
     }
 
@@ -101,19 +102,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Track usage for analytics (non-blocking)
-    supabase.from('usage_tracking')
+    (supabase.from('usage_tracking') as any)
       .insert({
         user_id: user.id,
         feature: 'email_sent',
         organization_id: null,
       })
-      .then(({ error: trackingError }) => {
+      .then(({ error: trackingError }: any) => {
         if (trackingError) {
           logger.warn('Usage tracking failed', { error: trackingError, userId: user.id });
         }
       })
-      .catch(err => {
-        logger.warn('Usage tracking error', err, { userId: user.id });
+      .catch((err: any) => {
+        logger.warn('Usage tracking error', { userId: user.id, error: err });
       });
 
     logger.info('Email sent successfully', {
@@ -126,7 +127,7 @@ export async function POST(request: NextRequest) {
     return successResponse(message, 'Email sent successfully');
   } catch (error: any) {
     logger.error('Send message error', error, {
-      userId: user?.id,
+      userId,
       component: 'api/messages/send',
     });
     return errorResponse(

@@ -80,15 +80,15 @@ export async function GET(request: NextRequest) {
     // Save to database with proper typing
     const supabase = await createClient();
 
-    const { error: dbError } = await supabase
-      .from('email_accounts')
+    const { error: dbError } = (await (supabase
+      .from('email_accounts') as any)
       .insert({
         user_id: state,
         grant_id: grantId,
         email: email || 'unknown@example.com',
         provider: (provider || 'GOOGLE').toUpperCase(),
         is_primary: true,
-      });
+      })) as { error: any };
 
     if (dbError) {
       logger.error('Database error saving email account', dbError, {
