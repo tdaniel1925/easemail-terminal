@@ -1184,63 +1184,70 @@ export default function InboxPage() {
                   return (
                   <div
                     key={message.id}
-                    className={`w-full text-left py-2 px-3 border-b border-border hover:bg-accent/50 transition-all cursor-pointer ${
-                      selectedMessage?.id === message.id ? 'bg-accent border-l-4 border-l-primary' : ''
+                    className={`w-full text-left py-2 px-3 border-b border-border hover:bg-accent/50 transition-all cursor-pointer group ${
+                      selectedMessage?.id === message.id ? 'bg-accent' : ''
                     } ${isSelected ? 'bg-accent/30' : ''}`}
+                    onClick={() => setSelectedMessage(message)}
                   >
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-3">
                       {/* Checkbox */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleMessageSelection(message.id);
                         }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <div className={`h-3.5 w-3.5 rounded border flex items-center justify-center ${
-                          isSelected ? 'bg-primary border-primary' : 'border-input hover:border-primary'
+                        <div className={`h-4 w-4 rounded border flex items-center justify-center ${
+                          isSelected ? 'bg-primary border-primary opacity-100' : 'border-input hover:border-primary'
                         }`}>
                           {isSelected && (
-                            <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                            <Check className="h-3 w-3 text-primary-foreground" />
                           )}
                         </div>
                       </button>
 
+                      {/* Star - visible on hover or if starred */}
                       <button
-                        onClick={() => setSelectedMessage(message)}
-                        className="flex-1 flex items-center gap-1.5 text-left min-w-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleStar(message.id, message.starred || false);
+                        }}
+                        className={`${message.starred ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}
                       >
-                      <Avatar className="h-6 w-6">
+                        <Star className={`h-4 w-4 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+                      </button>
+
+                      {/* Avatar */}
+                      <Avatar className="h-8 w-8 shrink-0">
                         <AvatarImage src={`https://logo.clearbit.com/${message.from?.[0]?.email?.split('@')[1]}`} />
-                        <AvatarFallback className="text-[10px] font-semibold">
+                        <AvatarFallback className="text-xs">
                           {getInitials(message.from?.[0]?.name, message.from?.[0]?.email)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0 flex items-start gap-2">
-                        <span className={`font-medium truncate text-sm ${message.unread ? 'font-bold' : ''} w-32 shrink-0`}>
+
+                      {/* Content - Single Line */}
+                      <div className="flex-1 min-w-0 flex items-center gap-2">
+                        {/* Sender Name */}
+                        <span className={`text-sm truncate shrink-0 w-40 ${message.unread ? 'font-semibold text-foreground' : 'text-foreground'}`}>
                           {message.from?.[0]?.name || message.from?.[0]?.email}
                         </span>
-                        <p className={`text-sm line-clamp-2 flex-1 ${message.unread ? 'font-semibold' : 'text-muted-foreground'}`}>
-                          {message.subject || '(no subject)'}
-                        </p>
-                        <div className="flex items-center gap-1 shrink-0 ml-auto">
-                          {message.unread && (
-                            <Badge variant="default" className="text-[9px] px-1 py-0">New</Badge>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleStar(message.id, message.starred || false);
-                            }}
-                            className="p-0.5"
-                          >
-                            <Star className={`h-3.5 w-3.5 ${message.starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
-                          </button>
-                          <span className="text-[10px] text-muted-foreground">
-                            {formatDate(message.date * 1000)}
+
+                        {/* Subject & Preview */}
+                        <span className="text-sm truncate flex-1">
+                          <span className={message.unread ? 'font-semibold text-foreground' : 'text-foreground'}>
+                            {message.subject || '(no subject)'}
                           </span>
-                        </div>
+                          <span className="text-muted-foreground ml-2">
+                            - {message.snippet}
+                          </span>
+                        </span>
                       </div>
-                      </button>
+
+                      {/* Date - Right Aligned */}
+                      <span className="text-xs text-muted-foreground shrink-0 ml-auto">
+                        {formatDate(message.date * 1000)}
+                      </span>
                     </div>
                   </div>
                   );
