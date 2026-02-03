@@ -3,16 +3,21 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { sendEmail } from '@/lib/resend';
+import { getWelcomeEmailHtml } from '@/lib/email-templates';
 
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
 
+  const email = formData.get('email') as string;
+  const name = formData.get('name') as string;
+
   const data = {
-    email: formData.get('email') as string,
+    email,
     password: formData.get('password') as string,
     options: {
       data: {
-        name: formData.get('name') as string,
+        name,
       },
     },
   };
@@ -21,6 +26,20 @@ export async function signUp(formData: FormData) {
 
   if (error) {
     redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Send welcome email (don't block signup if this fails)
+  try {
+    const html = getWelcomeEmailHtml({ userName: name, userEmail: email });
+    await sendEmail({
+      to: email,
+      subject: 'Welcome to EaseMail! 🎉',
+      html,
+    });
+    console.log('Welcome email sent to:', email);
+  } catch (emailError) {
+    console.error('Failed to send welcome email:', emailError);
+    // Continue with signup even if email fails
   }
 
   revalidatePath('/', 'layout');
