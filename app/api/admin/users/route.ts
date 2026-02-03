@@ -27,6 +27,11 @@ export async function GET(request: NextRequest) {
       .select('id, email, name, two_factor_enabled, created_at')
       .order('created_at', { ascending: false })) as { data: any };
 
+    // Return empty array if query fails
+    if (!allUsers || !Array.isArray(allUsers)) {
+      return NextResponse.json({ users: [] });
+    }
+
     // Get organization counts for each user
     const usersWithStats = await Promise.all(
       allUsers.map(async (u: any) => {

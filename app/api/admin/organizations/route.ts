@@ -27,6 +27,11 @@ export async function GET(request: NextRequest) {
       .select('*')
       .order('created_at', { ascending: false })) as { data: any };
 
+    // Return empty array if query fails
+    if (!allOrgs || !Array.isArray(allOrgs)) {
+      return NextResponse.json({ organizations: [] });
+    }
+
     // Get stats for each organization
     const orgsWithStats = await Promise.all(
       allOrgs.map(async (org: any) => {
@@ -35,15 +40,20 @@ export async function GET(request: NextRequest) {
           .select('*', { count: 'exact', head: true })
           .eq('organization_id', org.id);
 
-        const { count: emailCount } = await supabase
-          .from('email_accounts')
-          .select('*', { count: 'exact', head: true })
-          .in('user_id', (
-            await supabase
-              .from('organization_members')
-              .select('user_id')
-              .eq('organization_id', org.id)
-          ).data?.map((m: any) => m.user_id) || []);
+        // Get organization members first
+        const { data: orgMembers } = await supabase
+          .from('organization_members')
+          .select('user_id')
+          .eq('organization_id', org.id);
+
+        // Get email count only if we have member user IDs
+        const memberUserIds = orgMembers?.map((m: any) => m.user_id) || [];
+        const { count: emailCount } = memberUserIds.length > 0
+          ? await supabase
+              .from('email_accounts')
+              .select('*', { count: 'exact', head: true })
+              .in('user_id', memberUserIds)
+          : { count: 0 };
 
         const { count: usageCount } = await supabase
           .from('usage_tracking')
