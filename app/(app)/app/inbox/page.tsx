@@ -1004,10 +1004,10 @@ export default function InboxPage() {
           </div>
       </header>
 
-      {/* Email List & Reading Pane */}
+      {/* Email List - Full Width */}
       <div className="flex-1 flex overflow-hidden">
         {/* Email List */}
-        <div className="w-full md:w-96 lg:w-96 border-r border-border bg-card">
+        <div className="w-full bg-card">
             {/* Search Results Header */}
             {searchQuery && (
               <div className="p-3 border-b border-border bg-accent/50">
@@ -1181,15 +1181,16 @@ export default function InboxPage() {
                 filteredMessages.map((message) => {
                   const category = categories[message.id];
                   const isSelected = selectedMessages.has(message.id);
+                  const isExpanded = selectedMessage?.id === message.id;
                   return (
-                  <div
-                    key={message.id}
-                    className={`w-full text-left py-4 px-5 border-b border-border hover:bg-accent/50 transition-all cursor-pointer group ${
-                      selectedMessage?.id === message.id ? 'bg-accent' : ''
-                    } ${isSelected ? 'bg-accent/30' : ''}`}
-                    onClick={() => setSelectedMessage(message)}
-                  >
-                    <div className="flex items-start gap-4">
+                  <div key={message.id} className="border-b border-border">
+                    <div
+                      className={`w-full text-left py-4 px-5 hover:bg-accent/50 transition-all cursor-pointer group ${
+                        isExpanded ? 'bg-accent' : ''
+                      } ${isSelected ? 'bg-accent/30' : ''}`}
+                      onClick={() => setSelectedMessage(isExpanded ? null : message)}
+                    >
+                      <div className="flex items-start gap-4">
                       {/* Checkbox */}
                       <button
                         onClick={(e) => {
@@ -1249,6 +1250,54 @@ export default function InboxPage() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                    {/* Expanded Email Content */}
+                    {isExpanded && (
+                      <div className="bg-accent/30 border-t border-border">
+                        {/* Action Toolbar */}
+                        <div className="flex items-center gap-2 p-4 border-b border-border bg-card">
+                          <Button size="sm" onClick={() => handleReply(message, false)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                            <Reply className="h-4 w-4 mr-1.5" />
+                            Reply
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleReply(message, true)}>
+                            <ReplyAll className="h-4 w-4 mr-1.5" />
+                            Reply All
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleForward(message)}>
+                            <Forward className="h-4 w-4 mr-1.5" />
+                            Forward
+                          </Button>
+                          <div className="flex-1" />
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleArchive(message.id); }}>
+                            <Archive className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleDelete(message.id, false); }}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleToggleStar(message.id, message.starred || false); }}>
+                            <Star className={`h-4 w-4 ${message.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleSnooze(message.id); }}>
+                            <Clock className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleApplyLabel(message.id); }}>
+                            <Tag className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        {/* Email Body */}
+                        <div className="p-8 bg-background">
+                          <div className="prose dark:prose-invert max-w-none prose-sm">
+                            <div
+                              className="email-body-content"
+                              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.body || message.snippet) }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   );
                 })
@@ -1383,92 +1432,6 @@ export default function InboxPage() {
                 </div>
               )}
             </ScrollArea>
-          </div>
-
-          {/* Reading Pane */}
-          <div className={`flex-1 flex flex-col bg-card ${selectedMessage ? 'block' : 'hidden md:block'}`}>
-            {selectedMessage ? (
-              <>
-                <div className="border-b border-border bg-card p-5">
-                  <div className="flex items-start gap-4 mb-4">
-                    <Avatar className="h-10 w-10 shrink-0">
-                      <AvatarImage src={`https://logo.clearbit.com/${selectedMessage.from?.[0]?.email?.split('@')[1]}`} />
-                      <AvatarFallback className="text-sm font-semibold">
-                        {getInitials(selectedMessage.from?.[0]?.name, selectedMessage.from?.[0]?.email)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0 pr-4">
-                      <div className="flex items-baseline justify-between gap-3 mb-1">
-                        <p className="font-semibold text-sm truncate">
-                          {selectedMessage.from?.[0]?.name || selectedMessage.from?.[0]?.email}
-                        </p>
-                        <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
-                          {new Date(selectedMessage.date * 1000).toLocaleString()}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">
-                        to me
-                      </p>
-                    </div>
-                  </div>
-                  {/* Subject Line */}
-                  <h2 className="text-xl font-semibold mb-4 px-1 truncate">
-                    {selectedMessage.subject || '(no subject)'}
-                  </h2>
-                  {/* Action Toolbar */}
-                  <div className="flex items-center gap-2 pt-3 border-t border-border">
-                    <Button size="sm" onClick={() => handleReply(selectedMessage, false)} className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                      <Reply className="h-4 w-4 mr-1.5" />
-                      Reply
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleReply(selectedMessage, true)}>
-                      <ReplyAll className="h-4 w-4 mr-1.5" />
-                      Reply All
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleForward(selectedMessage)}>
-                      <Forward className="h-4 w-4 mr-1.5" />
-                      Forward
-                    </Button>
-                    <div className="flex-1" />
-                    <Button variant="ghost" size="sm" onClick={() => handleArchive(selectedMessage.id)}>
-                      <Archive className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(selectedMessage.id, false)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleToggleStar(selectedMessage.id, selectedMessage.starred || false)}>
-                      <Star className={`h-4 w-4 ${selectedMessage.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleSnooze(selectedMessage.id)}>
-                      <Clock className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleApplyLabel(selectedMessage.id)}>
-                      <Tag className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                <ScrollArea className="flex-1 p-8">
-                  <div className="prose dark:prose-invert max-w-3xl mx-auto prose-sm">
-                    <div
-                      className="email-body-content px-2"
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMessage.body || selectedMessage.snippet) }}
-                    />
-                  </div>
-                </ScrollArea>
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-center p-12">
-                <div className="max-w-sm">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full mb-4">
-                    <Mail className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2">No message selected</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Select a message from the list to read it
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
