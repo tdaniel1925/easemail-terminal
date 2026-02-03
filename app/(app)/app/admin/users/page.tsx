@@ -124,22 +124,16 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <div className="container max-w-7xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="container max-w-7xl mx-auto py-6 px-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-muted-foreground">System-wide user administration</p>
-        </div>
+    <div className="space-y-6">
+      {/* Action Bar */}
+      <div className="flex items-center justify-end">
         <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Create User

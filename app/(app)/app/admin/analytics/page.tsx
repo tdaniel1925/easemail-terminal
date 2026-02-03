@@ -177,38 +177,30 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="container max-w-7xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (!analytics) {
     return (
-      <div className="container max-w-7xl mx-auto py-8 px-4">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center h-64">
-            <BarChart3 className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="font-semibold text-lg mb-2">No Analytics Available</h3>
-            <p className="text-sm text-muted-foreground">
-              You need admin access to view analytics
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center h-64">
+          <BarChart3 className="h-16 w-16 text-muted-foreground mb-4" />
+          <h3 className="font-semibold text-lg mb-2">No Analytics Available</h3>
+          <p className="text-sm text-muted-foreground">
+            You need admin access to view analytics
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="container max-w-7xl mx-auto py-8 px-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
-          <p className="text-muted-foreground">Usage insights and organization metrics</p>
-        </div>
+    <div className="space-y-6">
+      {/* Action Bar */}
+      <div className="flex items-center justify-end">
         <Button onClick={exportToCSV} variant="outline">
           <Download className="mr-2 h-4 w-4" />
           Export CSV
