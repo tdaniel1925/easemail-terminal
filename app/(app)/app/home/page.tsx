@@ -20,6 +20,7 @@ import {
   Users
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
+import { PendingInviteHandler } from '@/components/invites/pending-invite-handler';
 
 interface Stats {
   unread: number;
@@ -185,8 +186,10 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section with Background Image */}
+    <>
+      <PendingInviteHandler />
+      <div className="min-h-screen">
+        {/* Hero Section with Background Image */}
       <div className="relative overflow-hidden bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/images/dashboard-bg.jpg)' }}>
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
@@ -382,5 +385,6 @@ export default function HomePage() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

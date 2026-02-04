@@ -1,3 +1,7 @@
+'use client';
+
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { signUp } from '@/lib/auth/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,7 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 
-export default function SignupPage() {
+function SignupForm() {
+  const searchParams = useSearchParams();
+  const emailParam = searchParams.get('email');
+
   return (
     <Card>
       <CardHeader className="space-y-1">
@@ -16,7 +23,7 @@ export default function SignupPage() {
         </div>
         <CardTitle className="text-2xl text-center">Create an account</CardTitle>
         <CardDescription className="text-center">
-          Get started with EaseMail today
+          {emailParam ? 'Complete your signup to accept the invitation' : 'Get started with EaseMail today'}
         </CardDescription>
       </CardHeader>
       <form action={signUp}>
@@ -38,6 +45,7 @@ export default function SignupPage() {
               name="email"
               type="email"
               placeholder="you@example.com"
+              defaultValue={emailParam || ''}
               required
             />
           </div>
@@ -79,5 +87,19 @@ export default function SignupPage() {
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <Card>
+        <CardContent className="py-20 text-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </CardContent>
+      </Card>
+    }>
+      <SignupForm />
+    </Suspense>
   );
 }

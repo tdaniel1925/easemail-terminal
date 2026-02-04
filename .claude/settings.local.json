@@ -17,7 +17,9 @@
       "Bash(npm run build:*)",
       "Bash(ls:*)",
       "Bash(npm install:*)",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "Bash(vercel --prod:*)",
+      "Bash(supabase db remote commit list:*)"
     ],
     "deny": [],
     "ask": []

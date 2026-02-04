@@ -62,7 +62,20 @@ export function OnboardingWizard() {
 
       if (response.ok) {
         toast.success('Welcome to EaseMail!');
-        router.push('/app/home');
+
+        // Check for pending organization invite
+        const { checkAndAcceptPendingInvite } = await import('@/lib/invites/client');
+        const inviteResult = await checkAndAcceptPendingInvite();
+
+        if (inviteResult.accepted && inviteResult.organizationId) {
+          toast.success(`You've been added to ${inviteResult.organizationName}!`);
+          // Redirect to organization page
+          router.push(`/app/organization/${inviteResult.organizationId}`);
+        } else {
+          // Normal flow - redirect to home
+          router.push('/app/home');
+        }
+
         router.refresh();
       } else {
         const error = await response.json();

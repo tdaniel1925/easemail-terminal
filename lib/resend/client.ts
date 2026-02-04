@@ -16,22 +16,34 @@ export async function sendWelcomeEmail(to: string, name: string) {
   });
 }
 
-export async function sendInviteEmail(
-  to: string,
-  organizationName: string,
-  inviteLink: string
-) {
+export async function sendOrganizationInviteEmail({
+  to,
+  inviteeName,
+  organizationName,
+  inviterName,
+  role,
+  inviteLink,
+}: {
+  to: string;
+  inviteeName: string;
+  organizationName: string;
+  inviterName: string;
+  role: string;
+  inviteLink: string;
+}) {
+  const { getOrganizationInviteEmailHtml } = await import('@/lib/email-templates');
+
   return await resend.emails.send({
     from: process.env.RESEND_FROM_EMAIL!,
     to,
-    subject: `You've been invited to join ${organizationName} on EaseMail`,
-    html: `
-      <h1>You're invited!</h1>
-      <p>You've been invited to join <strong>${organizationName}</strong> on EaseMail.</p>
-      <p>Click the link below to accept the invitation:</p>
-      <a href="${inviteLink}">Accept Invitation</a>
-      <p>This invitation will expire in 7 days.</p>
-    `,
+    subject: `You're Invited to Join ${organizationName}`,
+    html: getOrganizationInviteEmailHtml({
+      inviteeName,
+      organizationName,
+      inviterName,
+      role,
+      inviteLink,
+    }),
   });
 }
 
