@@ -11,11 +11,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from '@/components/ui/dropdown-menu';
 import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
   Reply, ReplyAll, Forward, LogOut, Loader2, X, Check, Minus, Tag, Shield, AlertTriangle,
-  Calendar, UserCircle, Video, HelpCircle, PanelRightOpen, PanelRightClose
+  Calendar, UserCircle, Video, HelpCircle, PanelRightOpen, PanelRightClose, MoreHorizontal, FolderOpen, Tags
 } from 'lucide-react';
 import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
@@ -1058,6 +1059,64 @@ export default function InboxPage() {
     }
   };
 
+  const handleBulkMoveToFolder = async (folder: string) => {
+    if (selectedMessages.size === 0) return;
+
+    try {
+      setBulkActionInProgress(true);
+      const messageIds = Array.from(selectedMessages);
+
+      await Promise.all(
+        messageIds.map(id =>
+          fetch(`/api/messages/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folders: [folder] }),
+          })
+        )
+      );
+
+      toast.success(`📁 ${messageIds.length} message(s) moved to ${folder}`);
+
+      // Remove from current view if not inbox
+      setMessages(messages.filter(m => !selectedMessages.has(m.id)));
+      setSearchResults(searchResults.filter(m => !selectedMessages.has(m.id)));
+      clearSelection();
+    } catch (error) {
+      console.error('Bulk move error:', error);
+      toast.error('Failed to move some messages');
+    } finally {
+      setBulkActionInProgress(false);
+    }
+  };
+
+  const handleBulkApplyLabel = async (labelId: string, labelName: string) => {
+    if (selectedMessages.size === 0) return;
+
+    try {
+      setBulkActionInProgress(true);
+      const messageIds = Array.from(selectedMessages);
+
+      await Promise.all(
+        messageIds.map(id =>
+          fetch(`/api/messages/${id}/labels`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ labelId }),
+          })
+        )
+      );
+
+      toast.success(`🏷️ Label "${labelName}" applied to ${messageIds.length} message(s)`);
+      clearSelection();
+    } catch (error) {
+      console.error('Bulk apply label error:', error);
+      toast.error('Failed to apply label to some messages');
+    } finally {
+      setBulkActionInProgress(false);
+    }
+  };
+
   const handleMarkAllAsRead = async () => {
     // Get all unread messages in current view
     const unreadMessages = filteredMessages.filter(m => m.unread);
@@ -1473,6 +1532,77 @@ export default function InboxPage() {
                       <Trash2 className="h-4 w-4 mr-1" />
                       Delete
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={bulkActionInProgress}
+                          className="h-8"
+                        >
+                          <MoreHorizontal className="h-4 w-4 mr-1" />
+                          More
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <FolderOpen className="h-4 w-4 mr-2" />
+                            Move to folder
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem onClick={() => handleBulkMoveToFolder('inbox')}>
+                              <Inbox className="h-4 w-4 mr-2" />
+                              Inbox
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleBulkMoveToFolder('archive')}>
+                              <Archive className="h-4 w-4 mr-2" />
+                              Archive
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleBulkMoveToFolder('spam')}>
+                              <Shield className="h-4 w-4 mr-2" />
+                              Spam
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleBulkMoveToFolder('trash')}>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Trash
+                            </DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        {labels.length > 0 && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>
+                                <Tags className="h-4 w-4 mr-2" />
+                                Apply label
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                {labels.slice(0, 10).map(label => (
+                                  <DropdownMenuItem
+                                    key={label.id}
+                                    onClick={() => handleBulkApplyLabel(label.id, label.name)}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div
+                                        className="h-3 w-3 rounded-full"
+                                        style={{ backgroundColor: label.color }}
+                                      />
+                                      <span>{label.name}</span>
+                                    </div>
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                          </>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleBulkStar(false)}>
+                          <Star className="h-4 w-4 mr-2" />
+                          Remove stars
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </div>
