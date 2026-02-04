@@ -21,6 +21,8 @@ import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
 import { EmailComposer } from '@/components/features/email-composer';
 import { MobileNav } from '@/components/layout/mobile-nav';
+import { KeyboardShortcutsDialog } from '@/components/features/keyboard-shortcuts-dialog';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import {
@@ -87,6 +89,10 @@ export default function InboxPage() {
 
   // Preview pane state
   const [showPreviewPane, setShowPreviewPane] = useState(false);
+
+  // Keyboard shortcuts state
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Infinite scroll ref
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -1164,6 +1170,67 @@ export default function InboxPage() {
     }
   };
 
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    shortcuts: [
+      // Navigation
+      { key: 'j', handler: () => setSelectedIndex(prev => Math.min(prev + 1, filteredMessages.length - 1)), description: 'Next email' },
+      { key: 'k', handler: () => setSelectedIndex(prev => Math.max(prev - 1, 0)), description: 'Previous email' },
+      { key: 'o', handler: () => filteredMessages[selectedIndex] && setSelectedMessage(filteredMessages[selectedIndex]), description: 'Open email' },
+      { key: 'u', handler: () => setSelectedMessage(null), description: 'Back to list' },
+      { key: '/', handler: () => (document.querySelector('input[placeholder*="Search"]') as HTMLInputElement)?.focus(), description: 'Focus search' },
+
+      // Actions
+      { key: 'c', handler: () => setComposing(true), description: 'Compose' },
+      { key: 'r', handler: () => selectedMessage && handleReply(selectedMessage, false), description: 'Reply' },
+      { key: 'a', handler: () => selectedMessage && handleReply(selectedMessage, true), description: 'Reply all' },
+      { key: 'f', handler: () => selectedMessage && handleForward(selectedMessage), description: 'Forward' },
+      { key: 's', handler: () => selectedMessage && handleToggleStar(selectedMessage.id, selectedMessage.starred || false), description: 'Star' },
+      { key: 'e', handler: () => selectedMessage && handleArchive(selectedMessage.id), description: 'Archive' },
+      { key: '#', handler: () => selectedMessage && handleDelete(selectedMessage.id, false), description: 'Delete' },
+      { key: 'z', handler: () => selectedMessage && handleSnooze(selectedMessage.id), description: 'Snooze' },
+
+      // View
+      { key: 'v', handler: () => setShowPreviewPane(prev => !prev), description: 'Toggle preview' },
+      { key: 't', handler: () => setViewMode(prev => prev === 'messages' ? 'threads' : 'messages'), description: 'Toggle threads' },
+      { key: '1', handler: () => setViewMode('messages'), description: 'Messages view' },
+      { key: '2', handler: () => setViewMode('threads'), description: 'Threads view' },
+
+      // Selection
+      { key: 'x', handler: () => {
+        const msg = filteredMessages[selectedIndex];
+        if (msg) {
+          const newSelected = new Set(selectedMessages);
+          if (newSelected.has(msg.id)) {
+            newSelected.delete(msg.id);
+          } else {
+            newSelected.add(msg.id);
+          }
+          setSelectedMessages(newSelected);
+        }
+      }, description: 'Select email' },
+
+      // Help
+      { key: '?', handler: () => setShowKeyboardShortcuts(true), description: 'Show shortcuts' },
+      { key: 'escape', handler: () => {
+        if (showKeyboardShortcuts) setShowKeyboardShortcuts(false);
+        else if (selectedMessage) setSelectedMessage(null);
+      }, description: 'Close/back' },
+    ],
+    sequential: [
+      { sequence: ['g', 'i'], handler: () => window.location.href = '/app/inbox', description: 'Go to inbox' },
+      { sequence: ['g', 's'], handler: () => window.location.href = '/app/inbox?filter=starred', description: 'Go to starred' },
+      { sequence: ['g', 't'], handler: () => window.location.href = '/app/inbox?filter=sent', description: 'Go to sent' },
+      { sequence: ['g', 'd'], handler: () => window.location.href = '/app/inbox?filter=drafts', description: 'Go to drafts' },
+      { sequence: ['*', 'a'], handler: () => setSelectedMessages(new Set(filteredMessages.map(m => m.id))), description: 'Select all' },
+      { sequence: ['*', 'n'], handler: () => setSelectedMessages(new Set()), description: 'Deselect all' },
+      { sequence: ['*', 'r'], handler: () => setSelectedMessages(new Set(filteredMessages.filter(m => !m.unread).map(m => m.id))), description: 'Select read' },
+      { sequence: ['*', 'u'], handler: () => setSelectedMessages(new Set(filteredMessages.filter(m => m.unread).map(m => m.id))), description: 'Select unread' },
+      { sequence: ['*', 's'], handler: () => setSelectedMessages(new Set(filteredMessages.filter(m => m.starred).map(m => m.id))), description: 'Select starred' },
+    ],
+    enabled: !composing,
+  });
+
   return (
     <div className="flex h-full flex-col bg-background pt-16 lg:pt-0">
       {/* Mobile Navigation */}
@@ -2067,6 +2134,12 @@ export default function InboxPage() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Keyboard Shortcuts Dialog */}
+      <KeyboardShortcutsDialog
+        open={showKeyboardShortcuts}
+        onOpenChange={setShowKeyboardShortcuts}
+      />
     </div>
   );
 }
