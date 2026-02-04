@@ -96,6 +96,8 @@ export default function BillingPage() {
   const [changingPlan, setChangingPlan] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [showCycleChangeDialog, setShowCycleChangeDialog] = useState(false);
+  const [changingCycle, setChangingCycle] = useState(false);
 
   useEffect(() => {
     fetchBillingData();
@@ -291,6 +293,40 @@ export default function BillingPage() {
     }
   };
 
+  const handleChangeBillingCycle = async () => {
+    if (!organization) return;
+
+    const newCycle = organization.billing_cycle === 'monthly' ? 'annual' : 'monthly';
+
+    try {
+      setChangingCycle(true);
+
+      const response = await fetch('/api/stripe/change-billing-cycle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organizationId: organization.id,
+          newCycle,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`Billing cycle changed to ${newCycle}`);
+        setShowCycleChangeDialog(false);
+        fetchBillingData();
+      } else {
+        toast.error(data.error || 'Failed to change billing cycle');
+      }
+    } catch (error) {
+      console.error('Change billing cycle error:', error);
+      toast.error('Failed to change billing cycle');
+    } finally {
+      setChangingCycle(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -433,6 +469,38 @@ export default function BillingPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Change Billing Cycle */}
+      {organization && organization.plan !== 'FREE' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Billing Cycle
+            </CardTitle>
+            <CardDescription>
+              Switch between monthly and annual billing
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">
+                  Current: <span className="capitalize">{organization.billing_cycle}</span> Billing
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {organization.billing_cycle === 'monthly'
+                    ? 'Switch to annual billing and save 17% (2 months free)'
+                    : 'Switch to monthly billing for more flexibility'}
+                </p>
+              </div>
+              <Button variant="outline" onClick={() => setShowCycleChangeDialog(true)}>
+                Switch to {organization.billing_cycle === 'monthly' ? 'Annual' : 'Monthly'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Manage Seats */}
       <Card>
@@ -858,6 +926,88 @@ export default function BillingPage() {
             </Button>
             <Button variant="destructive" onClick={handleCancelSubscription} disabled={cancelling}>
               {cancelling ? 'Cancelling...' : 'Yes, Cancel Subscription'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Billing Cycle Dialog */}
+      <Dialog open={showCycleChangeDialog} onOpenChange={setShowCycleChangeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Billing Cycle</DialogTitle>
+            <DialogDescription>
+              Switch your subscription to {organization?.billing_cycle === 'monthly' ? 'annual' : 'monthly'} billing
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {organization?.billing_cycle === 'monthly' ? (
+              <>
+                <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg space-y-2">
+                  <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                    Save with Annual Billing!
+                  </p>
+                  <ul className="text-sm text-green-800 dark:text-green-200 space-y-1 ml-4 list-disc">
+                    <li>Pay for 10 months, get 12 months of service</li>
+                    <li>Save {formatCurrency(organization.mrr * 2)} per year</li>
+                    <li>17% discount on your subscription</li>
+                    <li>Lock in current pricing for the full year</li>
+                  </ul>
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Current Monthly Cost:</span>
+                    <span className="text-sm font-semibold">{formatCurrency(organization.mrr)}/mo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">New Annual Cost:</span>
+                    <span className="text-sm font-semibold">{formatCurrency(organization.mrr * 10)}/year</span>
+                  </div>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between text-green-600">
+                    <span className="text-sm font-bold">Annual Savings:</span>
+                    <span className="text-sm font-bold">{formatCurrency(organization.mrr * 2)}</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-muted p-4 rounded-lg space-y-2">
+                  <p className="text-sm font-medium">Switch to Monthly Billing</p>
+                  <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                    <li>More flexible payment schedule</li>
+                    <li>Monthly cost: {formatCurrency(organization.mrr)}/mo</li>
+                    <li>Cancel anytime without long-term commitment</li>
+                    <li>Change will take effect at the end of current billing period</li>
+                  </ul>
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Current Annual Cost:</span>
+                    <span className="text-sm font-semibold">{formatCurrency(organization.arr)}/year</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">New Monthly Cost:</span>
+                    <span className="text-sm font-semibold">{formatCurrency(organization.mrr)}/mo</span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <p className="text-xs text-muted-foreground">
+              Changes will take effect immediately for new subscriptions or at the next billing date for existing subscriptions.
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCycleChangeDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleChangeBillingCycle} disabled={changingCycle}>
+              {changingCycle ? 'Processing...' : `Switch to ${organization?.billing_cycle === 'monthly' ? 'Annual' : 'Monthly'}`}
             </Button>
           </DialogFooter>
         </DialogContent>

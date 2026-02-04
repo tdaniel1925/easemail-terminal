@@ -76,6 +76,9 @@ export default function OrganizationDetailPage() {
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [newRole, setNewRole] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [transferTargetUserId, setTransferTargetUserId] = useState('');
+  const [transferring, setTransferring] = useState(false);
 
   useEffect(() => {
     if (orgId) {
@@ -241,6 +244,39 @@ export default function OrganizationDetailPage() {
     } catch (error) {
       console.error('Delete organization error:', error);
       toast.error('Failed to delete organization');
+    }
+  };
+
+  const handleTransferOwnership = async () => {
+    if (!transferTargetUserId) {
+      toast.error('Please select a member to transfer ownership to');
+      return;
+    }
+
+    try {
+      setTransferring(true);
+
+      const response = await fetch(`/api/organizations/${orgId}/transfer-ownership`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newOwnerId: transferTargetUserId }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Ownership transferred successfully');
+        setShowTransferDialog(false);
+        setTransferTargetUserId('');
+        fetchOrganization();
+      } else {
+        toast.error(data.error || 'Failed to transfer ownership');
+      }
+    } catch (error) {
+      console.error('Transfer ownership error:', error);
+      toast.error('Failed to transfer ownership');
+    } finally {
+      setTransferring(false);
     }
   };
 
@@ -560,20 +596,48 @@ export default function OrganizationDetailPage() {
 
             {canDelete && (
               <div className="pt-4 border-t">
-                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-                  <h4 className="font-semibold text-destructive mb-2">Danger Zone</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Permanently delete this organization and all associated data. This action cannot be undone.
-                  </p>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      setShowSettingsDialog(false);
-                      setShowDeleteDialog(true);
-                    }}
-                  >
-                    Delete Organization
-                  </Button>
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-destructive mb-2">Danger Zone</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Critical actions that can significantly affect your organization.
+                    </p>
+                  </div>
+
+                  {currentUserRole === 'OWNER' && members.length > 1 && (
+                    <div className="border-t pt-4">
+                      <p className="text-sm font-medium mb-1">Transfer Ownership</p>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Transfer organization ownership to another member. You will become an admin.
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setShowSettingsDialog(false);
+                          setShowTransferDialog(true);
+                        }}
+                      >
+                        <Crown className="mr-2 h-4 w-4" />
+                        Transfer Ownership
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className={currentUserRole === 'OWNER' && members.length > 1 ? 'border-t pt-4' : ''}>
+                    <p className="text-sm font-medium mb-1">Delete Organization</p>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Permanently delete this organization and all associated data. This action cannot be undone.
+                    </p>
+                    <Button
+                      variant="destructive"
+                      onClick={() => {
+                        setShowSettingsDialog(false);
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      Delete Organization
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -702,6 +766,75 @@ export default function OrganizationDetailPage() {
                   <>
                     <Mail className="mr-2 h-4 w-4" />
                     Send Invite
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer Ownership Dialog */}
+      <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transfer Ownership</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <p className="text-sm font-medium">What happens when you transfer ownership:</p>
+              <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                <li>The selected member will become the new owner</li>
+                <li>You will be demoted to Admin role</li>
+                <li>Only the new owner can transfer ownership again</li>
+                <li>The new owner will have full control over the organization</li>
+              </ul>
+            </div>
+
+            <div>
+              <Label htmlFor="transferTarget">Select New Owner</Label>
+              <Select value={transferTargetUserId} onValueChange={setTransferTargetUserId}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Choose a member..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {members
+                    .filter((member) => member.role !== 'OWNER')
+                    .map((member) => (
+                      <SelectItem key={member.user_id} value={member.user_id}>
+                        {member.users.email} ({member.role})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/20">
+              <p className="text-sm font-medium text-destructive mb-1">Warning</p>
+              <p className="text-sm text-muted-foreground">
+                This action is permanent and cannot be undone. Make sure you trust the new owner.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="ghost" onClick={() => setShowTransferDialog(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleTransferOwnership}
+                disabled={transferring || !transferTargetUserId}
+              >
+                {transferring ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Transferring...
+                  </>
+                ) : (
+                  <>
+                    <Crown className="mr-2 h-4 w-4" />
+                    Transfer Ownership
                   </>
                 )}
               </Button>
