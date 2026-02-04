@@ -22,6 +22,14 @@ import Link from 'next/link';
 import { EmailComposer } from '@/components/features/email-composer';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
+import {
+  requestNotificationPermission,
+  canShowNotifications,
+  showEmailNotification,
+  showBulkEmailNotification,
+  loadNotificationPreferences,
+  type NotificationPreferences,
+} from '@/lib/notifications';
 
 type EmailCategory = 'people' | 'newsletters' | 'notifications';
 
@@ -70,6 +78,11 @@ export default function InboxPage() {
 
   // Spam state
   const [detectingSpam, setDetectingSpam] = useState(false);
+
+  // Notification state
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences | null>(null);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+  const previousMessageCountRef = useRef<number>(0);
 
   // Infinite scroll ref
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -530,6 +543,69 @@ export default function InboxPage() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [fetchAccounts, fetchMessages, fetchCategories, fetchLabels]);
+
+  // Notification setup and monitoring
+  useEffect(() => {
+    // Load notification preferences
+    const prefs = loadNotificationPreferences();
+    setNotificationPrefs(prefs);
+
+    // Check if we should request notification permission
+    if (prefs.enabled && !canShowNotifications() && Notification.permission === 'default') {
+      setShowNotificationBanner(true);
+    }
+
+    // Initialize previous message count
+    previousMessageCountRef.current = messages.length;
+  }, []);
+
+  // Monitor for new messages and show notifications
+  useEffect(() => {
+    if (!notificationPrefs?.enabled || !canShowNotifications()) {
+      return;
+    }
+
+    // Check if we have new messages
+    const currentCount = messages.length;
+    const previousCount = previousMessageCountRef.current;
+
+    if (currentCount > previousCount && previousCount > 0) {
+      // We have new messages!
+      const newMessagesCount = currentCount - previousCount;
+      const newMessages = messages.slice(0, newMessagesCount);
+
+      // Filter to unread messages only
+      const unreadNewMessages = newMessages.filter(m => m.unread);
+
+      if (unreadNewMessages.length > 0) {
+        // Show notification based on count
+        if (unreadNewMessages.length === 1) {
+          const msg = unreadNewMessages[0];
+          const from = msg.from?.[0]?.name || msg.from?.[0]?.email || 'Unknown';
+          const subject = msg.subject || '(No subject)';
+          const snippet = msg.snippet ? truncate(msg.snippet, 100) : '';
+
+          showEmailNotification({
+            from,
+            subject,
+            snippet: notificationPrefs.showPreview ? snippet : undefined,
+            silent: notificationPrefs.silent,
+            onClick: () => {
+              setSelectedMessage(msg);
+              window.focus();
+            },
+          });
+        } else {
+          showBulkEmailNotification(unreadNewMessages.length, () => {
+            window.focus();
+          });
+        }
+      }
+    }
+
+    // Update the previous count
+    previousMessageCountRef.current = currentCount;
+  }, [messages, notificationPrefs]);
 
   // Handle compose query parameter
   useEffect(() => {
@@ -1184,6 +1260,45 @@ export default function InboxPage() {
             </Button>
           </div>
       </header>
+
+      {/* Notification Permission Banner */}
+      {showNotificationBanner && (
+        <div className="bg-primary/10 border-b border-border p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Bell className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm font-medium">Enable desktop notifications</p>
+                <p className="text-xs text-muted-foreground">Get notified when new emails arrive, even when you're away</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={async () => {
+                  const permission = await requestNotificationPermission();
+                  if (permission === 'granted') {
+                    toast.success('Notifications enabled!');
+                    setShowNotificationBanner(false);
+                  } else {
+                    toast.error('Notification permission denied');
+                  }
+                }}
+              >
+                Enable
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowNotificationBanner(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Email List - Full Width */}
       <div className="flex-1 flex overflow-hidden">
