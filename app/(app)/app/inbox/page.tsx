@@ -929,6 +929,46 @@ export default function InboxPage() {
     }
   };
 
+  const handleMarkAllAsRead = async () => {
+    // Get all unread messages in current view
+    const unreadMessages = filteredMessages.filter(m => m.unread);
+
+    if (unreadMessages.length === 0) {
+      toast.info('No unread messages to mark as read');
+      return;
+    }
+
+    try {
+      setBulkActionInProgress(true);
+      const messageIds = unreadMessages.map(m => m.id);
+
+      await Promise.all(
+        messageIds.map(id =>
+          fetch(`/api/messages/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ unread: false }),
+          })
+        )
+      );
+
+      toast.success(`✓ ${messageIds.length} message(s) marked as read`);
+
+      // Update local state
+      setMessages(messages.map(m =>
+        messageIds.includes(m.id) ? { ...m, unread: false } : m
+      ));
+      setSearchResults(searchResults.map(m =>
+        messageIds.includes(m.id) ? { ...m, unread: false } : m
+      ));
+    } catch (error) {
+      console.error('Mark all as read error:', error);
+      toast.error('Failed to mark all messages as read');
+    } finally {
+      setBulkActionInProgress(false);
+    }
+  };
+
   // Threading functions
   const groupMessagesByThread = () => {
     const threads = new Map<string, any[]>();
@@ -1178,28 +1218,42 @@ export default function InboxPage() {
               </div>
             ) : filteredMessages.length > 0 && (
               <div className="p-2 border-b border-border flex items-center justify-between gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleSelectAll}
-                  className="h-8"
-                >
-                  <div className={`h-4 w-4 rounded border flex items-center justify-center ${
-                    selectedMessages.size === filteredMessages.length && filteredMessages.length > 0
-                      ? 'bg-primary border-primary'
-                      : 'border-input'
-                  }`}>
-                    {selectedMessages.size === filteredMessages.length && filteredMessages.length > 0 && (
-                      <Check className="h-3 w-3 text-primary-foreground" />
-                    )}
-                    {selectedMessages.size > 0 && selectedMessages.size < filteredMessages.length && (
-                      <Minus className="h-3 w-3" />
-                    )}
-                  </div>
-                  <span className="ml-2 text-xs">
-                    {selectedMessages.size > 0 ? `${selectedMessages.size} selected` : 'Select all'}
-                  </span>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleSelectAll}
+                    className="h-8"
+                  >
+                    <div className={`h-4 w-4 rounded border flex items-center justify-center ${
+                      selectedMessages.size === filteredMessages.length && filteredMessages.length > 0
+                        ? 'bg-primary border-primary'
+                        : 'border-input'
+                    }`}>
+                      {selectedMessages.size === filteredMessages.length && filteredMessages.length > 0 && (
+                        <Check className="h-3 w-3 text-primary-foreground" />
+                      )}
+                      {selectedMessages.size > 0 && selectedMessages.size < filteredMessages.length && (
+                        <Minus className="h-3 w-3" />
+                      )}
+                    </div>
+                    <span className="ml-2 text-xs">
+                      {selectedMessages.size > 0 ? `${selectedMessages.size} selected` : 'Select all'}
+                    </span>
+                  </Button>
+                  {filteredMessages.filter(m => m.unread).length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleMarkAllAsRead}
+                      disabled={bulkActionInProgress}
+                      className="h-8"
+                    >
+                      <Mail className="h-4 w-4 mr-1" />
+                      Mark all as read
+                    </Button>
+                  )}
+                </div>
                 <div className="flex items-center gap-1 bg-accent/50 rounded-md p-1">
                   <Button
                     variant={viewMode === 'messages' ? 'secondary' : 'ghost'}
