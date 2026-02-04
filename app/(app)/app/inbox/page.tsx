@@ -15,11 +15,12 @@ import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
   Reply, ReplyAll, Forward, LogOut, Loader2, X, Check, Minus, Tag, Shield, AlertTriangle,
-  Calendar, UserCircle, Video, HelpCircle
+  Calendar, UserCircle, Video, HelpCircle, PanelRightOpen, PanelRightClose
 } from 'lucide-react';
 import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
 import { EmailComposer } from '@/components/features/email-composer';
+import { MobileNav } from '@/components/layout/mobile-nav';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
 import {
@@ -83,6 +84,9 @@ export default function InboxPage() {
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences | null>(null);
   const [showNotificationBanner, setShowNotificationBanner] = useState(false);
   const previousMessageCountRef = useRef<number>(0);
+
+  // Preview pane state
+  const [showPreviewPane, setShowPreviewPane] = useState(false);
 
   // Infinite scroll ref
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -1161,9 +1165,16 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col bg-background pt-16 lg:pt-0">
+      {/* Mobile Navigation */}
+      <MobileNav
+        onCompose={() => setComposing(true)}
+        labels={labels}
+        accounts={accounts}
+      />
+
       {/* Header */}
-      <header className="border-b border-border bg-card p-4">
+      <header className="border-b border-border bg-card p-4 lg:block hidden">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative flex items-center gap-2">
               <div className="relative flex-1">
@@ -1300,10 +1311,10 @@ export default function InboxPage() {
         </div>
       )}
 
-      {/* Email List - Full Width */}
+      {/* Email List - With Preview Pane Support */}
       <div className="flex-1 flex overflow-hidden">
         {/* Email List */}
-        <div className="w-full bg-card">
+        <div className={`bg-card border-r ${showPreviewPane ? 'w-full lg:w-1/2' : 'w-full'}`}>
             {/* Search Results Header */}
             {searchQuery && (
               <div className="p-3 border-b border-border bg-accent/50">
@@ -1456,6 +1467,21 @@ export default function InboxPage() {
                     Threads
                   </Button>
                 </div>
+                <div className="w-px h-6 bg-border mx-1" />
+                <Button
+                  variant={showPreviewPane ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setShowPreviewPane(!showPreviewPane)}
+                  className="h-6 text-xs px-2"
+                  title={showPreviewPane ? 'Hide preview pane' : 'Show preview pane'}
+                >
+                  {showPreviewPane ? (
+                    <PanelRightClose className="h-3 w-3 mr-1" />
+                  ) : (
+                    <PanelRightOpen className="h-3 w-3 mr-1" />
+                  )}
+                  {showPreviewPane ? 'Hide' : 'Preview'}
+                </Button>
               </div>
             )}
             <ScrollArea className="h-full pr-2">
@@ -1730,7 +1756,112 @@ export default function InboxPage() {
               )}
             </ScrollArea>
           </div>
-        </div>
+
+        {/* Preview Pane */}
+        {showPreviewPane && (
+          <div className="hidden lg:flex lg:w-1/2 bg-card overflow-hidden flex-col">
+            {selectedMessage ? (
+              <>
+                {/* Preview Header */}
+                <div className="p-4 border-b border-border">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h2 className="text-xl font-semibold mb-2">
+                        {selectedMessage.subject || '(No subject)'}
+                      </h2>
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={`https://logo.clearbit.com/${selectedMessage.from?.[0]?.email?.split('@')[1]}`} />
+                          <AvatarFallback>
+                            {getInitials(selectedMessage.from?.[0]?.name, selectedMessage.from?.[0]?.email)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            {selectedMessage.from?.[0]?.name || selectedMessage.from?.[0]?.email}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {selectedMessage.from?.[0]?.email}
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatDate(selectedMessage.date * 1000)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReply(selectedMessage, false)}
+                    >
+                      <Reply className="h-4 w-4 mr-1" />
+                      Reply
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReply(selectedMessage, true)}
+                    >
+                      <ReplyAll className="h-4 w-4 mr-1" />
+                      Reply All
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleForward(selectedMessage)}
+                    >
+                      <Forward className="h-4 w-4 mr-1" />
+                      Forward
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleToggleStar(selectedMessage.id, selectedMessage.starred || false)}
+                    >
+                      <Star className={`h-4 w-4 ${selectedMessage.starred ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleArchive(selectedMessage.id)}
+                    >
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(selectedMessage.id, false)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Preview Body */}
+                <ScrollArea className="flex-1">
+                  <div className="p-6">
+                    <div
+                      className="prose dark:prose-invert max-w-none prose-sm"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedMessage.body || selectedMessage.snippet) }}
+                    />
+                  </div>
+                </ScrollArea>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm">Select a message to preview</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Composer Dialog */}
       {composing && (

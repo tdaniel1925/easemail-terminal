@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       scheduledFor,
       reply_to_message_id,
       is_forward,
+      readReceipt,
     } = await request.json();
 
     // Validate required fields
@@ -109,6 +110,7 @@ export async function POST(request: NextRequest) {
         scheduled_for: scheduledFor,
         reply_to_message_id: reply_to_message_id || null,
         is_forward: is_forward || false,
+        read_receipt: readReceipt || false,
         status: 'pending',
       })
       .select()

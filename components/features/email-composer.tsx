@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2, Zap, Braces } from 'lucide-react';
+import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2, Zap, Braces, MailCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHotkeys } from 'react-hotkeys-hook';
 import dynamic from 'next/dynamic';
@@ -104,6 +104,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
   // New feature states
   const [priority, setPriority] = useState<'normal' | 'high' | 'low'>('normal');
+  const [requestReadReceipt, setRequestReadReceipt] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [undoSendCountdown, setUndoSendCountdown] = useState<number | null>(null);
@@ -381,6 +382,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           scheduledFor: scheduledFor.toISOString(),
           reply_to_message_id: replyTo?.messageId,
           is_forward: replyTo?.isForward,
+          readReceipt: requestReadReceipt || undefined,
         }),
       });
 
@@ -601,6 +603,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           body: processedBody,
           ...(processedAttachments.length > 0 && { attachments: processedAttachments }),
           ...(replyTo?.messageId && { messageId: replyTo.messageId, replyAll: replyTo.replyAll }),
+          ...(requestReadReceipt && { readReceipt: true }),
         }),
       });
 
@@ -651,10 +654,10 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-8">
-        <DialogHeader className="pb-6">
+      <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] sm:w-full flex flex-col p-4 sm:p-8">
+        <DialogHeader className="pb-4 sm:pb-6">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-3xl">New Message</DialogTitle>
+            <DialogTitle className="text-xl sm:text-3xl">New Message</DialogTitle>
             {/* Auto-save indicator */}
             <div className="text-sm text-muted-foreground">
               {saving ? (
@@ -766,18 +769,32 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="subject">Subject</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Priority:</span>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as any)}
-                  className="text-xs border rounded px-2 py-1"
-                >
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="low">Low</option>
-                </select>
-                {priority === 'high' && <Flag className="h-4 w-4 text-red-500" />}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Priority:</span>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as any)}
+                    className="text-xs border rounded px-2 py-1"
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="low">Low</option>
+                  </select>
+                  {priority === 'high' && <Flag className="h-4 w-4 text-red-500" />}
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={requestReadReceipt}
+                    onChange={(e) => setRequestReadReceipt(e.target.checked)}
+                    className="rounded border-input"
+                  />
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <MailCheck className="h-3 w-3" />
+                    Read Receipt
+                  </span>
+                </label>
               </div>
             </div>
             <Input
@@ -1297,6 +1314,12 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                     {priority === 'low' && (
                       <Badge variant="secondary" className="ml-2">
                         Low Priority
+                      </Badge>
+                    )}
+                    {requestReadReceipt && (
+                      <Badge variant="outline" className="ml-2">
+                        <MailCheck className="h-3 w-3 mr-1" />
+                        Read Receipt
                       </Badge>
                     )}
                   </div>

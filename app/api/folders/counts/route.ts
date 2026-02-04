@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { nylas } from '@/lib/nylas/client';
+import cache, { generateCacheKey } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,6 +10,13 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check cache first (60 second TTL)
+    const cacheKey = generateCacheKey('folder-counts', user.id);
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
     }
 
     // Get all email accounts for the user
@@ -104,7 +112,7 @@ export async function GET(request: NextRequest) {
 
     const draftsCount = draftsDbCount || 0;
 
-    return NextResponse.json({
+    const result = {
       inbox: inboxCount,
       starred: starredCount,
       sent: sentCount,
@@ -112,7 +120,12 @@ export async function GET(request: NextRequest) {
       archive: archiveCount,
       trash: trashCount,
       drafts: draftsCount,
-    });
+    };
+
+    // Cache for 60 seconds
+    cache.set(cacheKey, result, 60);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Folder counts API error:', error);
     return NextResponse.json(

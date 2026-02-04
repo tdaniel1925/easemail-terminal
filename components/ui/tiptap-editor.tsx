@@ -115,6 +115,10 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
       attributes: {
         class: 'prose prose-sm dark:prose-invert max-w-none focus:outline-none px-4 py-3',
         style: `min-height: ${minHeight};`,
+        spellcheck: 'true',
+        'data-gramm': 'true', // Enable Grammarly integration if installed
+        'data-gramm_editor': 'true',
+        'data-enable-grammarly': 'true',
       },
     },
     onUpdate: ({ editor }) => {

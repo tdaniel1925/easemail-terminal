@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate request body
     const body = await request.json();
-    const { to, cc, bcc, subject, body: emailBody, attachments: attachmentData } = body;
+    const { to, cc, bcc, subject, body: emailBody, attachments: attachmentData, readReceipt } = body;
 
     // Validate required fields
     if (!to || (!isString(to) && !isArray(to))) {
@@ -75,6 +75,13 @@ export async function POST(request: NextRequest) {
     // Send email via Nylas with error handling
     const nylasClient = nylas();
 
+    // Prepare custom headers for read receipt if requested
+    const customHeaders: any = {};
+    if (readReceipt) {
+      customHeaders['Disposition-Notification-To'] = account.email;
+      customHeaders['Return-Receipt-To'] = account.email;
+    }
+
     const { data: message, error: sendError } = await safeExternalCall(
       () => nylasClient.messages.send({
         identifier: account.grant_id,
@@ -86,6 +93,9 @@ export async function POST(request: NextRequest) {
           body: emailBody,
           ...(attachmentData && isArray(attachmentData) && attachmentData.length > 0 && {
             attachments: attachmentData
+          }),
+          ...(readReceipt && Object.keys(customHeaders).length > 0 && {
+            custom_headers: customHeaders
           }),
         },
       }),
