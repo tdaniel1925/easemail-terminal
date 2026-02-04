@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus, Trash2, Edit, Webhook, Loader2, AlertCircle, CheckCircle, Send } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Edit, Webhook, Loader2, AlertCircle, CheckCircle, Send, History } from 'lucide-react';
 
 interface Webhook {
   id: string;
@@ -378,6 +378,14 @@ export default function WebhooksPage() {
                     >
                       <Send className="mr-2 h-4 w-4" />
                       Test
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`/app/organization/${orgId}/webhooks/${webhook.id}/deliveries`)}
+                    >
+                      <History className="mr-2 h-4 w-4" />
+                      View Logs
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => openEditDialog(webhook)}>
                       <Edit className="mr-2 h-4 w-4" />
