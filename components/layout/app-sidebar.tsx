@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   PenSquare, Inbox, Send, Star, Trash2, Archive, Clock, Menu,
-  Tag, Settings, BarChart3
+  Tag, Settings, BarChart3, HelpCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -293,6 +293,16 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
 
         {/* Bottom Navigation */}
         <div className="p-2 space-y-0.5">
+          <Link href="/app/help">
+            <button
+              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                pathname?.startsWith('/app/help') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+              }`}
+            >
+              <HelpCircle className="h-5 w-5" />
+              <span className="text-sm">Help</span>
+            </button>
+          </Link>
           <Link href="/app/settings">
             <button
               className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${

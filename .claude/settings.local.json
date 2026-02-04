@@ -19,7 +19,13 @@
       "Bash(npm install:*)",
       "Bash(tail:*)",
       "Bash(vercel --prod:*)",
-      "Bash(supabase db remote commit list:*)"
+      "Bash(supabase db remote commit list:*)",
+      "Bash(supabase link:*)",
+      "Bash(npx supabase:*)",
+      "Bash(PGPASSWORD=ttandSellaBella1234 psql:*)",
+      "Bash(node scripts/apply-repair-migration.js:*)",
+      "Bash(node scripts/verify-migration.js:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

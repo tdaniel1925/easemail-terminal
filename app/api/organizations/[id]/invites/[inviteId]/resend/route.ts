@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { sendOrganizationInviteEmail } from '@/lib/resend/client';
 
 export async function POST(
   request: NextRequest,
@@ -27,16 +28,20 @@ export async function POST(
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
-    // Get invite details
+    // Get invite details with organization name
     const { data: invite } = (await supabase
       .from('organization_invites')
-      .select('*')
+      .select('*, organizations:organization_id (name)')
       .eq('id', inviteId)
       .eq('organization_id', orgId)
       .single()) as { data: any };
 
     if (!invite) {
       return NextResponse.json({ error: 'Invite not found' }, { status: 404 });
+    }
+
+    if (invite.accepted_at) {
+      return NextResponse.json({ error: 'Invite already accepted' }, { status: 400 });
     }
 
     // Update expiry date to 7 days from now
@@ -52,10 +57,36 @@ export async function POST(
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // TODO: Send email notification via Resend
-    console.log('Resending invite to:', invite.email);
+    // Get inviter name
+    const { data: inviterData } = (await supabase
+      .from('users')
+      .select('name, email')
+      .eq('id', user.id)
+      .single()) as { data: any };
 
-    return NextResponse.json({ success: true });
+    const inviterName = inviterData?.name || inviterData?.email || 'A team member';
+    const organizationName = invite.organizations?.name || 'the organization';
+    const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invite.token}`;
+    const inviteeName = invite.email.split('@')[0];
+
+    // Send invite email
+    try {
+      await sendOrganizationInviteEmail({
+        to: invite.email,
+        inviteeName,
+        organizationName,
+        inviterName,
+        role: invite.role,
+        inviteLink,
+      });
+
+      console.log('Invite resent successfully to:', invite.email);
+    } catch (emailError) {
+      console.error('Failed to send invite email:', emailError);
+      // Don't fail the request if email fails - invite was still updated
+    }
+
+    return NextResponse.json({ success: true, message: 'Invite resent successfully' });
   } catch (error) {
     console.error('Resend invite error:', error);
     return NextResponse.json(
