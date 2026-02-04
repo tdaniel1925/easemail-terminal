@@ -38,18 +38,7 @@ const gradientBackgrounds = [
   'bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600',
 ];
 
-const focusTimeRecommendations = [
-  {
-    time: '9:00 AM - 11:00 AM',
-    reason: 'Least emails received',
-    icon: Clock,
-  },
-  {
-    time: '2:00 PM - 4:00 PM',
-    reason: 'Low activity period',
-    icon: TrendingUp,
-  },
-];
+// Focus time recommendations are now fetched dynamically from API
 
 export default function HomePage() {
   const router = useRouter();
@@ -64,6 +53,7 @@ export default function HomePage() {
   });
   const [todayEvents, setTodayEvents] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const [focusTimeRecommendations, setFocusTimeRecommendations] = useState<any[]>([]);
   const [currentGradient] = useState(() =>
     gradientBackgrounds[Math.floor(Math.random() * gradientBackgrounds.length)]
   );
@@ -72,6 +62,7 @@ export default function HomePage() {
     fetchUserData();
     fetchStats();
     fetchTodayEvents();
+    fetchFocusTime();
 
     // Auto-refresh dashboard every 30 seconds (only when page is visible)
     const refreshInterval = setInterval(() => {
@@ -143,6 +134,18 @@ export default function HomePage() {
       setTodayEvents([]);
     } finally {
       setLoadingEvents(false);
+    }
+  };
+
+  const fetchFocusTime = async () => {
+    try {
+      const response = await fetch('/api/focus-time');
+      const data = await response.json();
+      if (data.recommendations) {
+        setFocusTimeRecommendations(data.recommendations);
+      }
+    } catch (error) {
+      console.error('Failed to fetch focus time:', error);
     }
   };
 
@@ -359,17 +362,20 @@ export default function HomePage() {
               <div className="flex-1">
                 <h3 className="font-bold text-base mb-1.5">AI Insight</h3>
                 <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-                  You've been most productive between 9 AM - 11 AM this week. Consider scheduling
-                  important tasks during this time for maximum efficiency.
+                  {focusTimeRecommendations.length > 0
+                    ? `Based on your email patterns, ${focusTimeRecommendations[0].time} has the ${focusTimeRecommendations[0].activityLevel?.toLowerCase()}. This is an ideal time for focused work.`
+                    : 'Analyzing your email patterns to find the best focus times...'}
                 </p>
-                <div className="flex gap-2">
-                  <Button size="sm">
-                    Schedule Focus Time
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    View More Insights
-                  </Button>
-                </div>
+                {focusTimeRecommendations.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => router.push('/app/calendar')}>
+                      Schedule Focus Time
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => router.push('/app/calendar')}>
+                      View Calendar
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

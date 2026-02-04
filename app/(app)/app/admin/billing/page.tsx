@@ -92,10 +92,19 @@ export default function AdminBillingPage() {
         setOrganizations(orgsData.organizations);
       }
 
-      // TODO: Add API endpoints for invoices and payment methods
-      // For now, we'll set empty arrays
-      setInvoices([]);
-      setPaymentMethods([]);
+      // Fetch invoices (admin-scoped)
+      const invoicesResponse = await fetch('/api/admin/invoices');
+      const invoicesData = await invoicesResponse.json();
+      if (invoicesResponse.ok && invoicesData.invoices) {
+        setInvoices(invoicesData.invoices);
+      }
+
+      // Fetch payment methods (admin-scoped)
+      const pmResponse = await fetch('/api/admin/payment-methods');
+      const pmData = await pmResponse.json();
+      if (pmResponse.ok && pmData.payment_methods) {
+        setPaymentMethods(pmData.payment_methods);
+      }
     } catch (error) {
       console.error('Failed to fetch billing data:', error);
       toast.error('Failed to load billing data');
@@ -333,11 +342,47 @@ export default function AdminBillingPage() {
             <CardDescription>View and manage invoices</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-              <p>Invoice management coming soon</p>
-              <p className="text-sm mt-2">API endpoint needs to be created</p>
-            </div>
+            {invoices.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Invoice #</TableHead>
+                    <TableHead>Organization</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Period</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invoices.map((invoice) => (
+                    <TableRow key={invoice.id}>
+                      <TableCell className="font-mono text-sm">{invoice.invoice_number}</TableCell>
+                      <TableCell>{invoice.organization_name}</TableCell>
+                      <TableCell className="font-semibold">${invoice.total_amount?.toFixed(2) || '0.00'}</TableCell>
+                      <TableCell>
+                        <Badge className={getStatusBadgeColor(invoice.status)}>
+                          {invoice.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {invoice.billing_period_start && invoice.billing_period_end
+                          ? `${new Date(invoice.billing_period_start).toLocaleDateString()} - ${new Date(invoice.billing_period_end).toLocaleDateString()}`
+                          : 'N/A'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p>No invoices found</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -350,11 +395,56 @@ export default function AdminBillingPage() {
             <CardDescription>View payment methods across organizations</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
-              <p>Payment method management coming soon</p>
-              <p className="text-sm mt-2">API endpoint needs to be created</p>
-            </div>
+            {paymentMethods.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Organization</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Default</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paymentMethods.map((pm) => (
+                    <TableRow key={pm.id}>
+                      <TableCell className="font-medium">{pm.organization_name}</TableCell>
+                      <TableCell className="capitalize">{pm.type || 'card'}</TableCell>
+                      <TableCell>
+                        {pm.card_brand && pm.card_last4 ? (
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-muted-foreground" />
+                            <span className="capitalize">{pm.card_brand}</span>
+                            <span className="text-muted-foreground">•••• {pm.card_last4}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">N/A</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={pm.is_active ? 'default' : 'secondary'}>
+                          {pm.is_active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {pm.is_default && (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Default
+                          </Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+                <p>No payment methods found</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

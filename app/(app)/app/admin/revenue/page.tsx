@@ -72,6 +72,27 @@ export default function AdminRevenuePage() {
         const totalMRR = orgs.reduce((sum: number, org: Organization) => sum + (org.mrr || 0), 0);
         const totalARR = orgs.reduce((sum: number, org: Organization) => sum + (org.arr || 0), 0);
 
+        // Fetch revenue history for growth calculation
+        const historyResponse = await fetch('/api/admin/revenue-snapshot');
+        const historyData = await historyResponse.json();
+
+        let mrrGrowth = 0;
+        let arrGrowth = 0;
+
+        if (historyResponse.ok && historyData.history && historyData.history.length >= 2) {
+          // Most recent month is at index 0, previous month at index 1
+          const currentMonth = historyData.history[0];
+          const previousMonth = historyData.history[1];
+
+          if (previousMonth.total_mrr > 0) {
+            mrrGrowth = ((currentMonth.total_mrr - previousMonth.total_mrr) / previousMonth.total_mrr) * 100;
+          }
+
+          if (previousMonth.total_arr > 0) {
+            arrGrowth = ((currentMonth.total_arr - previousMonth.total_arr) / previousMonth.total_arr) * 100;
+          }
+        }
+
         // Plan distribution
         const planDist: Record<string, number> = {};
         orgs.forEach((org: Organization) => {
@@ -87,8 +108,8 @@ export default function AdminRevenuePage() {
         setMetrics({
           totalMRR,
           totalARR,
-          mrrGrowth: 0, // TODO: Calculate from historical data
-          arrGrowth: 0,
+          mrrGrowth,
+          arrGrowth,
           avgRevenuePerOrg: paidOrgs.length > 0 ? totalMRR / paidOrgs.length : 0,
           avgSeatsPerOrg: paidOrgs.length > 0
             ? paidOrgs.reduce((sum: number, org: Organization) => sum + org.seats, 0) / paidOrgs.length

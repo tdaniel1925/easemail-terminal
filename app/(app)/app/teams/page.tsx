@@ -204,8 +204,8 @@ export default function TeamsPage() {
   };
 
   const handleSendMessage = () => {
-    toast.info('Teams messaging integration coming soon!');
-    // TODO: Implement Teams chat integration
+    // Teams messaging requires Microsoft Graph API Chat endpoint
+    // Currently not implemented - button is disabled
   };
 
   const handleSubmitSchedule = async (e: React.FormEvent) => {
@@ -291,8 +291,9 @@ export default function TeamsPage() {
   const quickActions = [
     { icon: Video, label: 'Start Instant Meeting', color: 'bg-blue-500', disabled: !connected, onClick: handleInstantMeeting },
     { icon: Calendar, label: 'Schedule Meeting', color: 'bg-green-500', disabled: !connected, onClick: handleScheduleMeeting },
-    { icon: Phone, label: 'Make a Call', color: 'bg-purple-500', disabled: true, onClick: () => toast.info('Coming soon!') },
-    { icon: MessageSquare, label: 'Send Message', color: 'bg-orange-500', disabled: !connected, onClick: handleSendMessage },
+    // Call and messaging features require additional Microsoft Graph API permissions - currently disabled
+    // { icon: Phone, label: 'Make a Call', color: 'bg-purple-500', disabled: true, onClick: () => {} },
+    // { icon: MessageSquare, label: 'Send Message', color: 'bg-orange-500', disabled: true, onClick: handleSendMessage },
   ];
 
   const filteredMeetings = meetings.filter(meeting =>

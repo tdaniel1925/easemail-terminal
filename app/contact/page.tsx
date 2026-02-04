@@ -243,10 +243,13 @@ export default function ContactPage() {
                   <Button
                     size="lg"
                     className="w-full bg-white text-blue-600 hover:bg-gray-50 shadow-xl"
-                    onClick={() => toast.info('Demo booking coming soon!')}
+                    onClick={() => {
+                      // Scroll to contact form
+                      document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
                   >
                     <Calendar className="mr-2 h-5 w-5" />
-                    Book Your Demo
+                    Schedule a Call
                   </Button>
 
                   <p className="text-sm text-white/80 text-center mt-4">
