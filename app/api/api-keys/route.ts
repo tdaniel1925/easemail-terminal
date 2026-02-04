@@ -221,3 +221,84 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+
+    // Get current user
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user's organization
+    const { data: membership } = await supabase
+      .from('organization_members')
+      .select('organization_id, role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!membership) {
+      return NextResponse.json(
+        { error: 'No organization found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if user is admin or owner
+    if (!['OWNER', 'ADMIN'].includes(membership.role)) {
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const keyId = searchParams.get('id');
+
+    if (!keyId) {
+      return NextResponse.json(
+        { error: 'Key ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Deactivate API key (soft delete)
+    const { error } = await (supabase
+      .from('api_keys') as any)
+      .update({
+        is_active: false,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', keyId)
+      .eq('organization_id', membership.organization_id);
+
+    if (error) {
+      throw error;
+    }
+
+    // Update organization to use master key
+    await (supabase
+      .from('organizations') as any)
+      .update({
+        api_key_id: null,
+        uses_master_api_key: true,
+      })
+      .eq('id', membership.organization_id);
+
+    return NextResponse.json({
+      success: true,
+      message: 'API key revoked successfully',
+    });
+  } catch (error) {
+    console.error('Error revoking API key:', error);
+    return NextResponse.json(
+      { error: 'Failed to revoke API key' },
+      { status: 500 }
+    );
+  }
+}

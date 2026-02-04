@@ -384,6 +384,12 @@ export default function OrganizationDetailPage() {
           >
             Dashboard
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/app/organization/${orgId}/analytics`)}
+          >
+            Analytics
+          </Button>
           {canEditSettings && (
             <Button
               variant="outline"
