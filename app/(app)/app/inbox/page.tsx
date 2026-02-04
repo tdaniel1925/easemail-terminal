@@ -15,7 +15,7 @@ import {
   Mail, Search, RefreshCw, PenSquare, Inbox,
   Send, Star, Trash2, Archive, Clock, Menu, Users, Newspaper, Bell, Sparkles,
   Reply, ReplyAll, Forward, LogOut, Loader2, X, Check, Minus, Tag, Shield, AlertTriangle,
-  Calendar, UserCircle, Video
+  Calendar, UserCircle, Video, HelpCircle
 } from 'lucide-react';
 import { formatDate, truncate } from '@/lib/utils';
 import Link from 'next/link';
@@ -412,6 +412,43 @@ export default function InboxPage() {
     }
   };
 
+  const parseSearchQuery = (query: string) => {
+    const params: any = {};
+    let remainingQuery = query;
+
+    // Extract operators: from:, to:, subject:, has:, is:
+    const operators = [
+      { pattern: /from:(\S+)/g, key: 'from' },
+      { pattern: /to:(\S+)/g, key: 'to' },
+      { pattern: /subject:"([^"]+)"|subject:(\S+)/g, key: 'subject' },
+      { pattern: /has:attachment/g, key: 'has_attachment', value: 'true' },
+      { pattern: /is:unread/g, key: 'unread', value: 'true' },
+      { pattern: /is:read/g, key: 'unread', value: 'false' },
+      { pattern: /is:starred/g, key: 'starred', value: 'true' },
+    ];
+
+    operators.forEach(({ pattern, key, value }) => {
+      const matches = [...remainingQuery.matchAll(pattern)];
+      if (matches.length > 0) {
+        if (value) {
+          params[key] = value;
+        } else {
+          // For from:, to:, subject: - get the captured group
+          params[key] = matches[0][1] || matches[0][2]; // Handle both quoted and unquoted
+        }
+        // Remove the operator from the remaining query
+        remainingQuery = remainingQuery.replace(pattern, '').trim();
+      }
+    });
+
+    // Add remaining text as general query
+    if (remainingQuery.trim()) {
+      params.q = remainingQuery.trim();
+    }
+
+    return params;
+  };
+
   const handleSearch = async (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
@@ -423,7 +460,13 @@ export default function InboxPage() {
       setSearching(true);
       setSearchQuery(query);
 
-      const response = await fetch(`/api/messages/search?q=${encodeURIComponent(query)}`);
+      // Parse search query for operators
+      const searchParams = parseSearchQuery(query);
+
+      // Build query string
+      const queryString = new URLSearchParams(searchParams).toString();
+
+      const response = await fetch(`/api/messages/search?${queryString}`);
       const data = await response.json();
 
       if (response.ok && data.messages) {
@@ -1046,33 +1089,57 @@ export default function InboxPage() {
       {/* Header */}
       <header className="border-b border-border bg-card p-4">
           <div className="flex items-center gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search emails..."
-                className="pl-10 pr-10 w-full max-w-xl"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSearch(searchQuery);
-                  }
-                  if (e.key === 'Escape') {
-                    clearSearch();
-                  }
-                }}
-              />
-              {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-              {searching && (
-                <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-              )}
+            <div className="flex-1 relative flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search emails... (Try: from:john, subject:meeting, has:attachment, is:unread)"
+                  className="pl-10 pr-10 w-full max-w-xl"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearch(searchQuery);
+                    }
+                    if (e.key === 'Escape') {
+                      clearSearch();
+                    }
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+                {searching && (
+                  <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0">
+                    <HelpCircle className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-sm">
+                  <div className="space-y-2 text-xs">
+                    <p className="font-semibold">Advanced Search Operators:</p>
+                    <ul className="space-y-1">
+                      <li><code className="bg-muted px-1">from:john</code> - From specific sender</li>
+                      <li><code className="bg-muted px-1">to:mary</code> - To specific recipient</li>
+                      <li><code className="bg-muted px-1">subject:meeting</code> - Subject contains word</li>
+                      <li><code className="bg-muted px-1">has:attachment</code> - Has attachments</li>
+                      <li><code className="bg-muted px-1">is:unread</code> - Unread messages</li>
+                      <li><code className="bg-muted px-1">is:read</code> - Read messages</li>
+                      <li><code className="bg-muted px-1">is:starred</code> - Starred messages</li>
+                    </ul>
+                    <p className="text-muted-foreground italic">Combine multiple operators!</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             </div>
 
             {/* Account Selector */}
