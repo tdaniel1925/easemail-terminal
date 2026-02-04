@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { User, Palette, Mail, Bell, Shield, CreditCard, PenTool } from 'lucide-react';
+import { User, Palette, Mail, Bell, Shield, CreditCard, PenTool, Zap } from 'lucide-react';
 
 const settingsSections = [
   {
@@ -20,6 +20,11 @@ const settingsSections = [
     name: 'Email Accounts',
     href: '/app/settings/email-accounts',
     icon: Mail,
+  },
+  {
+    name: 'Email Rules',
+    href: '/app/settings/rules',
+    icon: Zap,
   },
   {
     name: 'Signatures',
