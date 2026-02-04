@@ -38,6 +38,15 @@ interface Member {
   users: { email: string };
 }
 
+interface PendingInvite {
+  id: string;
+  email: string;
+  role: string;
+  created_at: string;
+  expires_at: string;
+  invited_by: string;
+}
+
 interface Organization {
   id: string;
   name: string;
@@ -54,18 +63,31 @@ export default function OrganizationDetailPage() {
 
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('MEMBER');
   const [inviting, setInviting] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [editedOrgName, setEditedOrgName] = useState('');
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [newRole, setNewRole] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     if (orgId) {
       fetchOrganization();
     }
   }, [orgId]);
+
+  useEffect(() => {
+    if (organization) {
+      setEditedOrgName(organization.name);
+    }
+  }, [organization]);
 
   const fetchOrganization = async () => {
     try {
@@ -76,6 +98,7 @@ export default function OrganizationDetailPage() {
       if (response.ok) {
         setOrganization(data.organization);
         setMembers(data.members || []);
+        setPendingInvites(data.pendingInvites || []);
         setCurrentUserRole(data.currentUserRole);
       } else {
         toast.error(data.error || 'Failed to load organization');
@@ -146,6 +169,118 @@ export default function OrganizationDetailPage() {
     }
   };
 
+  const handleUpdateOrgSettings = async () => {
+    if (!editedOrgName.trim()) {
+      toast.error('Organization name is required');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/organizations/${orgId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editedOrgName }),
+      });
+
+      if (response.ok) {
+        toast.success('Organization updated successfully');
+        setShowSettingsDialog(false);
+        fetchOrganization();
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Failed to update organization');
+      }
+    } catch (error) {
+      console.error('Update organization error:', error);
+      toast.error('Failed to update organization');
+    }
+  };
+
+  const handleChangeRole = async () => {
+    if (!selectedMember || !newRole) return;
+
+    try {
+      const response = await fetch(`/api/organizations/${orgId}/members/role`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: selectedMember.user_id, role: newRole }),
+      });
+
+      if (response.ok) {
+        toast.success('Role updated successfully');
+        setShowRoleDialog(false);
+        setSelectedMember(null);
+        fetchOrganization();
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Failed to update role');
+      }
+    } catch (error) {
+      console.error('Update role error:', error);
+      toast.error('Failed to update role');
+    }
+  };
+
+  const handleDeleteOrganization = async () => {
+    if (!confirm('Are you sure you want to delete this organization? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/organizations/${orgId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Organization deleted successfully');
+        router.push('/app/organization');
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Failed to delete organization');
+      }
+    } catch (error) {
+      console.error('Delete organization error:', error);
+      toast.error('Failed to delete organization');
+    }
+  };
+
+  const handleResendInvite = async (inviteId: string) => {
+    try {
+      const response = await fetch(`/api/organizations/${orgId}/invites/${inviteId}/resend`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        toast.success('Invite resent successfully');
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Failed to resend invite');
+      }
+    } catch (error) {
+      console.error('Resend invite error:', error);
+      toast.error('Failed to resend invite');
+    }
+  };
+
+  const handleRevokeInvite = async (inviteId: string) => {
+    try {
+      const response = await fetch(`/api/organizations/${orgId}/invites/${inviteId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Invite revoked successfully');
+        fetchOrganization();
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Failed to revoke invite');
+      }
+    } catch (error) {
+      console.error('Revoke invite error:', error);
+      toast.error('Failed to revoke invite');
+    }
+  };
+
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'OWNER':
@@ -178,6 +313,8 @@ export default function OrganizationDetailPage() {
 
   const canInvite = ['OWNER', 'ADMIN'].includes(currentUserRole);
   const canRemove = ['OWNER', 'ADMIN'].includes(currentUserRole);
+  const canEditSettings = ['OWNER', 'ADMIN'].includes(currentUserRole);
+  const canDelete = currentUserRole === 'OWNER';
 
   if (loading) {
     return (
@@ -204,12 +341,26 @@ export default function OrganizationDetailPage() {
           <h1 className="text-3xl font-bold">{organization.name}</h1>
           <p className="text-muted-foreground">Manage your organization</p>
         </div>
-        {canInvite && (
-          <Button onClick={() => setShowInviteDialog(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Invite Member
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/app/organization/${orgId}/dashboard`)}
+          >
+            Dashboard
           </Button>
-        )}
+          {canEditSettings && (
+            <Button variant="outline" onClick={() => setShowSettingsDialog(true)}>
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
+          )}
+          {canInvite && (
+            <Button onClick={() => setShowInviteDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Invite Member
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Overview Cards */}
@@ -249,6 +400,73 @@ export default function OrganizationDetailPage() {
         </Card>
       </div>
 
+      {/* Pending Invites */}
+      {pendingInvites.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Invites</CardTitle>
+            <CardDescription>
+              {pendingInvites.length} pending {pendingInvites.length === 1 ? 'invitation' : 'invitations'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {pendingInvites.map((invite, index) => {
+                const RoleIcon = getRoleIcon(invite.role);
+                const isExpired = new Date(invite.expires_at) < new Date();
+                return (
+                  <div key={invite.id}>
+                    {index > 0 && <Separator />}
+                    <div className="flex items-center justify-between py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback className="bg-yellow-100 text-yellow-700">
+                            {invite.email.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{invite.email}</div>
+                          <div className="text-sm text-muted-foreground flex items-center gap-2">
+                            <RoleIcon className="h-3 w-3" />
+                            {invite.role}
+                            {isExpired && (
+                              <span className="text-red-500">(Expired)</span>
+                            )}
+                            {!isExpired && (
+                              <span>• Expires {new Date(invite.expires_at).toLocaleDateString()}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {canInvite && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleResendInvite(invite.id)}
+                          >
+                            Resend
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRevokeInvite(invite.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            Revoke
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Members List */}
       <Card>
         <CardHeader>
@@ -280,16 +498,32 @@ export default function OrganizationDetailPage() {
                       </div>
                     </div>
 
-                    {canRemove && member.role !== 'OWNER' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveMember(member.user_id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <div className="flex gap-2">
+                      {canRemove && member.role !== 'OWNER' && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedMember(member);
+                              setNewRole(member.role);
+                              setShowRoleDialog(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            Edit Role
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveMember(member.user_id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -297,6 +531,129 @@ export default function OrganizationDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Organization Settings Dialog */}
+      <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Organization Settings</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label htmlFor="orgName">Organization Name</Label>
+              <Input
+                id="orgName"
+                value={editedOrgName}
+                onChange={(e) => setEditedOrgName(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="ghost" onClick={() => setShowSettingsDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateOrgSettings}>
+                Save Changes
+              </Button>
+            </div>
+
+            {canDelete && (
+              <div className="pt-4 border-t">
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                  <h4 className="font-semibold text-destructive mb-2">Danger Zone</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Permanently delete this organization and all associated data. This action cannot be undone.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setShowSettingsDialog(false);
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    Delete Organization
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Role Dialog */}
+      <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Member Role</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label>Member</Label>
+              <div className="font-medium">{selectedMember?.users.email}</div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="newRole">New Role</Label>
+              <Select value={newRole} onValueChange={setNewRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="MEMBER">Member</SelectItem>
+                  <SelectItem value="VIEWER">Viewer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="ghost" onClick={() => setShowRoleDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleChangeRole}>
+                Update Role
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Organization Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Organization</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+              <p className="text-sm text-destructive font-medium mb-2">
+                This action cannot be undone!
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Deleting "{organization?.name}" will permanently remove:
+              </p>
+              <ul className="text-sm text-muted-foreground list-disc list-inside mt-2 space-y-1">
+                <li>All organization data</li>
+                <li>All member access</li>
+                <li>All billing information</li>
+                <li>All usage history</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="ghost" onClick={() => setShowDeleteDialog(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteOrganization}>
+                Delete Organization
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Invite Member Dialog */}
       <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>

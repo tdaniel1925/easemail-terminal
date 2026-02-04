@@ -42,9 +42,18 @@ export async function GET(
       .eq('organization_id', orgId)
       .order('created_at', { ascending: true })) as { data: any };
 
+    // Get pending invites
+    const { data: pendingInvites } = (await supabase
+      .from('organization_invites')
+      .select('*')
+      .eq('organization_id', orgId)
+      .is('accepted_at', null)
+      .order('created_at', { ascending: false })) as { data: any };
+
     return NextResponse.json({
       organization,
       members,
+      pendingInvites: pendingInvites || [],
       currentUserRole: membership.role,
     });
   } catch (error) {

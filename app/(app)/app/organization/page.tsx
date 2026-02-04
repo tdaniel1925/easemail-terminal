@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Users, Settings, Crown, Loader2, Building2 } from 'lucide-react';
+import { Plus, Users, Settings, Crown, Loader2, Building2, Search, Filter } from 'lucide-react';
 
 interface Organization {
   id: string;
@@ -28,6 +28,9 @@ export default function OrganizationPage() {
   const [creating, setCreating] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterRole, setFilterRole] = useState<string>('all');
+  const [filterPlan, setFilterPlan] = useState<string>('all');
 
   useEffect(() => {
     fetchOrganizations();
@@ -102,6 +105,14 @@ export default function OrganizationPage() {
     return colors[plan as keyof typeof colors] || 'secondary';
   };
 
+  // Filter organizations based on search and filters
+  const filteredOrganizations = organizations.filter((org) => {
+    const matchesSearch = org.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = filterRole === 'all' || org.role === filterRole;
+    const matchesPlan = filterPlan === 'all' || org.plan === filterPlan;
+    return matchesSearch && matchesRole && matchesPlan;
+  });
+
   if (loading) {
     return (
       <div className="container max-w-6xl mx-auto py-8 px-4">
@@ -115,7 +126,7 @@ export default function OrganizationPage() {
   return (
     <div className="container max-w-6xl mx-auto py-6 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Organizations</h1>
           <p className="text-muted-foreground">Manage your workspaces and teams</p>
@@ -125,6 +136,65 @@ export default function OrganizationPage() {
           New Organization
         </Button>
       </div>
+
+      {/* Search and Filters */}
+      {organizations.length > 0 && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search organizations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <select
+                value={filterRole}
+                onChange={(e) => setFilterRole(e.target.value)}
+                className="h-10 px-3 rounded-md border border-input bg-background"
+              >
+                <option value="all">All Roles</option>
+                <option value="OWNER">Owner</option>
+                <option value="ADMIN">Admin</option>
+                <option value="MEMBER">Member</option>
+                <option value="VIEWER">Viewer</option>
+              </select>
+              <select
+                value={filterPlan}
+                onChange={(e) => setFilterPlan(e.target.value)}
+                className="h-10 px-3 rounded-md border border-input bg-background"
+              >
+                <option value="all">All Plans</option>
+                <option value="FREE">Free</option>
+                <option value="PRO">Pro</option>
+                <option value="BUSINESS">Business</option>
+                <option value="ENTERPRISE">Enterprise</option>
+              </select>
+            </div>
+            {(searchQuery || filterRole !== 'all' || filterPlan !== 'all') && (
+              <div className="flex items-center gap-2 mt-3">
+                <span className="text-sm text-muted-foreground">
+                  {filteredOrganizations.length} of {organizations.length} organizations
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterRole('all');
+                    setFilterPlan('all');
+                  }}
+                >
+                  Clear filters
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Organizations List */}
       {organizations.length === 0 ? (
@@ -141,9 +211,29 @@ export default function OrganizationPage() {
             </Button>
           </CardContent>
         </Card>
+      ) : filteredOrganizations.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-64">
+            <Search className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="font-semibold text-lg mb-2">No organizations found</h3>
+            <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
+              No organizations match your search criteria. Try adjusting your filters.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchQuery('');
+                setFilterRole('all');
+                setFilterPlan('all');
+              }}
+            >
+              Clear filters
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {organizations.map((org) => (
+          {filteredOrganizations.map((org) => (
             <Card
               key={org.id}
               className="cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"

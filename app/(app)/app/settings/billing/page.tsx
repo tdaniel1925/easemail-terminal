@@ -18,6 +18,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   CreditCard,
   Download,
   Plus,
@@ -41,6 +48,7 @@ interface Organization {
   next_billing_date: string;
   uses_master_api_key: boolean;
   api_key_id: string | null;
+  stripe_customer_id?: string | null;
 }
 
 interface Invoice {
@@ -83,6 +91,10 @@ export default function BillingPage() {
   const [addSeatsDialogOpen, setAddSeatsDialogOpen] = useState(false);
   const [seatsToAdd, setSeatsToAdd] = useState(1);
   const [addPaymentDialogOpen, setAddPaymentDialogOpen] = useState(false);
+  const [showPlanChangeDialog, setShowPlanChangeDialog] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState('');
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState('monthly');
+  const [changingPlan, setChangingPlan] = useState(false);
 
   useEffect(() => {
     fetchBillingData();
@@ -184,6 +196,63 @@ export default function BillingPage() {
     });
   };
 
+  const handleChangePlan = async () => {
+    if (!selectedPlan) {
+      toast.error('Please select a plan');
+      return;
+    }
+
+    try {
+      setChangingPlan(true);
+
+      // Create Stripe checkout session for plan change
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organizationId: organization?.id,
+          plan: selectedPlan,
+          seats: organization?.seats || 1,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.sessionUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = data.sessionUrl;
+      } else {
+        toast.error(data.error || 'Failed to initiate plan change');
+      }
+    } catch (error) {
+      console.error('Plan change error:', error);
+      toast.error('Failed to change plan');
+    } finally {
+      setChangingPlan(false);
+    }
+  };
+
+  const openStripePortal = async () => {
+    try {
+      const response = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId: organization?.id }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || 'Failed to open billing portal');
+      }
+    } catch (error) {
+      console.error('Stripe portal error:', error);
+      toast.error('Failed to open billing portal');
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -231,6 +300,18 @@ export default function BillingPage() {
             <p className="text-xs text-muted-foreground">
               {organization.billing_cycle === 'annual' ? 'Annual billing' : 'Monthly billing'}
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => {
+                setSelectedPlan(organization.plan);
+                setSelectedBillingCycle(organization.billing_cycle || 'monthly');
+                setShowPlanChangeDialog(true);
+              }}
+            >
+              Change Plan
+            </Button>
           </CardContent>
         </Card>
 
@@ -531,6 +612,96 @@ export default function BillingPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Stripe Customer Portal */}
+      {organization.stripe_customer_id && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Billing Portal
+            </CardTitle>
+            <CardDescription>Manage all billing settings in Stripe</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  Access the Stripe customer portal to manage payment methods, view invoices, and update billing information.
+                </p>
+              </div>
+              <Button onClick={openStripePortal} variant="outline">
+                Open Portal
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Plan Change Dialog */}
+      <Dialog open={showPlanChangeDialog} onOpenChange={setShowPlanChangeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Subscription Plan</DialogTitle>
+            <DialogDescription>
+              Select a new plan and billing cycle. Changes will be reflected in your next billing period.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="plan">Select Plan</Label>
+              <Select value={selectedPlan} onValueChange={setSelectedPlan}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FREE">Free Plan ($0/mo)</SelectItem>
+                  <SelectItem value="PRO">Pro Plan ($12/mo)</SelectItem>
+                  <SelectItem value="BUSINESS">Business Plan ($25/seat/mo)</SelectItem>
+                  <SelectItem value="ENTERPRISE">Enterprise Plan (Custom)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="billingCycle">Billing Cycle</Label>
+              <Select value={selectedBillingCycle} onValueChange={setSelectedBillingCycle}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="annual">Annual (Save 17%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedPlan !== 'FREE' && (
+              <div className="bg-muted p-4 rounded-lg">
+                <h4 className="font-semibold text-sm mb-2">New Cost Preview</h4>
+                <p className="text-sm text-muted-foreground">
+                  Based on your current {organization?.seats} seat(s)
+                </p>
+                <p className="text-2xl font-bold mt-2">
+                  {selectedPlan === 'PRO' && '$12/mo'}
+                  {selectedPlan === 'BUSINESS' && `$${(organization?.seats || 1) * 25}/mo`}
+                  {selectedPlan === 'ENTERPRISE' && 'Custom Pricing'}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPlanChangeDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleChangePlan} disabled={changingPlan || selectedPlan === 'ENTERPRISE'}>
+              {changingPlan ? 'Processing...' : selectedPlan === 'ENTERPRISE' ? 'Contact Sales' : 'Continue to Checkout'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Invoice History */}
       <Card>
