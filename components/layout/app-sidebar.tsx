@@ -24,11 +24,25 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [labels, setLabels] = useState<any[]>([]);
   const [folders, setFolders] = useState<any[]>([]);
+  const [folderCounts, setFolderCounts] = useState({
+    inbox: 0,
+    starred: 0,
+    sent: 0,
+    snoozed: 0,
+    archive: 0,
+    trash: 0,
+    drafts: 0,
+  });
 
   useEffect(() => {
     fetchAccounts();
     fetchLabels();
     fetchFolders();
+    fetchFolderCounts();
+
+    // Refresh counts every 60 seconds
+    const interval = setInterval(fetchFolderCounts, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchAccounts = async () => {
@@ -92,6 +106,18 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
     }
   };
 
+  const fetchFolderCounts = async () => {
+    try {
+      const response = await fetch('/api/folders/counts');
+      const data = await response.json();
+      if (response.ok) {
+        setFolderCounts(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch folder counts:', error);
+    }
+  };
+
   const isActive = (path: string) => pathname === path;
 
   if (!open) return null;
@@ -123,26 +149,34 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
           {/* Main Folders */}
           <div className="space-y-0.5">
             {[
-              { icon: Inbox, label: 'Inbox', href: '/app/inbox' },
-              { icon: Star, label: 'Starred', href: '/app/inbox?filter=starred' },
-              { icon: Send, label: 'Sent', href: '/app/inbox?filter=sent' },
-              { icon: Clock, label: 'Snoozed', href: '/app/inbox?filter=snoozed' },
-              { icon: Archive, label: 'Archive', href: '/app/inbox?filter=archive' },
-              { icon: Trash2, label: 'Trash', href: '/app/inbox?filter=trash' },
-            ].map((item) => (
-              <Link key={item.label} href={item.href}>
-                <button
-                  className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
-                    isActive(item.href) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <item.icon className="h-5 w-5" />
-                    <span className="text-sm">{item.label}</span>
-                  </div>
-                </button>
-              </Link>
-            ))}
+              { icon: Inbox, label: 'Inbox', href: '/app/inbox', countKey: 'inbox' },
+              { icon: Star, label: 'Starred', href: '/app/inbox?filter=starred', countKey: 'starred' },
+              { icon: Send, label: 'Sent', href: '/app/inbox?filter=sent', countKey: 'sent' },
+              { icon: Clock, label: 'Snoozed', href: '/app/inbox?filter=snoozed', countKey: 'snoozed' },
+              { icon: Archive, label: 'Archive', href: '/app/inbox?filter=archive', countKey: 'archive' },
+              { icon: Trash2, label: 'Trash', href: '/app/inbox?filter=trash', countKey: 'trash' },
+            ].map((item) => {
+              const count = folderCounts[item.countKey as keyof typeof folderCounts];
+              return (
+                <Link key={item.label} href={item.href}>
+                  <button
+                    className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                      isActive(item.href) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <item.icon className="h-5 w-5" />
+                      <span className="text-sm">{item.label}</span>
+                    </div>
+                    {count > 0 && (
+                      <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs shrink-0">
+                        {count > 99 ? '99+' : count}
+                      </Badge>
+                    )}
+                  </button>
+                </Link>
+              );
+            })}
           </div>
 
           {/* Custom Folders */}
