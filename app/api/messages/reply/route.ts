@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nylas } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
+import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting for email replies
+    const rateLimitResult = await rateLimit(request, RateLimitPresets.EMAIL_SEND);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded', message: `Too many emails sent. Try again in ${Math.ceil((rateLimitResult.reset - Date.now()) / 1000)}s.` },
+        { status: 429, headers: { 'X-RateLimit-Reset': rateLimitResult.reset.toString() } }
+      );
+    }
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 

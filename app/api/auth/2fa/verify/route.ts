@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifyToken, hashBackupCode } from '@/lib/auth/totp';
+import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting to prevent brute force attacks
+    const rateLimitResult = await rateLimit(request, RateLimitPresets.AUTH);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: 'Too many attempts', message: `Please try again in ${Math.ceil((rateLimitResult.reset - Date.now()) / 1000)}s.` },
+        { status: 429, headers: { 'X-RateLimit-Reset': rateLimitResult.reset.toString() } }
+      );
+    }
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { errorResponse, successResponse, safeQuery, safeExternalCall } from '@/lib/api-helpers';
 import { logger } from '@/lib/logger';
 import { isString, isArray } from '@/lib/guards';
+import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
 
 interface EmailAccount {
   id: string;
@@ -18,6 +19,24 @@ export async function POST(request: NextRequest) {
   let userId: string | undefined;
 
   try {
+    // Apply rate limiting for email sending
+    const rateLimitResult = await rateLimit(request, RateLimitPresets.EMAIL_SEND);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          message: `Too many emails sent. Please try again in ${Math.ceil((rateLimitResult.reset - Date.now()) / 1000)} seconds.`,
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': rateLimitResult.reset.toString(),
+          }
+        }
+      );
+    }
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
