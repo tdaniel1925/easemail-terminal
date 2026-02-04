@@ -90,11 +90,12 @@ export default function BillingPage() {
   const [apiKey, setApiKey] = useState<ApiKey | null>(null);
   const [addSeatsDialogOpen, setAddSeatsDialogOpen] = useState(false);
   const [seatsToAdd, setSeatsToAdd] = useState(1);
-  const [addPaymentDialogOpen, setAddPaymentDialogOpen] = useState(false);
   const [showPlanChangeDialog, setShowPlanChangeDialog] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState('');
   const [selectedBillingCycle, setSelectedBillingCycle] = useState('monthly');
   const [changingPlan, setChangingPlan] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     fetchBillingData();
@@ -250,6 +251,43 @@ export default function BillingPage() {
     } catch (error) {
       console.error('Stripe portal error:', error);
       toast.error('Failed to open billing portal');
+    }
+  };
+
+  const handleDownloadInvoice = (invoice: Invoice) => {
+    if (invoice.pdf_url) {
+      window.open(invoice.pdf_url, '_blank');
+    } else {
+      toast.error('Invoice PDF not available');
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!organization) return;
+
+    try {
+      setCancelling(true);
+
+      const response = await fetch('/api/stripe/cancel-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId: organization.id }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Subscription cancelled successfully');
+        setShowCancelDialog(false);
+        fetchBillingData();
+      } else {
+        toast.error(data.error || 'Failed to cancel subscription');
+      }
+    } catch (error) {
+      console.error('Cancel subscription error:', error);
+      toast.error('Failed to cancel subscription');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -549,29 +587,14 @@ export default function BillingPage() {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>Payment Methods</CardTitle>
-              <CardDescription>Manage your payment methods</CardDescription>
+              <CardDescription>Manage your payment methods in Stripe Portal</CardDescription>
             </div>
-            <Dialog open={addPaymentDialogOpen} onOpenChange={setAddPaymentDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Payment Method
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Payment Method</DialogTitle>
-                  <DialogDescription>
-                    Add a new payment method for your organization
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                  <p className="text-sm text-muted-foreground">
-                    Payment method management UI will be implemented with Stripe integration
-                  </p>
-                </div>
-              </DialogContent>
-            </Dialog>
+            {organization?.stripe_customer_id && (
+              <Button variant="outline" size="sm" onClick={openStripePortal}>
+                <Plus className="mr-2 h-4 w-4" />
+                Manage in Portal
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -579,6 +602,11 @@ export default function BillingPage() {
             <div className="text-center py-6 text-muted-foreground">
               <CreditCard className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No payment methods added</p>
+              {organization?.stripe_customer_id && (
+                <Button variant="outline" size="sm" className="mt-3" onClick={openStripePortal}>
+                  Add Payment Method
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
@@ -608,6 +636,11 @@ export default function BillingPage() {
                   {pm.is_default && <Badge variant="default">Default</Badge>}
                 </div>
               ))}
+              <div className="pt-2">
+                <p className="text-xs text-muted-foreground text-center">
+                  Use Stripe Portal to add, remove, or set default payment methods
+                </p>
+              </div>
             </div>
           )}
         </CardContent>
@@ -745,7 +778,12 @@ export default function BillingPage() {
                           {invoice.status}
                         </Badge>
                       </div>
-                      <Button variant="ghost" size="sm" disabled={!invoice.pdf_url}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={!invoice.pdf_url}
+                        onClick={() => handleDownloadInvoice(invoice)}
+                      >
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>
@@ -756,6 +794,74 @@ export default function BillingPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Danger Zone */}
+      {organization && organization.plan !== 'FREE' && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>Irreversible actions for your subscription</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Cancel Subscription</p>
+                <p className="text-sm text-muted-foreground">
+                  Cancel your subscription. Your plan will remain active until the end of the billing period.
+                </p>
+              </div>
+              <Button variant="destructive" onClick={() => setShowCancelDialog(true)}>
+                Cancel Plan
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Cancel Subscription Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Subscription</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel your subscription? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <p className="text-sm font-medium">What happens when you cancel:</p>
+              <ul className="text-sm text-muted-foreground space-y-1 ml-4 list-disc">
+                <li>Your subscription will remain active until {organization && formatDate(organization.next_billing_date)}</li>
+                <li>You will not be charged for the next billing cycle</li>
+                <li>After cancellation, your plan will revert to the Free plan</li>
+                <li>Some features will be limited or unavailable</li>
+              </ul>
+            </div>
+
+            <div className="bg-destructive/10 p-4 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-destructive">Warning</p>
+                  <p className="text-sm text-muted-foreground">
+                    This action cannot be undone. You can resubscribe later, but will need to set up your plan again.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
+              Keep Subscription
+            </Button>
+            <Button variant="destructive" onClick={handleCancelSubscription} disabled={cancelling}>
+              {cancelling ? 'Cancelling...' : 'Yes, Cancel Subscription'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
