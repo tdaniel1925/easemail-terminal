@@ -15,7 +15,8 @@
       "Bash(timeout 15 npx vercel logs:*)",
       "WebSearch",
       "Bash(npm run build:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
