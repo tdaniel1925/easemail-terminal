@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAuditLog } from '@/lib/audit-logs';
 
 export async function POST(
   request: NextRequest,
@@ -94,24 +95,16 @@ export async function POST(
       );
     }
 
-    // Log the ownership transfer (if audit logs exist)
-    try {
-      await (supabase
-        .from('audit_logs') as any)
-        .insert({
-          organization_id: orgId,
-          user_id: user.id,
-          action: 'transfer_ownership',
-          details: {
-            old_owner_id: user.id,
-            new_owner_id: newOwnerId,
-          },
-          timestamp: new Date().toISOString(),
-        });
-    } catch (logError) {
-      // Audit log is optional, don't fail the request
-      console.error('Failed to create audit log:', logError);
-    }
+    // Log the ownership transfer
+    await createAuditLog({
+      organizationId: orgId,
+      userId: user.id,
+      action: 'transfer_ownership',
+      details: {
+        old_owner_id: user.id,
+        new_owner_id: newOwnerId,
+      },
+    });
 
     return NextResponse.json({
       success: true,

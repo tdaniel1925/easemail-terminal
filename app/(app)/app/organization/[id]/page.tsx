@@ -385,6 +385,15 @@ export default function OrganizationDetailPage() {
             Dashboard
           </Button>
           {canEditSettings && (
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/app/organization/${orgId}/audit-logs`)}
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Audit Logs
+            </Button>
+          )}
+          {canEditSettings && (
             <Button variant="outline" onClick={() => setShowSettingsDialog(true)}>
               <Settings className="mr-2 h-4 w-4" />
               Settings
