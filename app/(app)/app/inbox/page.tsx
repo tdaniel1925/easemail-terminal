@@ -23,6 +23,7 @@ import Link from 'next/link';
 import { EmailComposer } from '@/components/features/email-composer';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { KeyboardShortcutsDialog } from '@/components/features/keyboard-shortcuts-dialog';
+import { CommandPalette } from '@/components/features/command-palette';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { toast } from 'sonner';
 import DOMPurify from 'dompurify';
@@ -93,6 +94,7 @@ export default function InboxPage() {
 
   // Keyboard shortcuts state
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Infinite scroll ref
@@ -1232,6 +1234,9 @@ export default function InboxPage() {
   // Keyboard shortcuts
   useKeyboardShortcuts({
     shortcuts: [
+      // Command palette
+      { key: 'k', modifier: 'ctrl', handler: () => setShowCommandPalette(true), description: 'Command palette' },
+
       // Navigation
       { key: 'j', handler: () => setSelectedIndex(prev => Math.min(prev + 1, filteredMessages.length - 1)), description: 'Next email' },
       { key: 'k', handler: () => setSelectedIndex(prev => Math.max(prev - 1, 0)), description: 'Previous email' },
@@ -2269,6 +2274,14 @@ export default function InboxPage() {
       <KeyboardShortcutsDialog
         open={showKeyboardShortcuts}
         onOpenChange={setShowKeyboardShortcuts}
+      />
+
+      {/* Command Palette */}
+      <CommandPalette
+        open={showCommandPalette}
+        onOpenChange={setShowCommandPalette}
+        onCompose={() => setComposing(true)}
+        onRefresh={fetchMessages}
       />
     </div>
   );
