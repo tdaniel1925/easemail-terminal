@@ -9,6 +9,10 @@ import Highlight from '@tiptap/extension-highlight';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableHeader } from '@tiptap/extension-table-header';
+import { TableCell } from '@tiptap/extension-table-cell';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,7 +33,10 @@ import {
   Highlighter,
   Heading1,
   Heading2,
-  Type
+  Type,
+  Table as TableIcon,
+  Plus,
+  Trash
 } from 'lucide-react';
 
 interface TiptapEditorProps {
@@ -84,6 +91,23 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
       Color,
       FontFamily.configure({
         types: ['textStyle'],
+      }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'border-collapse border border-border',
+        },
+      }),
+      TableRow,
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: 'border border-border bg-muted font-bold p-2',
+        },
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: 'border border-border p-2',
+        },
       }),
     ],
     content,
@@ -348,6 +372,55 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
         >
           <LinkIcon className="h-4 w-4" />
         </Button>
+
+        <div className="w-px h-6 bg-border mx-1" />
+
+        {/* Tables */}
+        <Button
+          type="button"
+          variant={editor.isActive('table') ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+          disabled={editor.isActive('table')}
+          title="Insert Table (3x3)"
+        >
+          <TableIcon className="h-4 w-4" />
+        </Button>
+        {editor.isActive('table') && (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => editor.chain().focus().addRowAfter().run()}
+              title="Add Row After"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => editor.chain().focus().addColumnAfter().run()}
+              title="Add Column After"
+            >
+              <Plus className="h-4 w-4 rotate-90" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => editor.chain().focus().deleteTable().run()}
+              title="Delete Table"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </>
+        )}
 
         <div className="w-px h-6 bg-border mx-1" />
 
