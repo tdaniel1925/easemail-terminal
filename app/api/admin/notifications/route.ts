@@ -23,13 +23,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user is super admin
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: userProfile } = await supabase
+      .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
       .single();
 
-    if (!profile?.is_super_admin) {
+    if (!userProfile?.is_super_admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -84,13 +84,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Check if user is super admin
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: userProfile } = await supabase
+      .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
       .single();
 
-    if (!profile?.is_super_admin) {
+    if (!userProfile?.is_super_admin) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

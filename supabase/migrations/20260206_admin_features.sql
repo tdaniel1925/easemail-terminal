@@ -56,9 +56,9 @@ CREATE POLICY "Super admins can read admin notifications"
   ON admin_notifications FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.is_super_admin = TRUE
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.is_super_admin = TRUE
     )
   );
 
@@ -67,9 +67,9 @@ CREATE POLICY "Super admins can update admin notifications"
   ON admin_notifications FOR UPDATE
   USING (
     EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.is_super_admin = TRUE
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.is_super_admin = TRUE
     )
   );
 
@@ -78,9 +78,9 @@ CREATE POLICY "Super admins can view impersonate sessions"
   ON impersonate_sessions FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.is_super_admin = TRUE
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.is_super_admin = TRUE
     )
   );
 
@@ -89,9 +89,9 @@ CREATE POLICY "Super admins can create impersonate sessions"
   ON impersonate_sessions FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.is_super_admin = TRUE
+      SELECT 1 FROM users
+      WHERE users.id = auth.uid()
+      AND users.is_super_admin = TRUE
     )
   );
 
@@ -114,7 +114,7 @@ DECLARE
   org_name TEXT;
 BEGIN
   -- Get user profile
-  SELECT * INTO user_profile FROM profiles WHERE id = NEW.user_id;
+  SELECT * INTO user_profile FROM users WHERE id = NEW.user_id;
 
   -- Check if this is their first login and they're an org admin
   IF NEW.login_count = 1 AND NEW.first_login_at IS NOT NULL THEN
@@ -145,7 +145,7 @@ BEGIN
         'org_admin_first_login',
         'New Organization Admin Login',
         format('Organization admin %s (%s) from %s has logged in for the first time.',
-          COALESCE(user_profile.full_name, 'Unknown'),
+          COALESCE(user_profile.name, 'Unknown'),
           user_profile.email,
           COALESCE(org_name, 'Unknown Organization')
         ),
@@ -153,7 +153,7 @@ BEGIN
         jsonb_build_object(
           'organization_name', org_name,
           'user_email', user_profile.email,
-          'user_name', user_profile.full_name
+          'user_name', user_profile.name
         )
       );
     END IF;
