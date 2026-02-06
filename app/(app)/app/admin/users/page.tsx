@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   Users,
@@ -21,6 +22,7 @@ import {
   CheckCircle,
   Eye,
   Settings,
+  UserCog,
 } from 'lucide-react';
 
 interface User {
@@ -46,6 +48,12 @@ export default function AdminUsersPage() {
   const [newUserName, setNewUserName] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [creating, setCreating] = useState(false);
+
+  // Impersonate feature
+  const [showImpersonateDialog, setShowImpersonateDialog] = useState(false);
+  const [impersonateUserId, setImpersonateUserId] = useState<string | null>(null);
+  const [impersonateReason, setImpersonateReason] = useState('');
+  const [impersonating, setImpersonating] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -119,6 +127,44 @@ export default function AdminUsersPage() {
       toast.error('Failed to create user');
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleImpersonate = async () => {
+    if (!impersonateUserId) {
+      toast.error('User ID required');
+      return;
+    }
+
+    if (!impersonateReason.trim()) {
+      toast.error('Please provide a reason for impersonation');
+      return;
+    }
+
+    try {
+      setImpersonating(true);
+      const response = await fetch('/api/admin/impersonate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetUserId: impersonateUserId,
+          reason: impersonateReason,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Impersonating user...');
+        // Redirect to verify the magic link token
+        window.location.href = `/api/auth/callback?token_hash=${data.impersonateToken}&type=magiclink&next=/app/inbox`;
+      } else {
+        toast.error(data.error || 'Failed to impersonate user');
+      }
+    } catch (error) {
+      console.error('Impersonate error:', error);
+      toast.error('Failed to impersonate user');
+      setImpersonating(false);
     }
   };
 
@@ -251,6 +297,17 @@ export default function AdminUsersPage() {
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setImpersonateUserId(user.id);
+                      setShowImpersonateDialog(true);
+                    }}
+                    title="Impersonate user"
+                  >
+                    <UserCog className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
@@ -324,6 +381,67 @@ export default function AdminUsersPage() {
                   <>
                     <Plus className="mr-2 h-4 w-4" />
                     Create User
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Impersonate Dialog */}
+      <Dialog open={showImpersonateDialog} onOpenChange={setShowImpersonateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Impersonate User</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                <strong>Warning:</strong> You are about to log in as another user. This action is logged for audit purposes.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="reason">Reason for Impersonation *</Label>
+              <Textarea
+                id="reason"
+                placeholder="e.g., Troubleshooting login issue, Support request #12345"
+                value={impersonateReason}
+                onChange={(e) => setImpersonateReason(e.target.value)}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                This reason will be recorded in the audit log
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowImpersonateDialog(false);
+                  setImpersonateReason('');
+                  setImpersonateUserId(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleImpersonate}
+                disabled={impersonating || !impersonateReason.trim()}
+                variant="destructive"
+              >
+                {impersonating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Impersonating...
+                  </>
+                ) : (
+                  <>
+                    <UserCog className="mr-2 h-4 w-4" />
+                    Impersonate User
                   </>
                 )}
               </Button>

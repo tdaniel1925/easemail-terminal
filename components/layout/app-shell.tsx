@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { AppSidebar } from './app-sidebar';
 import { AppHeader } from './app-header';
 import { Chatbot } from '@/components/chatbot/chatbot';
+import { LoginTracker } from '@/components/login-tracker';
 import { useRouter } from 'next/navigation';
 
 interface AppShellProps {
@@ -22,6 +23,7 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
+      <LoginTracker />
       <AppSidebar
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}

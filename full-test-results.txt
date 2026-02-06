@@ -1,0 +1,218 @@
+
+Running 213 tests using 1 worker
+
+[1A[2K[1/213] [chromium] › tests\01-auth.spec.ts:13:9 › Authentication › Sign Up › should show signup page
+[1A[2K[2/213] [chromium] › tests\01-auth.spec.ts:19:9 › Authentication › Sign Up › should validate email format
+[1A[2K[3/213] [chromium] › tests\01-auth.spec.ts:34:9 › Authentication › Sign Up › should require password
+[1A[2K[4/213] [chromium] › tests\01-auth.spec.ts:47:10 › Authentication › Sign Up › should create new user account
+[1A[2K[5/213] [chromium] › tests\01-auth.spec.ts:68:9 › Authentication › Login › should show login page
+[1A[2K[6/213] [chromium] › tests\01-auth.spec.ts:74:9 › Authentication › Login › should validate email format on login
+[1A[2K[7/213] [chromium] › tests\01-auth.spec.ts:86:9 › Authentication › Login › should show error for invalid credentials
+[1A[2K[8/213] [chromium] › tests\01-auth.spec.ts:101:9 › Authentication › Login › should login successfully with valid credentials
+[1A[2K[9/213] [chromium] › tests\01-auth.spec.ts:115:9 › Authentication › Logout › should logout successfully
+[1A[2K[10/213] [chromium] › tests\01-auth.spec.ts:138:9 › Authentication › Password Reset › should show forgot password page
+[1A[2K[11/213] [chromium] › tests\01-auth.spec.ts:149:9 › Authentication › Protected Routes › should redirect to login when accessing protected routes without auth
+[1A[2K[12/213] [chromium] › tests\01-auth.spec.ts:155:9 › Authentication › Protected Routes › should access protected routes when authenticated
+[1A[2K[13/213] [chromium] › tests\02-super-admin.spec.ts:27:9 › Super Admin › Access Control › super admin should have access to admin panel
+[1A[2K[14/213] [chromium] › tests\02-super-admin.spec.ts:38:9 › Super Admin › Access Control › regular user should not have access to admin panel
+[1A[2K[15/213] [chromium] › tests\02-super-admin.spec.ts:63:9 › Super Admin › User Management › should show users list
+[1A[2K[16/213] [chromium] › tests\02-super-admin.spec.ts:75:9 › Super Admin › User Management › should create a new standalone user
+[1A[2K[17/213] [chromium] › tests\02-super-admin.spec.ts:108:9 › Super Admin › User Management › should validate required fields when creating user
+[1A[2K[18/213] [chromium] › tests\02-super-admin.spec.ts:130:9 › Super Admin › Organization Wizard › should show organization wizard
+[1A[2K[19/213] [chromium] › tests\02-super-admin.spec.ts:144:9 › Super Admin › Organization Wizard › should create organization with users via wizard
+[1A[2K[20/213] [chromium] › tests\02-super-admin.spec.ts:211:9 › Super Admin › Organization Wizard › should validate organization wizard required fields
+[1A[2K[21/213] [chromium] › tests\02-super-admin.spec.ts:239:9 › Super Admin › System Settings › should show system settings page
+[1A[2K[22/213] [chromium] › tests\02-super-admin.spec.ts:252:9 › Super Admin › Rate Limits › should show rate limits page
+[1A[2K[23/213] [chromium] › tests\03-organization.spec.ts:8:9 › Organization Management › Organization Creation › should show organizations page
+[1A[2K[24/213] [chromium] › tests\03-organization.spec.ts:17:9 › Organization Management › Organization Creation › should create a new organization
+[1A[2K[25/213] [chromium] › tests\03-organization.spec.ts:43:9 › Organization Management › Organization Creation › should validate organization name is required
+[1A[2K[26/213] [chromium] › tests\03-organization.spec.ts:66:9 › Organization Management › Organization Settings › should update organization name
+[1A[2K[27/213] [chromium] › tests\03-organization.spec.ts:114:9 › Organization Management › Member Management › should invite a new member
+[1A[2K[28/213] [chromium] › tests\03-organization.spec.ts:163:9 › Organization Management › Member Management › should show pending invitations
+[1A[2K[29/213] [chromium] › tests\03-organization.spec.ts:204:9 › Organization Management › Organization Dashboard › should show organization dashboard
+[1A[2K[30/213] [chromium] › tests\03-organization.spec.ts:240:9 › Organization Management › Organization Analytics › should show analytics page
+[1A[2K[31/213] [chromium] › tests\03-organization.spec.ts:274:9 › Organization Management › Webhooks › should show webhooks page for owners/admins
+[1A[2K[32/213] [chromium] › tests\03-organization.spec.ts:308:9 › Organization Management › Audit Logs › should show audit logs for owners/admins
+[1A[2K[33/213] [chromium] › tests\04-email.spec.ts:8:9 › Email Functionality › Inbox › should show inbox page
+[1A[2K[34/213] [chromium] › tests\04-email.spec.ts:23:9 › Email Functionality › Inbox › should display email list
+[1A[2K[35/213] [chromium] › tests\04-email.spec.ts:40:9 › Email Functionality › Inbox › should filter emails by unread
+[1A[2K[36/213] [chromium] › tests\04-email.spec.ts:57:9 › Email Functionality › Inbox › should search emails
+[1A[2K[37/213] [chromium] › tests\04-email.spec.ts:76:9 › Email Functionality › Email Viewing › should open email detail view
+[1A[2K[38/213] [chromium] › tests\04-email.spec.ts:94:9 › Email Functionality › Email Viewing › should show email actions
+[1A[2K[39/213] [chromium] › tests\04-email.spec.ts:121:9 › Email Functionality › Email Composition › should show compose button
+[1A[2K[40/213] [chromium] › tests\04-email.spec.ts:131:9 › Email Functionality › Email Composition › should open compose modal
+[1A[2K[41/213] [chromium] › tests\04-email.spec.ts:150:9 › Email Functionality › Email Composition › should validate required fields in compose
+[1A[2K[42/213] [chromium] › tests\04-email.spec.ts:174:9 › Email Functionality › Email Composition › should compose email with AI Compose
+[1A[2K[43/213] [chromium] › tests\04-email.spec.ts:200:9 › Email Functionality › Email Actions › should reply to email
+[1A[2K[44/213] [chromium] › tests\04-email.spec.ts:223:9 › Email Functionality › Email Actions › should mark email as read/unread
+[1A[2K[45/213] [chromium] › tests\04-email.spec.ts:243:9 › Email Functionality › Email Actions › should move email to folder
+[1A[2K[46/213] [chromium] › tests\04-email.spec.ts:267:9 › Email Functionality › Email Actions › should delete email
+[1A[2K[47/213] [chromium] › tests\04-email.spec.ts:291:9 › Email Functionality › Folders › should show folder list
+[1A[2K[48/213] [chromium] › tests\04-email.spec.ts:308:9 › Email Functionality › Folders › should navigate to sent folder
+[1A[2K[49/213] [chromium] › tests\04-email.spec.ts:324:9 › Email Functionality › Folders › should navigate to drafts folder
+[1A[2K[50/213] [chromium] › tests\04-email.spec.ts:342:9 › Email Functionality › Email Account Connection › should show connect email account option
+[1A[2K[51/213] [chromium] › tests\04-email.spec.ts:361:9 › Email Functionality › Email Account Connection › should show email account list in settings
+[1A[2K[52/213] [chromium] › tests\04-email.spec.ts:379:9 › Email Functionality › Email Attachments › should show attachments in email
+[1A[2K[53/213] [chromium] › tests\04-email.spec.ts:399:9 › Email Functionality › Email Attachments › should attach files when composing
+[1A[2K[54/213] [chromium] › tests\05-ai-features.spec.ts:8:9 › AI Features › AI Compose › should show AI Compose option in email composer
+[1A[2K[55/213] [chromium] › tests\05-ai-features.spec.ts:26:9 › AI Features › AI Compose › should open AI Compose modal
+[1A[2K[56/213] [chromium] › tests\05-ai-features.spec.ts:49:9 › AI Features › AI Compose › should validate AI Compose prompt
+[1A[2K[57/213] [chromium] › tests\05-ai-features.spec.ts:79:9 › AI Features › AI Compose › should generate email with AI Compose
+[1A[2K[58/213] [chromium] › tests\05-ai-features.spec.ts:115:9 › AI Features › AI Compose › should allow editing AI generated content
+[1A[2K[59/213] [chromium] › tests\05-ai-features.spec.ts:158:9 › AI Features › AI Remix › should show AI Remix option for existing emails
+[1A[2K[60/213] [chromium] › tests\05-ai-features.spec.ts:177:9 › AI Features › AI Remix › should open AI Remix modal when replying
+[1A[2K[61/213] [chromium] › tests\05-ai-features.spec.ts:207:9 › AI Features › AI Remix › should offer tone options in AI Remix
+[1A[2K[62/213] [chromium] › tests\05-ai-features.spec.ts:245:9 › AI Features › AI Remix › should remix email with selected tone
+[1A[2K[63/213] [chromium] › tests\05-ai-features.spec.ts:282:9 › AI Features › AI Dictate › should show AI Dictate option in composer
+[1A[2K[64/213] [chromium] › tests\05-ai-features.spec.ts:301:9 › AI Features › AI Dictate › should request microphone permissions for AI Dictate
+[1A[2K[65/213] [chromium] › tests\05-ai-features.spec.ts:327:9 › AI Features › AI Dictate › should stop AI Dictate recording
+[1A[2K[66/213] [chromium] › tests\05-ai-features.spec.ts:359:9 › AI Features › AI Smart Replies › should show AI suggested replies
+[1A[2K[67/213] [chromium] › tests\05-ai-features.spec.ts:384:9 › AI Features › AI Smart Replies › should use AI suggested reply
+[1A[2K[68/213] [chromium] › tests\05-ai-features.spec.ts:409:9 › AI Features › AI Summary › should show AI email summary
+[1A[2K[69/213] [chromium] › tests\05-ai-features.spec.ts:433:9 › AI Features › AI Summary › should show AI thread summary
+[1A[2K[70/213] [chromium] › tests\05-ai-features.spec.ts:454:9 › AI Features › AI Settings › should show AI features in settings
+[1A[2K[71/213] [chromium] › tests\05-ai-features.spec.ts:472:9 › AI Features › AI Settings › should toggle AI features on/off
+[1A[2K[72/213] [chromium] › tests\06-calendar.spec.ts:8:9 › Calendar › Calendar Views › should show calendar page
+[1A[2K[73/213] [chromium] › tests\06-calendar.spec.ts:26:9 › Calendar › Calendar Views › should switch to day view
+[1A[2K[74/213] [chromium] › tests\06-calendar.spec.ts:42:9 › Calendar › Calendar Views › should switch to week view
+[1A[2K[75/213] [chromium] › tests\06-calendar.spec.ts:58:9 › Calendar › Calendar Views › should switch to month view
+[1A[2K[76/213] [chromium] › tests\06-calendar.spec.ts:74:9 › Calendar › Calendar Views › should switch to agenda view
+[1A[2K[77/213] [chromium] › tests\06-calendar.spec.ts:92:9 › Calendar › Calendar Navigation › should navigate to next period
+[1A[2K[78/213] [chromium] › tests\06-calendar.spec.ts:108:9 › Calendar › Calendar Navigation › should navigate to previous period
+[1A[2K[79/213] [chromium] › tests\06-calendar.spec.ts:124:9 › Calendar › Calendar Navigation › should navigate to today
+[1A[2K[80/213] [chromium] › tests\06-calendar.spec.ts:142:9 › Calendar › Event Creation › should show create event button
+[1A[2K[81/213] [chromium] › tests\06-calendar.spec.ts:152:9 › Calendar › Event Creation › should open create event modal
+[1A[2K[82/213] [chromium] › tests\06-calendar.spec.ts:169:9 › Calendar › Event Creation › should validate required fields when creating event
+[1A[2K[83/213] [chromium] › tests\06-calendar.spec.ts:193:9 › Calendar › Event Creation › should create a new event
+[1A[2K[84/213] [chromium] › tests\06-calendar.spec.ts:222:9 › Calendar › Event Creation › should create event with description
+[1A[2K[85/213] [chromium] › tests\06-calendar.spec.ts:254:9 › Calendar › Event Creation › should create event with location
+[1A[2K[86/213] [chromium] › tests\06-calendar.spec.ts:288:9 › Calendar › Event Viewing › should display events on calendar
+[1A[2K[87/213] [chromium] › tests\06-calendar.spec.ts:305:9 › Calendar › Event Viewing › should open event detail modal
+[1A[2K[88/213] [chromium] › tests\06-calendar.spec.ts:322:9 › Calendar › Event Viewing › should show event details in modal
+[1A[2K[89/213] [chromium] › tests\06-calendar.spec.ts:343:9 › Calendar › Event Actions › should show RSVP buttons for meeting invites
+[1A[2K[90/213] [chromium] › tests\06-calendar.spec.ts:370:9 › Calendar › Event Actions › should show Join Now button for ongoing meetings
+[1A[2K[91/213] [chromium] › tests\06-calendar.spec.ts:389:9 › Calendar › Event Actions › should edit event
+[1A[2K[92/213] [chromium] › tests\06-calendar.spec.ts:412:9 › Calendar › Event Actions › should delete event
+[1A[2K[93/213] [chromium] › tests\06-calendar.spec.ts:436:9 › Calendar › Calendar Search › should show search input
+[1A[2K[94/213] [chromium] › tests\06-calendar.spec.ts:448:9 › Calendar › Calendar Search › should search for events
+[1A[2K[95/213] [chromium] › tests\06-calendar.spec.ts:466:9 › Calendar › Calendar Filters › should show calendar source filters
+[1A[2K[96/213] [chromium] › tests\06-calendar.spec.ts:492:9 › Calendar › Calendar Filters › should toggle calendar visibility
+[1A[2K[97/213] [chromium] › tests\06-calendar.spec.ts:517:9 › Calendar › Meeting Analytics › should show meeting analytics dashboard
+[1A[2K[98/213] [chromium] › tests\06-calendar.spec.ts:537:9 › Calendar › Conflict Detection › should show conflict indicator for overlapping events
+[1A[2K[99/213] [chromium] › tests\06-calendar.spec.ts:550:9 › Calendar › Conflict Detection › should warn when creating conflicting event
+[1A[2K[100/213] [chromium] › tests\06-calendar.spec.ts:576:9 › Calendar › Time Zone Support › should show time zone information
+[1A[2K[101/213] [chromium] › tests\07-contacts.spec.ts:8:9 › Contacts › Contact List › should show contacts page
+[1A[2K[102/213] [chromium] › tests\07-contacts.spec.ts:21:9 › Contacts › Contact List › should display contact list or empty state
+[1A[2K[103/213] [chromium] › tests\07-contacts.spec.ts:38:9 › Contacts › Contact List › should show contact count
+[1A[2K[104/213] [chromium] › tests\07-contacts.spec.ts:53:9 › Contacts › Contact Creation › should show create contact button
+[1A[2K[105/213] [chromium] › tests\07-contacts.spec.ts:63:9 › Contacts › Contact Creation › should open create contact modal
+[1A[2K[106/213] [chromium] › tests\07-contacts.spec.ts:82:9 › Contacts › Contact Creation › should create a new contact
+[1A[2K[107/213] [chromium] › tests\07-contacts.spec.ts:117:9 › Contacts › Contact Creation › should validate email format when creating contact
+[1A[2K[108/213] [chromium] › tests\07-contacts.spec.ts:150:9 › Contacts › Contact Creation › should create contact with phone number
+[1A[2K[109/213] [chromium] › tests\07-contacts.spec.ts:182:9 › Contacts › Contact Creation › should create contact with company
+[1A[2K[110/213] [chromium] › tests\07-contacts.spec.ts:216:9 › Contacts › Contact Viewing › should view contact details
+[1A[2K[111/213] [chromium] › tests\07-contacts.spec.ts:233:9 › Contacts › Contact Viewing › should show contact email in details
+[1A[2K[112/213] [chromium] › tests\07-contacts.spec.ts:252:9 › Contacts › Contact Viewing › should show contact phone in details
+[1A[2K[113/213] [chromium] › tests\07-contacts.spec.ts:273:9 › Contacts › Contact Editing › should edit contact
+[1A[2K[114/213] [chromium] › tests\07-contacts.spec.ts:296:9 › Contacts › Contact Editing › should update contact name
+[1A[2K[115/213] [chromium] › tests\07-contacts.spec.ts:332:9 › Contacts › Contact Deletion › should delete contact
+[1A[2K[116/213] [chromium] › tests\07-contacts.spec.ts:362:9 › Contacts › Contact Search › should show search input
+[1A[2K[117/213] [chromium] › tests\07-contacts.spec.ts:374:9 › Contacts › Contact Search › should search contacts by name
+[1A[2K[118/213] [chromium] › tests\07-contacts.spec.ts:390:9 › Contacts › Contact Search › should search contacts by email
+[1A[2K[119/213] [chromium] › tests\07-contacts.spec.ts:408:9 › Contacts › Contact Actions › should compose email to contact
+[1A[2K[120/213] [chromium] › tests\07-contacts.spec.ts:431:9 › Contacts › Contact Actions › should send SMS to contact
+[1A[2K[121/213] [chromium] › tests\07-contacts.spec.ts:453:9 › Contacts › Contact Actions › should call contact
+[1A[2K[122/213] [chromium] › tests\07-contacts.spec.ts:474:9 › Contacts › Contact Import/Export › should show import contacts option
+[1A[2K[123/213] [chromium] › tests\07-contacts.spec.ts:487:9 › Contacts › Contact Import/Export › should show export contacts option
+[1A[2K[124/213] [chromium] › tests\07-contacts.spec.ts:502:9 › Contacts › Contact Groups › should show contact groups or tags
+[1A[2K[125/213] [chromium] › tests\07-contacts.spec.ts:515:9 › Contacts › Contact Groups › should filter contacts by group
+[1A[2K[126/213] [chromium] › tests\07-contacts.spec.ts:533:9 › Contacts › Contact Sync › should show sync status
+[1A[2K[127/213] [chromium] › tests\07-contacts.spec.ts:546:9 › Contacts › Contact Sync › should manually sync contacts
+[1A[2K[128/213] [chromium] › tests\08-settings.spec.ts:6:9 › Settings › Settings Navigation › should show settings page
+[1A[2K[129/213] [chromium] › tests\08-settings.spec.ts:19:9 › Settings › Settings Navigation › should show settings navigation menu
+[1A[2K[130/213] [chromium] › tests\08-settings.spec.ts:38:9 › Settings › Profile Settings › should show profile settings
+[1A[2K[131/213] [chromium] › tests\08-settings.spec.ts:55:9 › Settings › Profile Settings › should update profile name
+[1A[2K[132/213] [chromium] › tests\08-settings.spec.ts:84:9 › Settings › Profile Settings › should update profile picture
+[1A[2K[133/213] [chromium] › tests\08-settings.spec.ts:105:9 › Settings › Email Account Settings › should show email accounts page
+[1A[2K[134/213] [chromium] › tests\08-settings.spec.ts:121:9 › Settings › Email Account Settings › should show connected email accounts
+[1A[2K[135/213] [chromium] › tests\08-settings.spec.ts:137:9 › Settings › Email Account Settings › should show connect email account button
+[1A[2K[136/213] [chromium] › tests\08-settings.spec.ts:153:9 › Settings › Email Account Settings › should set primary email account
+[1A[2K[137/213] [chromium] › tests\08-settings.spec.ts:176:9 › Settings › Email Account Settings › should disconnect email account
+[1A[2K[138/213] [chromium] › tests\08-settings.spec.ts:206:9 › Settings › Notification Settings › should show notification settings
+[1A[2K[139/213] [chromium] › tests\08-settings.spec.ts:222:9 › Settings › Notification Settings › should toggle email notifications
+[1A[2K[140/213] [chromium] › tests\08-settings.spec.ts:245:9 › Settings › Notification Settings › should configure notification preferences
+[1A[2K[141/213] [chromium] › tests\08-settings.spec.ts:272:9 › Settings › Privacy Settings › should show privacy settings
+[1A[2K[142/213] [chromium] › tests\08-settings.spec.ts:288:9 › Settings › Privacy Settings › should change password
+[1A[2K[143/213] [chromium] › tests\08-settings.spec.ts:311:9 › Settings › Privacy Settings › should show two-factor authentication option
+[1A[2K[144/213] [chromium] › tests\08-settings.spec.ts:332:9 › Settings › Appearance Settings › should show appearance settings
+[1A[2K[145/213] [chromium] › tests\08-settings.spec.ts:348:9 › Settings › Appearance Settings › should toggle dark mode
+[1A[2K[146/213] [chromium] › tests\08-settings.spec.ts:370:9 › Settings › Appearance Settings › should change font size
+[1A[2K[147/213] [chromium] › tests\08-settings.spec.ts:391:9 › Settings › Language Settings › should show language settings
+[1A[2K[148/213] [chromium] › tests\08-settings.spec.ts:407:9 › Settings › Language Settings › should change language
+[1A[2K[149/213] [chromium] › tests\08-settings.spec.ts:431:9 › Settings › Integration Settings › should show integrations page
+[1A[2K[150/213] [chromium] › tests\08-settings.spec.ts:447:9 › Settings › Integration Settings › should show available integrations
+[1A[2K[151/213] [chromium] › tests\08-settings.spec.ts:472:9 › Settings › Integration Settings › should connect integration
+[1A[2K[152/213] [chromium] › tests\08-settings.spec.ts:493:9 › Settings › Billing Settings › should show billing page
+[1A[2K[153/213] [chromium] › tests\08-settings.spec.ts:509:9 › Settings › Billing Settings › should show current plan
+[1A[2K[154/213] [chromium] › tests\08-settings.spec.ts:526:9 › Settings › Billing Settings › should show upgrade button
+[1A[2K[155/213] [chromium] › tests\08-settings.spec.ts:544:9 › Settings › Billing Settings › should show payment methods
+[1A[2K[156/213] [chromium] › tests\08-settings.spec.ts:563:9 › Settings › Billing Settings › should show billing history
+[1A[2K[157/213] [chromium] › tests\08-settings.spec.ts:584:9 › Settings › Data & Storage › should show data management options
+[1A[2K[158/213] [chromium] › tests\08-settings.spec.ts:600:9 › Settings › Data & Storage › should show storage usage
+[1A[2K[159/213] [chromium] › tests\08-settings.spec.ts:619:9 › Settings › Data & Storage › should show export data option
+[1A[2K[160/213] [chromium] › tests\08-settings.spec.ts:637:9 › Settings › Data & Storage › should show delete account option
+[1A[2K[161/213] [chromium] › tests\08-settings.spec.ts:657:9 › Settings › Advanced Settings › should show advanced settings
+[1A[2K[162/213] [chromium] › tests\08-settings.spec.ts:673:9 › Settings › Advanced Settings › should show developer options
+[1A[2K[163/213] [chromium] › tests\09-help.spec.ts:8:9 › Help Center › Help Navigation › should show help center page
+[1A[2K[164/213] [chromium] › tests\09-help.spec.ts:21:9 › Help Center › Help Navigation › should access help from navigation menu
+[1A[2K[165/213] [chromium] › tests\09-help.spec.ts:38:9 › Help Center › Help Navigation › should show help button in header
+[1A[2K[166/213] [chromium] › tests\09-help.spec.ts:53:9 › Help Center › Help Search › should show search input in help center
+[1A[2K[167/213] [chromium] › tests\09-help.spec.ts:63:9 › Help Center › Help Search › should search help articles
+[1A[2K[168/213] [chromium] › tests\09-help.spec.ts:80:9 › Help Center › Help Search › should show no results message for invalid search
+[1A[2K[169/213] [chromium] › tests\09-help.spec.ts:99:9 › Help Center › Help Categories › should show help categories
+[1A[2K[170/213] [chromium] › tests\09-help.spec.ts:118:9 › Help Center › Help Categories › should navigate to category
+[1A[2K[171/213] [chromium] › tests\09-help.spec.ts:134:9 › Help Center › Help Categories › should show articles in category
+[1A[2K[172/213] [chromium] › tests\09-help.spec.ts:153:9 › Help Center › Help Articles › should view help article
+[1A[2K[173/213] [chromium] › tests\09-help.spec.ts:170:9 › Help Center › Help Articles › should show article title and content
+[1A[2K[174/213] [chromium] › tests\09-help.spec.ts:187:9 › Help Center › Help Articles › should show related articles
+[1A[2K[175/213] [chromium] › tests\09-help.spec.ts:206:9 › Help Center › Help Articles › should navigate between articles
+[1A[2K[176/213] [chromium] › tests\09-help.spec.ts:231:9 › Help Center › Article Feedback › should show article helpful feedback
+[1A[2K[177/213] [chromium] › tests\09-help.spec.ts:256:9 › Help Center › Article Feedback › should submit article feedback
+[1A[2K[178/213] [chromium] › tests\09-help.spec.ts:281:9 › Help Center › Getting Started Guides › should show getting started section
+[1A[2K[179/213] [chromium] › tests\09-help.spec.ts:293:9 › Help Center › Getting Started Guides › should view getting started guide
+[1A[2K[180/213] [chromium] › tests\09-help.spec.ts:311:9 › Help Center › Video Tutorials › should show video tutorials section
+[1A[2K[181/213] [chromium] › tests\09-help.spec.ts:324:9 › Help Center › Video Tutorials › should play video tutorial
+[1A[2K[182/213] [chromium] › tests\09-help.spec.ts:345:9 › Help Center › FAQs › should show FAQ section
+[1A[2K[183/213] [chromium] › tests\09-help.spec.ts:357:9 › Help Center › FAQs › should expand FAQ item
+[1A[2K[184/213] [chromium] › tests\09-help.spec.ts:375:9 › Help Center › Contact Support › should show contact support button
+[1A[2K[185/213] [chromium] › tests\09-help.spec.ts:387:9 › Help Center › Contact Support › should open contact support form
+[1A[2K[186/213] [chromium] › tests\09-help.spec.ts:406:9 › Help Center › Contact Support › should submit support request
+[1A[2K[187/213] [chromium] › tests\09-help.spec.ts:442:9 › Help Center › Live Chat › should show live chat widget
+[1A[2K[188/213] [chromium] › tests\09-help.spec.ts:455:9 › Help Center › Live Chat › should open live chat
+[1A[2K[189/213] [chromium] › tests\09-help.spec.ts:473:9 › Help Center › Documentation Navigation › should show documentation breadcrumbs
+[1A[2K[190/213] [chromium] › tests\09-help.spec.ts:492:9 › Help Center › Documentation Navigation › should navigate back to help home
+[1A[2K[191/213] [chromium] › tests\09-help.spec.ts:517:9 › Help Center › Keyboard Shortcuts Help › should show keyboard shortcuts guide
+[1A[2K[192/213] [chromium] › tests\09-help.spec.ts:533:9 › Help Center › Keyboard Shortcuts Help › should open shortcuts modal with ?
+[1A[2K[193/213] [chromium] › tests\09-help.spec.ts:552:9 › Help Center › System Status › should show system status link
+[1A[2K[194/213] [chromium] › tests\10-attachments.spec.ts:6:9 › Attachments › Navigation and Access › should show attachments link in sidebar
+[1A[2K[195/213] [chromium] › tests\10-attachments.spec.ts:19:9 › Attachments › Navigation and Access › should navigate to attachments page
+[1A[2K[196/213] [chromium] › tests\10-attachments.spec.ts:36:9 › Attachments › Navigation and Access › should show attachments page header
+[1A[2K[197/213] [chromium] › tests\10-attachments.spec.ts:51:9 › Attachments › Stats Display › should show stats cards
+[1A[2K[198/213] [chromium] › tests\10-attachments.spec.ts:72:9 › Attachments › Stats Display › should show numeric values in stats
+[1A[2K[199/213] [chromium] › tests\10-attachments.spec.ts:88:9 › Attachments › Search Functionality › should show search input
+[1A[2K[200/213] [chromium] › tests\10-attachments.spec.ts:101:9 › Attachments › Search Functionality › should allow typing in search
+[1A[2K[201/213] [chromium] › tests\10-attachments.spec.ts:117:9 › Attachments › Search Functionality › should have search button
+[1A[2K[202/213] [chromium] › tests\10-attachments.spec.ts:132:9 › Attachments › File Type Filters › should show file type filter buttons
+[1A[2K[203/213] [chromium] › tests\10-attachments.spec.ts:151:9 › Attachments › File Type Filters › should be able to click filter buttons
+[1A[2K[204/213] [chromium] › tests\10-attachments.spec.ts:168:9 › Attachments › File Type Filters › should show all filter types
+[1A[2K[205/213] [chromium] › tests\10-attachments.spec.ts:191:9 › Attachments › Refresh Functionality › should show refresh button
+[1A[2K[206/213] [chromium] › tests\10-attachments.spec.ts:204:9 › Attachments › Refresh Functionality › should be able to click refresh
+[1A[2K[207/213] [chromium] › tests\10-attachments.spec.ts:222:9 › Attachments › Empty State › should show empty state or attachments list
+[1A[2K[208/213] [chromium] › tests\10-attachments.spec.ts:239:9 › Attachments › Empty State › should show paperclip icon in empty state
+[1A[2K[209/213] [chromium] › tests\10-attachments.spec.ts:258:9 › Attachments › Attachment Cards › should show attachment cards if attachments exist
+[1A[2K[210/213] [chromium] › tests\10-attachments.spec.ts:273:9 › Attachments › Attachment Cards › should show download buttons on attachment cards
+[1A[2K[211/213] [chromium] › tests\10-attachments.spec.ts:289:9 › Attachments › Loading State › should show page content after loading
+[1A[2K[212/213] [chromium] › tests\10-attachments.spec.ts:309:9 › Attachments › Responsive Design › should render on mobile viewport
+[1A[2K[213/213] [chromium] › tests\10-attachments.spec.ts:325:9 › Attachments › Responsive Design › should render on tablet viewport
+[1A[2K  1 skipped
+  212 passed (21.1m)
