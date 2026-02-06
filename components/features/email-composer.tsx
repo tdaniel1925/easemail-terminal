@@ -102,6 +102,10 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
   const [suggestedSubject, setSuggestedSubject] = useState('');
   const [pendingBody, setPendingBody] = useState('');
 
+  // AI Remix modal state
+  const [showRemixModal, setShowRemixModal] = useState(false);
+  const [remixTone, setRemixTone] = useState<'professional' | 'casual' | 'formal'>('professional');
+
   // New feature states
   const [priority, setPriority] = useState<'normal' | 'high' | 'low'>('normal');
   const [requestReadReceipt, setRequestReadReceipt] = useState(false);
@@ -469,18 +473,23 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     }
   });
 
-  const handleAIRemix = async () => {
+  const handleAIRemix = () => {
     if (!body || body.length < 10) {
       toast.error('Please write at least 10 characters to remix');
       return;
     }
+    setShowRemixModal(true);
+  };
 
+  const performRemix = async () => {
     try {
       setRemixing(true);
+      setShowRemixModal(false);
+
       const response = await fetch('/api/ai/remix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: body, tone }),
+        body: JSON.stringify({ text: body, tone: remixTone }),
       });
 
       const data = await response.json();
@@ -1520,6 +1529,122 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                 <li>• Values are extracted from the first recipient's contact info</li>
                 <li>• Great for personalized email campaigns and templates</li>
               </ul>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* AI Remix Tone Selection Dialog */}
+      {showRemixModal && (
+        <Dialog open={showRemixModal} onOpenChange={setShowRemixModal}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                AI Remix - Choose Tone
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 mt-4">
+              <p className="text-sm text-muted-foreground">
+                Select the tone you'd like for your remixed email:
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => setRemixTone('professional')}
+                  className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
+                    remixTone === 'professional'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                      : 'border-border hover:border-blue-300 hover:bg-accent'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {remixTone === 'professional' && (
+                      <div className="mt-0.5">
+                        <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-base">Professional</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Clear, formal, and business-appropriate language
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setRemixTone('casual')}
+                  className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
+                    remixTone === 'casual'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                      : 'border-border hover:border-blue-300 hover:bg-accent'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {remixTone === 'casual' && (
+                      <div className="mt-0.5">
+                        <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-base">Casual</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Friendly, conversational, and approachable tone
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setRemixTone('formal')}
+                  className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
+                    remixTone === 'formal'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20'
+                      : 'border-border hover:border-blue-300 hover:bg-accent'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {remixTone === 'formal' && (
+                      <div className="mt-0.5">
+                        <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-white" />
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-base">Formal</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Highly professional, polished, and respectful language
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button variant="ghost" onClick={() => setShowRemixModal(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={performRemix} disabled={remixing}>
+                  {remixing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Remixing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Remix with {remixTone} tone
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

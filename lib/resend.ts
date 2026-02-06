@@ -4,8 +4,8 @@ import { Resend } from 'resend';
 // Initialize Resend with API key
 export const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Default sender email
-export const DEFAULT_FROM_EMAIL = 'EaseMail <noreply@easemail.com>';
+// Default sender email (using verified botmakers.ai domain)
+export const DEFAULT_FROM_EMAIL = 'EaseMail <noreply@botmakers.ai>';
 
 // Email sending helper with error handling
 export async function sendEmail({

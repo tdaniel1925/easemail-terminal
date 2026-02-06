@@ -43,6 +43,16 @@ export async function rateLimit(
   request: NextRequest,
   config: RateLimitConfig
 ): Promise<{ success: boolean; limit: number; remaining: number; reset: number }> {
+  // Disable rate limiting in test/development environment
+  if (process.env.NODE_ENV === 'test' || process.env.DISABLE_RATE_LIMIT === 'true') {
+    return {
+      success: true,
+      limit: config.maxRequests,
+      remaining: config.maxRequests,
+      reset: Date.now() + config.windowSeconds * 1000,
+    };
+  }
+
   const client = getRedisClient();
 
   // If Redis is not available, allow the request but log warning

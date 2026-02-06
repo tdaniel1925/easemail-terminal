@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Search,
   Mail,
@@ -26,6 +28,8 @@ import {
   Webhook,
   Building2,
   UserPlus,
+  X,
+  Send,
 } from 'lucide-react';
 
 interface HelpTopic {
@@ -2281,6 +2285,8 @@ export default function HelpPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<HelpTopic | null>(null);
   const [userRole, setUserRole] = useState<'all' | 'admin' | 'super-admin'>('all');
+  const [showChat, setShowChat] = useState(false);
+  const [chatMessage, setChatMessage] = useState('');
 
   useEffect(() => {
     // Fetch user role from API
@@ -2469,6 +2475,114 @@ export default function HelpPage() {
           )}
         </div>
       </div>
+
+      {/* Floating Chat Button */}
+      <Button
+        onClick={() => setShowChat(true)}
+        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-shadow z-50"
+        size="icon"
+        aria-label="Chat with us"
+      >
+        <MessageSquare className="h-6 w-6" />
+      </Button>
+
+      {/* Chat Widget Dialog */}
+      <Dialog open={showChat} onOpenChange={setShowChat}>
+        <DialogContent className="max-w-md h-[600px] flex flex-col p-0" data-testid="chat-widget">
+          <DialogHeader className="p-6 pb-4 border-b">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                  <MessageSquare className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <DialogTitle>Chat with Support</DialogTitle>
+                  <p className="text-sm text-muted-foreground">We typically reply within minutes</p>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/20">
+            {/* Welcome Message */}
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-primary flex-shrink-0 flex items-center justify-center">
+                <MessageSquare className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <div className="flex-1">
+                <div className="bg-background rounded-lg p-3 shadow-sm">
+                  <p className="text-sm">
+                    Hi! 👋 I'm here to help you with any questions about EaseMail. What can I assist you with today?
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Just now</p>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground px-2">Quick Questions:</p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    setChatMessage('How do I connect my email account?');
+                  }}
+                  className="w-full text-left px-4 py-3 bg-background rounded-lg hover:bg-accent transition-colors text-sm"
+                >
+                  How do I connect my email account?
+                </button>
+                <button
+                  onClick={() => {
+                    setChatMessage('How do I use AI features?');
+                  }}
+                  className="w-full text-left px-4 py-3 bg-background rounded-lg hover:bg-accent transition-colors text-sm"
+                >
+                  How do I use AI features?
+                </button>
+                <button
+                  onClick={() => {
+                    setChatMessage('How do I manage my organization?');
+                  }}
+                  className="w-full text-left px-4 py-3 bg-background rounded-lg hover:bg-accent transition-colors text-sm"
+                >
+                  How do I manage my organization?
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 border-t bg-background">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Type your message..."
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && chatMessage.trim()) {
+                    // In a real implementation, this would send the message
+                    setChatMessage('');
+                  }
+                }}
+                className="flex-1"
+              />
+              <Button
+                size="icon"
+                onClick={() => {
+                  if (chatMessage.trim()) {
+                    // In a real implementation, this would send the message
+                    setChatMessage('');
+                  }
+                }}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Our team usually responds within a few minutes
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

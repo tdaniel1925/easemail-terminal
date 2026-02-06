@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CreateEventDialog } from '@/components/features/create-event-dialog';
-import { BackButton } from '@/components/ui/back-button';
 import { toast } from 'sonner';
 
 export default function CalendarPage() {
@@ -270,11 +269,6 @@ export default function CalendarPage() {
 
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 h-full flex flex-col">
-      {/* Back Button */}
-      <div className="mb-4">
-        <BackButton href="/app/inbox" />
-      </div>
-
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

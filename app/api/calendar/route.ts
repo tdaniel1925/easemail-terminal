@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
       .single()) as { data: any };
 
     if (!account) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+      // Return empty events array instead of error for better UX
+      return NextResponse.json({ events: [], message: 'No email account connected' });
     }
 
     // Fetch events from Nylas
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
       .single()) as { data: any };
 
     if (!account) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+      return NextResponse.json({ error: 'No email account connected. Please connect an email account first.' }, { status: 400 });
     }
 
     // Create event via Nylas

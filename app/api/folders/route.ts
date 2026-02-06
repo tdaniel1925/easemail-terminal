@@ -37,7 +37,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (!account) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+      // Return empty folders array instead of error for better UX
+      return NextResponse.json({ folders: [], message: 'No email account connected' });
     }
 
     const grantId = account.grant_id;

@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   PenSquare, Inbox, Send, Star, Trash2, Archive, Clock, Menu,
-  Tag, Settings, BarChart3, HelpCircle
+  Tag, Settings, BarChart3, HelpCircle, Paperclip
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -155,8 +155,9 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               { icon: Clock, label: 'Snoozed', href: '/app/inbox?filter=snoozed', countKey: 'snoozed' },
               { icon: Archive, label: 'Archive', href: '/app/inbox?filter=archive', countKey: 'archive' },
               { icon: Trash2, label: 'Trash', href: '/app/inbox?filter=trash', countKey: 'trash' },
+              { icon: Paperclip, label: 'Attachments', href: '/app/attachments', countKey: null },
             ].map((item) => {
-              const count = folderCounts[item.countKey as keyof typeof folderCounts];
+              const count = item.countKey ? folderCounts[item.countKey as keyof typeof folderCounts] : 0;
               return (
                 <Link key={item.label} href={item.href}>
                   <button
@@ -168,7 +169,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
                       <item.icon className="h-5 w-5" />
                       <span className="text-sm">{item.label}</span>
                     </div>
-                    {count > 0 && (
+                    {item.countKey && count > 0 && (
                       <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs shrink-0">
                         {count > 99 ? '99+' : count}
                       </Badge>

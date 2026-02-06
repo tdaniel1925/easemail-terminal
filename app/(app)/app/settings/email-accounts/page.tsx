@@ -160,7 +160,7 @@ export default function EmailAccountsSettingsPage() {
 
       {/* Connected Accounts */}
       {accounts.length === 0 ? (
-        <Card>
+        <Card data-testid="email-accounts-empty">
           <CardContent className="flex flex-col items-center justify-center h-64">
             <Mail className="h-16 w-16 text-muted-foreground mb-4" />
             <h3 className="font-semibold text-lg mb-2">No email accounts connected</h3>
@@ -174,7 +174,7 @@ export default function EmailAccountsSettingsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4" data-testid="email-accounts-list">
           {accounts.map((account) => (
             <Card key={account.id}>
               <CardContent className="flex items-center justify-between p-6">
