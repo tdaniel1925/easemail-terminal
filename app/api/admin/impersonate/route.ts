@@ -1,29 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // Get session from cookie
-    const sessionCookie = cookieStore.get('sb-access-token');
-    if (!sessionCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const supabase = await createClient();
 
     // Get user from session
-    const { data: { user }, error: userError } = await supabase.auth.getUser(sessionCookie.value);
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Create service client for database operations
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Check if user is super admin
-    const { data: userProfile } = await supabase
+    const { data: userProfile } = await serviceClient
       .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
@@ -40,13 +36,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify target user exists
-    const { data: targetUser, error: targetError } = await supabase.auth.admin.getUserById(targetUserId);
+    const { data: targetUser, error: targetError } = await serviceClient.auth.admin.getUserById(targetUserId);
     if (targetError || !targetUser) {
       return NextResponse.json({ error: 'Target user not found' }, { status: 404 });
     }
 
     // Create impersonate session record for audit trail
-    const { error: sessionError } = await supabase
+    const { error: sessionError } = await serviceClient
       .from('impersonate_sessions')
       .insert({
         super_admin_id: user.id,
@@ -61,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate a new session for the target user
-    const { data: sessionData, error: linkError } = await supabase.auth.admin.generateLink({
+    const { data: sessionData, error: linkError } = await serviceClient.auth.admin.generateLink({
       type: 'magiclink',
       email: targetUser.user.email!,
     });
@@ -89,26 +85,22 @@ export async function POST(request: NextRequest) {
 // End impersonation session
 export async function DELETE(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // Get session from cookie
-    const sessionCookie = cookieStore.get('sb-access-token');
-    if (!sessionCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const supabase = await createClient();
 
     // Get user from session
-    const { data: { user }, error: userError } = await supabase.auth.getUser(sessionCookie.value);
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Create service client for database operations
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Find active impersonate session
-    const { data: sessions } = await supabase
+    const { data: sessions } = await serviceClient
       .from('impersonate_sessions')
       .select('*')
       .or(`super_admin_id.eq.${user.id},impersonated_user_id.eq.${user.id}`)
@@ -118,7 +110,7 @@ export async function DELETE(request: NextRequest) {
 
     if (sessions && sessions.length > 0) {
       // Mark session as ended
-      await supabase
+      await serviceClient
         .from('impersonate_sessions')
         .update({ ended_at: new Date().toISOString() })
         .eq('id', sessions[0].id);
@@ -134,26 +126,22 @@ export async function DELETE(request: NextRequest) {
 // Get impersonate sessions for audit
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
-
-    // Get session from cookie
-    const sessionCookie = cookieStore.get('sb-access-token');
-    if (!sessionCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const supabase = await createClient();
 
     // Get user from session
-    const { data: { user }, error: userError } = await supabase.auth.getUser(sessionCookie.value);
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Create service client for database operations
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Check if user is super admin
-    const { data: userProfile } = await supabase
+    const { data: userProfile } = await serviceClient
       .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
@@ -164,7 +152,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch impersonate sessions
-    const { data: sessions, error } = await supabase
+    const { data: sessions, error } = await serviceClient
       .from('impersonate_sessions')
       .select('*')
       .order('started_at', { ascending: false })
