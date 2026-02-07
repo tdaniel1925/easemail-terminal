@@ -2921,7 +2921,7 @@ Best Time: Beginning of Q2 (prorated charges)
 1. Ask recipient to check spam/junk folder
 2. Verify email address is correct
 3. Resend invitation
-4. Ask recipient to whitelist `@easemail.com` or `@resend.dev`
+4. Ask recipient to whitelist `@easemail.app` or `@resend.dev`
 5. Contact recipient's IT department
 
 ---
@@ -3101,7 +3101,7 @@ Best Time: Beginning of Q2 (prorated charges)
 
 **Solutions:**
 1. **Check Browser Popup Blocker:**
-   - Allow popups for easemail.com
+   - Allow popups for easemail.app
    - Try again
 
 2. **Clear Browser Cache:**
@@ -3234,18 +3234,18 @@ A: No, webhook payloads are standardized. However, you can select which events t
 
 **Help Center:**
 - In-app: Click "Help" in sidebar
-- Web: https://easemail.com/help
+- Web: https://easemail.app/help
 
 **Contact Support:**
-- Email: support@easemail.com
+- Email: support@easemail.app
 - Response Time: < 24 hours (PRO/BUSINESS/ENTERPRISE)
 
 **Community:**
 - Discord: https://discord.gg/easemail
-- Forum: https://community.easemail.com
+- Forum: https://community.easemail.app
 
 **Status Page:**
-- https://status.easemail.com
+- https://status.easemail.app
 - Real-time system status
 - Incident history
 
@@ -3280,7 +3280,7 @@ A: No, webhook payloads are standardized. However, you can select which events t
 **Applies to EaseMail Version:** 1.0+
 **Intended Audience:** Organization Administrators (OWNER & ADMIN roles)
 **Document Owner:** EaseMail Product Team
-**Feedback:** docs@easemail.com
+**Feedback:** docs@easemail.app
 
 ---
 

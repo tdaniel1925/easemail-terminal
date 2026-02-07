@@ -63,7 +63,7 @@ export function getNotificationEmailHtml({
               ` : ''}
 
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
-                If you have any questions, feel free to reply to this email or visit our <a href="https://easemail.com/contact" style="color: #3b82f6; text-decoration: none;">help center</a>.
+                If you have any questions, feel free to reply to this email or visit our <a href="https://easemail.app/contact" style="color: #3b82f6; text-decoration: none;">help center</a>.
               </p>
 
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;">

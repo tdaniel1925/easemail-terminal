@@ -19,7 +19,7 @@ For Organization Owners & Administrators
 ---
 
 *© 2026 EaseMail. All rights reserved.*
-*support@easemail.com*
+*support@easemail.app*
 
 </div>
 
@@ -515,7 +515,7 @@ Subject: You're Invited to Join [Organization]
 1. Check spam/junk folder (80% of cases)
 2. Verify email address spelling
 3. Resend invitation
-4. Ask recipient to whitelist @easemail.com
+4. Ask recipient to whitelist @easemail.app
 
 **No Seats Available:**
 1. Remove inactive member (frees seat)
@@ -1038,7 +1038,7 @@ Organization → [Select Org] → Settings
 1. Check spam folder
 2. Verify email spelling
 3. Resend invitation
-4. Ask to whitelist @easemail.com
+4. Ask to whitelist @easemail.app
 
 **Problem:** No seats available
 **Solution:**
@@ -1123,18 +1123,18 @@ Organization → [Select Org] → Settings
 
 **Help Center:**
 - In-app: Click "Help" in sidebar
-- Web: https://easemail.com/help
+- Web: https://easemail.app/help
 
 **Contact Support:**
-- Email: support@easemail.com
+- Email: support@easemail.app
 - Response Time: < 24 hours (PRO+)
 
 **System Status:**
-- https://status.easemail.com
+- https://status.easemail.app
 
 **Community:**
 - Discord: https://discord.gg/easemail
-- Forum: https://community.easemail.com
+- Forum: https://community.easemail.app
 
 ---
 

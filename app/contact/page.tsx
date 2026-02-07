@@ -266,7 +266,7 @@ export default function ContactPage() {
                       <Mail className="h-6 w-6 text-blue-600" />
                     </div>
                     <h4 className="font-semibold text-gray-900 mb-1">Email Us</h4>
-                    <p className="text-sm text-gray-600">support@easemail.com</p>
+                    <p className="text-sm text-gray-600">support@easemail.app</p>
                   </CardContent>
                 </Card>
 

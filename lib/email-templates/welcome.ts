@@ -86,7 +86,7 @@ export function getWelcomeEmailHtml({
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                 <tr>
                   <td align="center">
-                    <a href="https://easemail.com/app/inbox" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600;">
+                    <a href="https://easemail.app/app/inbox" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600;">
                       Go to Your Inbox
                     </a>
                   </td>
@@ -94,7 +94,7 @@ export function getWelcomeEmailHtml({
               </table>
 
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
-                Need help getting started? Just reply to this email or visit our <a href="https://easemail.com/contact" style="color: #3b82f6; text-decoration: none;">help center</a>.
+                Need help getting started? Just reply to this email or visit our <a href="https://easemail.app/contact" style="color: #3b82f6; text-decoration: none;">help center</a>.
               </p>
 
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;">

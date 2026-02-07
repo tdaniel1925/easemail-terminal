@@ -184,7 +184,7 @@ Organization → [Select Org] → Settings ⚙
 ## Troubleshooting Quick Fixes
 
 ### Problem: Invitation Not Received
-**Fix:** Check spam folder → Resend invitation → Whitelist @easemail.com
+**Fix:** Check spam folder → Resend invitation → Whitelist @easemail.app
 
 ### Problem: No Seats Available
 **Fix:** Remove inactive members OR Revoke pending invites OR Upgrade plan
@@ -252,8 +252,8 @@ Organization → [Select Org] → Settings ⚙
 ## Support Contacts
 
 **In-App Help:** Click "Help" in sidebar
-**Email:** support@easemail.com
-**Status Page:** https://status.easemail.com
+**Email:** support@easemail.app
+**Status Page:** https://status.easemail.app
 **Response Time:** < 24 hours (PRO+)
 
 ---
