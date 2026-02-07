@@ -28,7 +28,7 @@ export interface CreateSubscriptionParams {
 export interface SubscriptionDetails {
   subscriptionId: string;
   subscriberId: string;
-  status: string;
+  status?: string; // Status is only available from getSubscription, not createSubscription
   approvalUrl?: string;
   nextBillingTime?: string;
 }
@@ -65,7 +65,6 @@ export async function createSubscription(
     return {
       subscriptionId: subscription.id!,
       subscriberId: subscription.subscriber?.payerId || '',
-      status: subscription.status!,
       approvalUrl: approvalLink?.href,
       nextBillingTime: subscription.billingInfo?.nextBillingTime,
     };
