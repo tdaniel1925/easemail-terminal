@@ -1,10 +1,37 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Briefcase, User, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 export function WelcomeStep({ onNext }: any) {
   const [selected, setSelected] = useState<string>('');
+  const [userName, setUserName] = useState('');
+  const supabase = createClient();
+
+  useEffect(() => {
+    loadUserName();
+  }, []);
+
+  const loadUserName = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', user.id)
+        .single() as { data: { name: string } | null };
+
+      if (userData?.name) {
+        const firstName = userData.name.split(' ')[0];
+        setUserName(firstName);
+      }
+    } catch (error) {
+      console.error('Error loading user name:', error);
+    }
+  };
 
   const options = [
     {
@@ -31,7 +58,9 @@ export function WelcomeStep({ onNext }: any) {
     <Card className="border-0 shadow-2xl">
       <CardContent className="p-8 space-y-6">
         <div className="space-y-3">
-          <h1 className="text-3xl font-bold">Welcome to EaseMail</h1>
+          <h1 className="text-3xl font-bold">
+            Welcome to EaseMail{userName && `, ${userName}`}!
+          </h1>
           <p className="text-muted-foreground">
             What will you use EaseMail for?
           </p>

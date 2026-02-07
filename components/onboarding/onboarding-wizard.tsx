@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { WelcomeStep } from './steps/welcome';
+import { ProfilePictureStep } from './steps/profile-picture';
+import { EmailConnectionStep } from './steps/email-connection';
+import { SignatureSetupStep } from './steps/signature-setup';
 import { CompleteStep } from './steps/complete';
 import { OnboardingProgress } from './onboarding-progress';
 import { toast } from 'sonner';
@@ -16,6 +19,10 @@ export type OnboardingData = {
     afternoon?: { enabled: boolean; time: string };
     evening?: { enabled: boolean; time: string };
   };
+  profile_picture_uploaded?: boolean;
+  profile_picture_url?: string;
+  email_accounts_connected?: number;
+  signatures_created?: number;
 };
 
 export function OnboardingWizard() {
@@ -29,6 +36,9 @@ export function OnboardingWizard() {
 
   const steps = [
     { component: WelcomeStep, title: 'Welcome' },
+    { component: ProfilePictureStep, title: 'Profile Picture' },
+    { component: EmailConnectionStep, title: 'Connect Email' },
+    { component: SignatureSetupStep, title: 'Email Signatures' },
     { component: CompleteStep, title: 'Complete' },
   ];
 
