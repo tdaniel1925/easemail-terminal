@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/resend';
-import { getOrgOwnerWelcomeEmailHtml, getOrgAdminWelcomeEmailHtml, getOrgMemberWelcomeEmailHtml } from '@/lib/email-templates';
+import { getOrgOwnerWelcomeEmailHtml, getOrgAdminWelcomeEmailHtml, getOrgMemberWelcomeEmailHtml, getBillingSetupEmailHtml } from '@/lib/email-templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -290,6 +290,7 @@ export async function POST(request: NextRequest) {
         // Find user details from original request
         const userDetails = users.find((u: any) => u.email === createdUser.email);
         const userName = userDetails?.name || createdUser.email.split('@')[0];
+        const userPassword = userDetails?.password;
 
         let html: string;
         let subject: string;
@@ -303,6 +304,7 @@ export async function POST(request: NextRequest) {
             organizationId: newOrg.id,
             plan: newOrg.plan || 'PRO',
             seats: newOrg.seats || 1,
+            temporaryPassword: userPassword, // Include password if provided
           });
           subject = `Welcome to ${newOrg.name} on EaseMail!`;
         } else if (createdUser.role === 'ADMIN') {
@@ -336,6 +338,48 @@ export async function POST(request: NextRequest) {
       } catch (emailError) {
         console.error('Failed to send welcome email to', createdUser.email, emailError);
         // Continue with other emails even if one fails
+      }
+    }
+
+    // Step 7: Send billing setup email to billing contact if provided
+    if (organization.billing_email && organization.plan !== 'FREE') {
+      try {
+        console.log('Sending billing setup email to:', organization.billing_email);
+
+        // Determine price per seat based on plan
+        let pricePerSeat = 0;
+        if (organization.plan === 'ENTERPRISE') {
+          pricePerSeat = seats >= 11 ? 20 : 25;
+        } else if (organization.plan === 'PRO') {
+          pricePerSeat = seats >= 11 ? 20 : (seats >= 2 ? 25 : 30);
+        }
+
+        const billingContactUser = createdUsers.find(u => u.email === organization.billing_email);
+        const billingContactName = billingContactUser
+          ? (users.find((u: any) => u.email === organization.billing_email)?.name || organization.billing_email.split('@')[0])
+          : organization.billing_email.split('@')[0];
+
+        const billingHtml = getBillingSetupEmailHtml({
+          userName: billingContactName,
+          userEmail: organization.billing_email,
+          organizationName: newOrg.name,
+          organizationId: newOrg.id,
+          plan: newOrg.plan,
+          seats: newOrg.seats,
+          pricePerSeat,
+          billingCycle: newOrg.billing_cycle || 'monthly',
+        });
+
+        await sendEmail({
+          to: organization.billing_email,
+          subject: `Complete Your Billing Setup - ${newOrg.name}`,
+          html: billingHtml,
+        });
+
+        console.log('Billing setup email sent to:', organization.billing_email);
+      } catch (emailError) {
+        console.error('Failed to send billing setup email:', emailError);
+        // Don't fail the request if billing email fails
       }
     }
 

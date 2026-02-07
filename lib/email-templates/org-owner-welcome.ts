@@ -5,6 +5,7 @@ export function getOrgOwnerWelcomeEmailHtml({
   organizationId,
   plan,
   seats,
+  temporaryPassword,
 }: {
   userName: string;
   userEmail: string;
@@ -12,6 +13,7 @@ export function getOrgOwnerWelcomeEmailHtml({
   organizationId: string;
   plan: string;
   seats: number;
+  temporaryPassword?: string;
 }) {
   return `
 <!DOCTYPE html>
@@ -78,6 +80,33 @@ export function getOrgOwnerWelcomeEmailHtml({
                 </tr>
               </table>
 
+              ${temporaryPassword ? `
+              <!-- Login Credentials Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 24px; background-color: #fef3c7; border-radius: 12px; border: 2px solid #f59e0b;">
+                    <h3 style="color: #92400e; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;">🔐 Your Login Credentials</h3>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding: 8px 0; color: #78350f; font-size: 14px;">Email:</td>
+                        <td style="padding: 8px 0; color: #92400e; font-size: 14px; font-weight: 600; text-align: right;">${userEmail}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; color: #78350f; font-size: 14px;">Temporary Password:</td>
+                        <td style="padding: 8px 0; color: #92400e; font-size: 16px; font-weight: 700; text-align: right; font-family: monospace;">${temporaryPassword}</td>
+                      </tr>
+                    </table>
+                    <div style="margin-top: 16px; padding: 12px; background-color: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444;">
+                      <p style="color: #991b1b; font-size: 13px; font-weight: 600; margin: 0 0 4px 0;">⚠️ IMPORTANT: Change Your Password</p>
+                      <p style="color: #7f1d1d; font-size: 12px; line-height: 1.5; margin: 0;">
+                        For security, please change this temporary password immediately after your first login. Go to Settings → Security → Change Password.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+
               <p style="color: #111827; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
                 <strong>Here's your quick start checklist:</strong>
               </p>
@@ -113,9 +142,10 @@ export function getOrgOwnerWelcomeEmailHtml({
                         </td>
                         <td style="vertical-align: top;">
                           <h3 style="color: #111827; font-size: 16px; font-weight: 600; margin: 0 0 8px 0;">📧 Connect Email Accounts</h3>
-                          <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0;">
+                          <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 8px 0;">
                             Connect Gmail, Outlook, or any IMAP account for you and your team members.
                           </p>
+                          <a href="https://easemail.app/app/connect" style="color: #a855f7; font-size: 13px; font-weight: 600; text-decoration: none;">→ Connect Email Accounts</a>
                         </td>
                       </tr>
                     </table>

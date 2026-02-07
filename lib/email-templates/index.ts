@@ -6,3 +6,4 @@ export { getSuperAdminWelcomeEmailHtml } from './super-admin-welcome';
 export { getOrgOwnerWelcomeEmailHtml } from './org-owner-welcome';
 export { getOrgAdminWelcomeEmailHtml } from './org-admin-welcome';
 export { getOrgMemberWelcomeEmailHtml } from './org-member-welcome';
+export { getBillingSetupEmailHtml } from './billing-setup';
