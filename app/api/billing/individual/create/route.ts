@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Check if user can have individual subscription
     const { data: canHave } = await supabase.rpc('can_have_individual_subscription', {
       user_id_param: user.id,
-    });
+    } as any);
 
     if (!canHave) {
       return NextResponse.json(
