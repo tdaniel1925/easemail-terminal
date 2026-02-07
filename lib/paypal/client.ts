@@ -5,7 +5,7 @@
  * Uses the official PayPal Server SDK.
  */
 
-import { client, LogLevel, Environment } from '@paypal/paypal-server-sdk';
+import { Client, LogLevel, Environment } from '@paypal/paypal-server-sdk';
 
 // Validate environment variables
 if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
@@ -21,7 +21,7 @@ const environment = process.env.PAYPAL_MODE === 'production'
  * Creates and returns an authenticated PayPal client
  */
 export function getPayPalClient() {
-  const paypalClient = client({
+  const paypalClient = Client({
     clientCredentialsAuthCredentials: {
       oAuthClientId: process.env.PAYPAL_CLIENT_ID!,
       oAuthClientSecret: process.env.PAYPAL_CLIENT_SECRET!,
