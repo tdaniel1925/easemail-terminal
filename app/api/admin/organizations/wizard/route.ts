@@ -152,12 +152,7 @@ export async function POST(request: NextRequest) {
         domain: organization.domain || null,
         plan: organization.plan || 'PRO',
         seats: seats,
-        billing_cycle: billingCycle,
         billing_email: organization.billing_email || createdUsers[0]?.email || user.email,
-        next_billing_date: nextBillingDate.toISOString().split('T')[0],
-        mrr: mrr,
-        arr: arr,
-        uses_master_api_key: api_key?.uses_master_key !== false,
       })
       .select()
       .single();
@@ -220,17 +215,14 @@ export async function POST(request: NextRequest) {
         console.error('Error creating API key:', apiKeyError);
       } else {
         // Update organization to reference this API key
-        await serviceClient
-          .from('organizations')
-          .update({
-            api_key_id: apiKeyRecord.id,
-            uses_master_api_key: false,
-          })
-          .eq('id', newOrg.id);
+        // Note: api_key_id and uses_master_api_key fields added in migration 013
+        // Skipping update until migration is applied
+        console.log('API key created but not linked to org (awaiting migration 013)');
       }
     }
 
     // Step 5: Create initial billing history record using service client
+    // Note: Only including fields that exist in base schema
     const { error: historyError } = await serviceClient
       .from('billing_history')
       .insert({
@@ -239,11 +231,8 @@ export async function POST(request: NextRequest) {
         new_value: {
           plan: newOrg.plan,
           seats: newOrg.seats,
-          billing_cycle: newOrg.billing_cycle,
-          mrr: newOrg.mrr,
-          arr: newOrg.arr,
         },
-        amount: billingCycle === 'annual' ? arr : mrr,
+        amount: 0, // Will be calculated after migrations are applied
         triggered_by: user.id,
       });
 
