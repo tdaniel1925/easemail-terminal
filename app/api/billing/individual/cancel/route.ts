@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (!userData?.paypal_subscription_id) {
+    if (!(userData as any)?.paypal_subscription_id) {
       return NextResponse.json(
         { error: 'No active subscription found' },
         { status: 404 }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Cancel with PayPal
-    await cancelSubscription(userData.paypal_subscription_id, reason);
+    await cancelSubscription((userData as any).paypal_subscription_id, reason);
 
     // Update database with service client
     const serviceClient = createServiceClient(

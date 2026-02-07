@@ -47,9 +47,9 @@ export async function GET(request: NextRequest) {
       .single();
 
     let paypalStatus = null;
-    if (userData?.paypal_subscription_id) {
+    if ((userData as any)?.paypal_subscription_id) {
       try {
-        paypalStatus = await getSubscription(userData.paypal_subscription_id);
+        paypalStatus = await getSubscription((userData as any).paypal_subscription_id);
       } catch (error) {
         console.error('Error fetching PayPal subscription:', error);
       }
@@ -59,9 +59,9 @@ export async function GET(request: NextRequest) {
       isBeta: false,
       subscriptionContext: context,
       localStatus: {
-        subscriptionId: userData?.paypal_subscription_id,
-        status: userData?.subscription_status,
-        trialEndsAt: userData?.trial_ends_at,
+        subscriptionId: (userData as any)?.paypal_subscription_id,
+        status: (userData as any)?.subscription_status,
+        trialEndsAt: (userData as any)?.trial_ends_at,
         trialStartedAt: userData?.trial_started_at,
       },
       paypalStatus: paypalStatus

@@ -57,11 +57,11 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (userData?.paypal_subscription_id) {
+    if ((userData as any)?.paypal_subscription_id) {
       return NextResponse.json(
         {
           error: 'You already have an active subscription',
-          subscriptionId: userData.paypal_subscription_id,
+          subscriptionId: (userData as any).paypal_subscription_id,
           status: userData.subscription_status,
         },
         { status: 400 }
