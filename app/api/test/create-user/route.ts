@@ -6,7 +6,8 @@ export async function POST(request: NextRequest) {
   // Only allow in development environment OR with valid test token
   const testToken = request.headers.get('x-test-token');
   const isProduction = process.env.NODE_ENV === 'production';
-  const validTestToken = process.env.TEST_ENDPOINT_TOKEN || 'disabled';
+  // Use environment variable or default test token for E2E testing
+  const validTestToken = process.env.TEST_ENDPOINT_TOKEN || 'test-token-for-e2e';
 
   if (isProduction && testToken !== validTestToken) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
