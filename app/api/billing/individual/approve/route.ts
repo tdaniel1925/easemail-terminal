@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (userData?.paypal_subscription_id !== subscriptionId) {
+    if ((userData as any)?.paypal_subscription_id !== subscriptionId) {
       return NextResponse.json(
         { error: 'Subscription does not belong to this user' },
         { status: 403 }
