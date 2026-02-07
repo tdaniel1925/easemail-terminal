@@ -140,15 +140,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 2: Create organization using service client
+    // Generate slug from name
+    const slug = organization.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const uniqueSlug = `${slug}-${Date.now()}`;
+
     const { data: newOrg, error: orgError } = await serviceClient
       .from('organizations')
       .insert({
         name: organization.name,
+        slug: uniqueSlug,
         domain: organization.domain || null,
         description: organization.description || null,
         plan: organization.plan || 'PRO',
         seats: seats,
         billing_cycle: billingCycle,
+        billing_email: organization.billing_email || createdUsers[0]?.email || user.email,
         next_billing_date: nextBillingDate.toISOString().split('T')[0],
         mrr: mrr,
         arr: arr,
