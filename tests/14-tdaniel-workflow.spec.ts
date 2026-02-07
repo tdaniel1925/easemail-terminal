@@ -371,10 +371,28 @@ test.describe('TDaniel BundleFly Workflow', () => {
       await page.goto(section.url);
       await page.waitForLoadState('networkidle');
 
-      // Verify page loaded without errors
-      const hasError = await page.locator('text=Error').isVisible({ timeout: 2000 }).catch(() => false);
-      expect(hasError).toBe(false);
+      // Verify page loaded without critical errors
+      // Look for actual error components, not just any text containing "Error"
+      const criticalErrors = [
+        page.locator('[role="alert"]:has-text("Error")'),
+        page.locator('.error-message, .error-alert, .error-banner'),
+        page.locator('text="Something went wrong"'),
+        page.locator('text="Failed to load"'),
+        page.locator('text=/^Error:/'), // Error messages that start with "Error:"
+        page.locator('text=/404|500|503/'), // HTTP error codes
+      ];
 
+      // Check if any critical error components are visible
+      let hasError = false;
+      for (const errorLocator of criticalErrors) {
+        if (await errorLocator.isVisible({ timeout: 1000 }).catch(() => false)) {
+          hasError = true;
+          console.log(`  ⚠ Found error indicator: ${await errorLocator.textContent()}`);
+          break;
+        }
+      }
+
+      expect(hasError).toBe(false);
       console.log(`✓ ${section.name} accessible`);
     }
 
