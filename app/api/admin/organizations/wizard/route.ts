@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/resend';
-import { getWelcomeEmailHtml } from '@/lib/email-templates';
+import { getOrgOwnerWelcomeEmailHtml, getOrgAdminWelcomeEmailHtml, getOrgMemberWelcomeEmailHtml } from '@/lib/email-templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -277,23 +277,62 @@ export async function POST(request: NextRequest) {
       console.error('Error creating billing history:', historyError);
     }
 
-    // Step 6: Send welcome emails to all users
-    console.log('Sending welcome emails to:', createdUsers.map(u => u.email).join(', '));
+    // Step 6: Send role-based welcome emails to all users
+    console.log('Sending role-based welcome emails to:', createdUsers.map(u => u.email).join(', '));
+
+    // Get the owner name for inviter field in admin/member emails
+    const ownerUser = createdUsers.find(u => u.role === 'OWNER');
+    const ownerUserDetails = users.find((u: any) => u.role === 'OWNER');
+    const inviterName = ownerUserDetails?.name || ownerUser?.email.split('@')[0] || 'Organization Admin';
 
     for (const createdUser of createdUsers) {
       try {
-        const html = getWelcomeEmailHtml({
-          userName: createdUser.email.split('@')[0], // Use email prefix as fallback name
-          userEmail: createdUser.email,
-        });
+        // Find user details from original request
+        const userDetails = users.find((u: any) => u.email === createdUser.email);
+        const userName = userDetails?.name || createdUser.email.split('@')[0];
+
+        let html: string;
+        let subject: string;
+
+        // Send role-specific welcome email
+        if (createdUser.role === 'OWNER') {
+          html = getOrgOwnerWelcomeEmailHtml({
+            userName,
+            userEmail: createdUser.email,
+            organizationName: newOrg.name,
+            organizationId: newOrg.id,
+            plan: newOrg.plan || 'PRO',
+            seats: newOrg.seats || 1,
+          });
+          subject = `Welcome to ${newOrg.name} on EaseMail!`;
+        } else if (createdUser.role === 'ADMIN') {
+          html = getOrgAdminWelcomeEmailHtml({
+            userName,
+            userEmail: createdUser.email,
+            organizationName: newOrg.name,
+            organizationId: newOrg.id,
+            inviterName,
+          });
+          subject = `You're Now an Admin of ${newOrg.name}`;
+        } else {
+          // MEMBER role
+          html = getOrgMemberWelcomeEmailHtml({
+            userName,
+            userEmail: createdUser.email,
+            organizationName: newOrg.name,
+            organizationId: newOrg.id,
+            inviterName,
+          });
+          subject = `Welcome to ${newOrg.name} on EaseMail!`;
+        }
 
         await sendEmail({
           to: createdUser.email,
-          subject: 'Welcome to EaseMail! 🎉',
+          subject,
           html,
         });
 
-        console.log('Welcome email sent to:', createdUser.email);
+        console.log(`${createdUser.role} welcome email sent to:`, createdUser.email);
       } catch (emailError) {
         console.error('Failed to send welcome email to', createdUser.email, emailError);
         // Continue with other emails even if one fails

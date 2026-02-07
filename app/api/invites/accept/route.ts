@@ -1,6 +1,8 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { sendEmail } from '@/lib/resend';
+import { getOrgAdminWelcomeEmailHtml, getOrgMemberWelcomeEmailHtml } from '@/lib/email-templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -107,6 +109,61 @@ export async function POST(request: NextRequest) {
       .from('organization_invites')
       .update({ accepted_at: new Date().toISOString() } as any)
       .eq('id', invite.id);
+
+    // Send role-based welcome email
+    try {
+      // Get user name
+      const { data: userFullData } = (await supabase
+        .from('users')
+        .select('name, email')
+        .eq('id', user.id)
+        .single()) as { data: any };
+
+      // Get inviter name
+      const { data: inviterData } = (await supabase
+        .from('users')
+        .select('name, email')
+        .eq('id', invite.invited_by)
+        .single()) as { data: any };
+
+      const userName = userFullData?.name || userFullData?.email?.split('@')[0] || 'User';
+      const inviterName = inviterData?.name || inviterData?.email?.split('@')[0] || 'Organization Admin';
+
+      let html: string;
+      let subject: string;
+
+      if (invite.role === 'ADMIN') {
+        html = getOrgAdminWelcomeEmailHtml({
+          userName,
+          userEmail: userData.email,
+          organizationName: org.name,
+          organizationId: orgId,
+          inviterName,
+        });
+        subject = `You're Now an Admin of ${org.name}`;
+      } else {
+        // MEMBER role
+        html = getOrgMemberWelcomeEmailHtml({
+          userName,
+          userEmail: userData.email,
+          organizationName: org.name,
+          organizationId: orgId,
+          inviterName,
+        });
+        subject = `Welcome to ${org.name} on EaseMail!`;
+      }
+
+      await sendEmail({
+        to: userData.email,
+        subject,
+        html,
+      });
+
+      console.log(`${invite.role} welcome email sent to:`, userData.email);
+    } catch (emailError) {
+      console.error('Failed to send role-based welcome email:', emailError);
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json({
       success: true,

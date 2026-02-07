@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { sendEmail } from '@/lib/resend';
+import { getOrgOwnerWelcomeEmailHtml } from '@/lib/email-templates';
 
 export async function GET(request: NextRequest) {
   try {
@@ -78,6 +80,38 @@ export async function POST(request: NextRequest) {
       // Rollback organization creation
       await supabase.from('organizations').delete().eq('id', organization.id);
       return NextResponse.json({ error: memberError.message }, { status: 400 });
+    }
+
+    // Get user details for welcome email
+    const { data: userData } = await supabase
+      .from('users')
+      .select('name, email')
+      .eq('id', user.id)
+      .single() as { data: { name: string; email: string } | null };
+
+    // Send org owner welcome email
+    if (userData) {
+      try {
+        const html = getOrgOwnerWelcomeEmailHtml({
+          userName: userData.name || userData.email.split('@')[0],
+          userEmail: userData.email,
+          organizationName: organization.name,
+          organizationId: organization.id,
+          plan: organization.plan || 'PRO',
+          seats: organization.seats || 1,
+        });
+
+        await sendEmail({
+          to: userData.email,
+          subject: `Welcome to ${organization.name} on EaseMail!`,
+          html,
+        });
+
+        console.log('Org owner welcome email sent to:', userData.email);
+      } catch (emailError) {
+        console.error('Failed to send org owner welcome email:', emailError);
+        // Don't fail the request if email fails
+      }
     }
 
     return NextResponse.json({ organization });
