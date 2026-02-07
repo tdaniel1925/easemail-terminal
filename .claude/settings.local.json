@@ -60,7 +60,10 @@
       "Bash(psql:*)",
       "Bash(node scripts/create-test-super-admin.mjs:*)",
       "Bash(node scripts/recreate-super-admin.mjs:*)",
-      "Bash(node scripts/check-super-admin.mjs:*)"
+      "Bash(node scripts/check-super-admin.mjs:*)",
+      "Bash(node scripts/apply-paypal-migration.mjs:*)",
+      "Bash(node scripts/apply-migration-direct.mjs:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []
