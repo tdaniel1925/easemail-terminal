@@ -57,7 +57,10 @@
       "Bash(cat:*)",
       "Bash(node -e:*)",
       "Bash(node scripts/apply-admin-features-migration.js:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(node scripts/create-test-super-admin.mjs:*)",
+      "Bash(node scripts/recreate-super-admin.mjs:*)",
+      "Bash(node scripts/check-super-admin.mjs:*)"
     ],
     "deny": [],
     "ask": []
