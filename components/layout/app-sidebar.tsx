@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
   PenSquare, Inbox, Send, Star, Trash2, Archive, Clock, Menu,
-  Tag, Settings, BarChart3, HelpCircle, Paperclip
+  Tag, Settings, BarChart3, HelpCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -129,12 +129,11 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
 
       const { data: userData } = await supabase
         .from('users')
-        .select('role, is_super_admin')
+        .select('is_super_admin')
         .eq('id', user.id)
-        .single() as { data: { role: string; is_super_admin: boolean } | null };
+        .single() as { data: { is_super_admin: boolean } | null };
 
       if (userData) {
-        setUserRole(userData.role);
         setIsSuperAdmin(userData.is_super_admin || false);
       }
     } catch (error) {
@@ -179,7 +178,6 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               { icon: Clock, label: 'Snoozed', href: '/app/inbox?filter=snoozed', countKey: 'snoozed' },
               { icon: Archive, label: 'Archive', href: '/app/inbox?filter=archive', countKey: 'archive' },
               { icon: Trash2, label: 'Trash', href: '/app/inbox?filter=trash', countKey: 'trash' },
-              { icon: Paperclip, label: 'Attachments', href: '/app/attachments', countKey: null },
             ].map((item) => {
               const count = item.countKey ? folderCounts[item.countKey as keyof typeof folderCounts] : 0;
               return (

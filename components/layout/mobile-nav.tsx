@@ -26,6 +26,7 @@ interface MobileNavProps {
   folders?: any[];
   labels?: any[];
   accounts?: any[];
+  isSuperAdmin?: boolean;
 }
 
 export function MobileNav({
@@ -33,7 +34,8 @@ export function MobileNav({
   folderCounts = { inbox: 0, starred: 0, sent: 0, snoozed: 0, archive: 0, trash: 0, drafts: 0 },
   folders = [],
   labels = [],
-  accounts = []
+  accounts = [],
+  isSuperAdmin = false
 }: MobileNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -168,16 +170,18 @@ export function MobileNav({
                   <span className="text-sm">Settings</span>
                 </button>
               </Link>
-              <Link href="/app/admin/analytics" onClick={() => setOpen(false)}>
-                <button
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors ${
-                    pathname?.startsWith('/app/admin') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
-                  }`}
-                >
-                  <BarChart3 className="h-5 w-5" />
-                  <span className="text-sm">Admin</span>
-                </button>
-              </Link>
+              {isSuperAdmin && (
+                <Link href="/app/admin/analytics" onClick={() => setOpen(false)}>
+                  <button
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent transition-colors ${
+                      pathname?.startsWith('/app/admin') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+                    }`}
+                  >
+                    <BarChart3 className="h-5 w-5" />
+                    <span className="text-sm">Admin</span>
+                  </button>
+                </Link>
+              )}
             </div>
           </SheetContent>
         </Sheet>
