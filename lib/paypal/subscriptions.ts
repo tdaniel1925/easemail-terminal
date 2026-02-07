@@ -7,6 +7,7 @@
 
 import { getPayPalClient, PAYPAL_PLANS } from './client';
 import { createClient } from '@supabase/supabase-js';
+import { SubscriptionsController } from '@paypal/paypal-server-sdk';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -36,9 +37,10 @@ export async function createSubscription(
   params: CreateSubscriptionParams
 ): Promise<SubscriptionDetails> {
   const client = getPayPalClient();
+  const subscriptions = new SubscriptionsController(client);
 
   try {
-    const response = await client.subscriptions.subscriptionsCreate({
+    const response = await subscriptions.subscriptionsCreate({
       body: {
         planId: params.planId,
         customId: params.customId,
@@ -78,9 +80,10 @@ export async function createSubscription(
  */
 export async function getSubscription(subscriptionId: string): Promise<any> {
   const client = getPayPalClient();
+  const subscriptions = new SubscriptionsController(client);
 
   try {
-    const response = await client.subscriptions.subscriptionsGet({
+    const response = await subscriptions.subscriptionsGet({
       subscriptionId,
     });
 
@@ -99,9 +102,10 @@ export async function cancelSubscription(
   reason?: string
 ): Promise<void> {
   const client = getPayPalClient();
+  const subscriptions = new SubscriptionsController(client);
 
   try {
-    await client.subscriptions.subscriptionsCancel({
+    await subscriptions.subscriptionsCancel({
       subscriptionId,
       body: {
         reason: reason || 'User requested cancellation',
@@ -121,9 +125,10 @@ export async function suspendSubscription(
   reason?: string
 ): Promise<void> {
   const client = getPayPalClient();
+  const subscriptions = new SubscriptionsController(client);
 
   try {
-    await client.subscriptions.subscriptionsSuspend({
+    await subscriptions.subscriptionsSuspend({
       subscriptionId,
       body: {
         reason: reason || 'Account suspended',
@@ -143,9 +148,10 @@ export async function reactivateSubscription(
   reason?: string
 ): Promise<void> {
   const client = getPayPalClient();
+  const subscriptions = new SubscriptionsController(client);
 
   try {
-    await client.subscriptions.subscriptionsActivate({
+    await subscriptions.subscriptionsActivate({
       subscriptionId,
       body: {
         reason: reason || 'Account reactivated',
