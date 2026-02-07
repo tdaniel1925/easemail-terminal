@@ -197,10 +197,21 @@ test.describe('Super Admin', () => {
               if (await completeButton.isVisible({ timeout: 2000 }).catch(() => false)) {
                 await completeButton.click();
 
-                // Should show success message
+                // Wait for API response
                 await page.waitForTimeout(3000);
+
+                // Check for error messages first
+                const errorMessage = page.getByText(/failed|error/i).first();
+                const hasError = await errorMessage.isVisible({ timeout: 2000 }).catch(() => false);
+
+                if (hasError) {
+                  const errorText = await errorMessage.textContent();
+                  throw new Error(`Organization creation failed: ${errorText}`);
+                }
+
+                // Should show success message (no catch to swallow errors!)
                 const successMessage = page.getByText(/created|success/i);
-                await expect(successMessage).toBeVisible({ timeout: 5000 }).catch(() => {});
+                await expect(successMessage).toBeVisible({ timeout: 5000 });
               }
             }
           }

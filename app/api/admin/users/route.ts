@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
@@ -96,8 +97,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Create service client for admin operations
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Check if user is super admin
-    const { data: userData } = (await supabase
+    const { data: userData } = (await serviceClient
       .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
@@ -113,8 +120,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
-    // Create user via Supabase Admin API
-    const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+    // Create user via Supabase Admin API using service client
+    const { data: newUser, error: createError } = await serviceClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
@@ -125,8 +132,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: createError.message }, { status: 400 });
     }
 
-    // Create user record in public.users table
-    const { error: insertError } = (await (supabase
+    // Create user record in public.users table using service client
+    const { error: insertError } = (await (serviceClient
       .from('users') as any)
       .insert({
         id: newUser.user.id,
