@@ -40,7 +40,7 @@ export async function createSubscription(
   const subscriptions = new SubscriptionsController(client);
 
   try {
-    const response = await subscriptions.subscriptionsCreate({
+    const response = await subscriptions.createSubscription({
       body: {
         planId: params.planId,
         customId: params.customId,
@@ -83,8 +83,8 @@ export async function getSubscription(subscriptionId: string): Promise<any> {
   const subscriptions = new SubscriptionsController(client);
 
   try {
-    const response = await subscriptions.subscriptionsGet({
-      subscriptionId,
+    const response = await subscriptions.getSubscription({
+      id: subscriptionId,
     });
 
     return response.result;
@@ -105,8 +105,8 @@ export async function cancelSubscription(
   const subscriptions = new SubscriptionsController(client);
 
   try {
-    await subscriptions.subscriptionsCancel({
-      subscriptionId,
+    await subscriptions.cancelSubscription({
+      id: subscriptionId,
       body: {
         reason: reason || 'User requested cancellation',
       },
@@ -128,8 +128,8 @@ export async function suspendSubscription(
   const subscriptions = new SubscriptionsController(client);
 
   try {
-    await subscriptions.subscriptionsSuspend({
-      subscriptionId,
+    await subscriptions.suspendSubscription({
+      id: subscriptionId,
       body: {
         reason: reason || 'Account suspended',
       },
@@ -151,8 +151,8 @@ export async function reactivateSubscription(
   const subscriptions = new SubscriptionsController(client);
 
   try {
-    await subscriptions.subscriptionsActivate({
-      subscriptionId,
+    await subscriptions.activateSubscription({
+      id: subscriptionId,
       body: {
         reason: reason || 'Account reactivated',
       },
