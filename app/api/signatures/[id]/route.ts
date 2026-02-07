@@ -14,13 +14,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, content, is_default } = await request.json();
+    const { name, content, is_default, email_account_id } = await request.json();
 
     const { data: signature, error } = (await (supabase.from('signatures') as any)
       .update({
         name,
         content,
         is_default,
+        email_account_id: email_account_id || null,
       })
       .eq('id', id)
       .eq('user_id', user.id)

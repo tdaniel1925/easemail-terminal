@@ -289,12 +289,16 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
     }
   };
 
+  const SIGNATURE_MARKER = '<!-- EASEMAIL_SIGNATURE -->';
+
   const insertSignature = (signatureContent: string) => {
-    const separator = '\n\n---\n\n';
     setBody((currentBody) => {
-      // Remove any existing signature (content after ---)
-      const bodyWithoutSig = currentBody.split('---')[0].trim();
-      return bodyWithoutSig + separator + signatureContent;
+      // Remove any existing signature (content after marker)
+      const markerIndex = currentBody.indexOf(SIGNATURE_MARKER);
+      const bodyWithoutSig = markerIndex >= 0
+        ? currentBody.substring(0, markerIndex).trim()
+        : currentBody.trim();
+      return bodyWithoutSig + '\n\n' + SIGNATURE_MARKER + '\n' + signatureContent;
     });
   };
 
@@ -307,7 +311,12 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       }
     } else {
       // Remove signature
-      setBody((currentBody) => currentBody.split('---')[0].trim());
+      setBody((currentBody) => {
+        const markerIndex = currentBody.indexOf(SIGNATURE_MARKER);
+        return markerIndex >= 0
+          ? currentBody.substring(0, markerIndex).trim()
+          : currentBody;
+      });
     }
   };
 

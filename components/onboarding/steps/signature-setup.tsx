@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Loader2, Sparkles } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { TiptapEditor } from '@/components/ui/tiptap-editor';
 
 interface EmailAccount {
   id: string;
@@ -93,7 +93,7 @@ export function SignatureSetupStep({ data, onNext, onBack }: SignatureSetupStepP
   };
 
   const applyTemplate = (templateContent: string) => {
-    // Replace placeholders with user data
+    // Replace placeholders with user data and convert to HTML format
     const populated = templateContent
       .replace(/\{\{name\}\}/g, userName)
       .replace(/\{\{title\}\}/g, '')
@@ -101,10 +101,17 @@ export function SignatureSetupStep({ data, onNext, onBack }: SignatureSetupStepP
       .replace(/\{\{phone\}\}/g, '')
       .replace(/\{\{email\}\}/g, '');
 
+    // Convert line breaks to HTML
+    const htmlContent = populated
+      .split('\n')
+      .map(line => line.trim() ? `<p>${line}</p>` : '<p></p>')
+      .join('');
+
     // Apply to all email accounts
     const updatedSignatures: Record<string, string> = {};
     emailAccounts.forEach(account => {
-      updatedSignatures[account.id] = populated.replace(/\{\{email\}\}/g, account.email);
+      const accountContent = htmlContent.replace(/\{\{email\}\}/g, account.email);
+      updatedSignatures[account.id] = accountContent;
     });
     setSignatures(updatedSignatures);
   };
@@ -244,15 +251,14 @@ export function SignatureSetupStep({ data, onNext, onBack }: SignatureSetupStepP
                   {account.provider}
                 </Badge>
               </div>
-              <Textarea
-                value={signatures[account.id] || ''}
-                onChange={(e) => setSignatures({
+              <TiptapEditor
+                content={signatures[account.id] || ''}
+                onChange={(content) => setSignatures({
                   ...signatures,
-                  [account.id]: e.target.value,
+                  [account.id]: content,
                 })}
                 placeholder={`Best regards,\n${userName}\n${account.email}`}
-                rows={4}
-                className="font-mono text-sm"
+                minHeight="150px"
               />
             </div>
           ))}

@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 export default function SignaturesPage() {
   const [signatures, setSignatures] = useState<any[]>([]);
+  const [emailAccounts, setEmailAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editingSignature, setEditingSignature] = useState<any>(null);
@@ -22,10 +23,24 @@ export default function SignaturesPage() {
   const [name, setName] = useState('');
   const [content, setContent] = useState('');
   const [isDefault, setIsDefault] = useState(false);
+  const [emailAccountId, setEmailAccountId] = useState<string>('');
 
   useEffect(() => {
     fetchSignatures();
+    fetchEmailAccounts();
   }, []);
+
+  const fetchEmailAccounts = async () => {
+    try {
+      const response = await fetch('/api/email-accounts');
+      const data = await response.json();
+      if (response.ok && data.accounts) {
+        setEmailAccounts(data.accounts);
+      }
+    } catch (error) {
+      console.error('Failed to fetch email accounts:', error);
+    }
+  };
 
   const fetchSignatures = async () => {
     try {
@@ -49,11 +64,13 @@ export default function SignaturesPage() {
       setName(signature.name);
       setContent(signature.content);
       setIsDefault(signature.is_default);
+      setEmailAccountId(signature.email_account_id || '');
     } else {
       setEditingSignature(null);
       setName('');
       setContent('');
       setIsDefault(false);
+      setEmailAccountId('');
     }
     setShowDialog(true);
   };
@@ -64,6 +81,7 @@ export default function SignaturesPage() {
     setName('');
     setContent('');
     setIsDefault(false);
+    setEmailAccountId('');
   };
 
   const handleSave = async () => {
@@ -88,6 +106,7 @@ export default function SignaturesPage() {
           name,
           content,
           is_default: isDefault,
+          email_account_id: emailAccountId || null,
         }),
       });
 
@@ -139,6 +158,7 @@ export default function SignaturesPage() {
           name: signature.name,
           content: signature.content,
           is_default: true,
+          email_account_id: signature.email_account_id || null,
         }),
       });
 
@@ -198,9 +218,21 @@ export default function SignaturesPage() {
                           Default
                         </Badge>
                       )}
+                      {signature.email_account_id && (() => {
+                        const account = emailAccounts.find(acc => acc.id === signature.email_account_id);
+                        return account ? (
+                          <Badge variant="outline" className="text-xs">
+                            {account.email}
+                          </Badge>
+                        ) : null;
+                      })()}
                     </div>
                     <CardDescription>
                       Created {new Date(signature.created_at).toLocaleDateString()}
+                      {signature.email_account_id && (() => {
+                        const account = emailAccounts.find(acc => acc.id === signature.email_account_id);
+                        return account ? ` • For ${account.email}` : '';
+                      })()}
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
@@ -262,6 +294,26 @@ export default function SignaturesPage() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="email_account">Email Account (Optional)</Label>
+                <select
+                  id="email_account"
+                  value={emailAccountId}
+                  onChange={(e) => setEmailAccountId(e.target.value)}
+                  className="w-full border rounded px-3 py-2 text-sm"
+                >
+                  <option value="">All accounts</option>
+                  {emailAccounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.email} {account.is_primary ? '(Primary)' : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Associate this signature with a specific email account, or leave blank for all accounts
+                </p>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="content">Signature Content *</Label>
                 <TiptapEditor
                   content={content}
@@ -280,7 +332,7 @@ export default function SignaturesPage() {
                   className="h-4 w-4"
                 />
                 <Label htmlFor="is_default" className="cursor-pointer">
-                  Set as default signature
+                  Set as default signature{emailAccountId ? ' for this account' : ''}
                 </Label>
               </div>
             </div>

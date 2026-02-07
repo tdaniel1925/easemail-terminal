@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, content, is_default } = await request.json();
+    const { name, content, is_default, email_account_id } = await request.json();
 
     if (!name || !content) {
       return NextResponse.json({ error: 'Name and content are required' }, { status: 400 });
@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
         name,
         content,
         is_default: is_default || false,
+        email_account_id: email_account_id || null,
       })
       .select()
       .single()) as { data: any; error: any };
