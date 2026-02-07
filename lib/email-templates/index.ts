@@ -2,3 +2,7 @@ export { getWelcomeEmailHtml } from './welcome';
 export { getPasswordResetEmailHtml } from './password-reset';
 export { getOrganizationInviteEmailHtml } from './organization-invite';
 export { getNotificationEmailHtml } from './notification';
+export { getSuperAdminWelcomeEmailHtml } from './super-admin-welcome';
+export { getOrgOwnerWelcomeEmailHtml } from './org-owner-welcome';
+export { getOrgAdminWelcomeEmailHtml } from './org-admin-welcome';
+export { getOrgMemberWelcomeEmailHtml } from './org-member-welcome';
