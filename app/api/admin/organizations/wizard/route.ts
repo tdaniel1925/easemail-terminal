@@ -164,8 +164,21 @@ export async function POST(request: NextRequest) {
 
     if (orgError) {
       console.error('Error creating organization:', orgError);
+      console.error('Organization data attempted:', {
+        name: organization.name,
+        slug: uniqueSlug,
+        domain: organization.domain || null,
+        plan: organization.plan || 'PRO',
+        seats: seats,
+        billing_cycle: billingCycle,
+        billing_email: organization.billing_email || createdUsers[0]?.email || user.email,
+      });
       return NextResponse.json(
-        { error: 'Failed to create organization' },
+        {
+          error: 'Failed to create organization',
+          details: orgError.message || orgError,
+          hint: orgError.hint || null
+        },
         { status: 500 }
       );
     }
