@@ -3,8 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 
 // This endpoint is only for testing and should be disabled in production
 export async function POST(request: NextRequest) {
-  // Only allow in development environment
-  if (process.env.NODE_ENV === 'production') {
+  // Only allow in development environment OR with valid test token
+  const testToken = request.headers.get('x-test-token');
+  const isProduction = process.env.NODE_ENV === 'production';
+  const validTestToken = process.env.TEST_ENDPOINT_TOKEN || 'disabled';
+
+  if (isProduction && testToken !== validTestToken) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
