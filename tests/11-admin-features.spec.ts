@@ -35,7 +35,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
 
       // Login
       await page.fill('input[type="email"]', superAdmin.email);
-      await page.fill('input[type="password"]', 'test-password');
+      await page.fill('input[type="password"]', 'SuperAdmin123!');
       await page.click('button[type="submit"]');
 
       // Wait for navigation to dashboard
@@ -78,7 +78,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
 
       // Login as super admin
       await page.fill('input[type="email"]', superAdmin.email);
-      await page.fill('input[type="password"]', 'test-password');
+      await page.fill('input[type="password"]', 'SuperAdmin123!');
       await page.click('button[type="submit"]');
 
       await page.waitForURL('**/app/**');
@@ -112,7 +112,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
 
       // Login
       await page.fill('input[type="email"]', superAdmin.email);
-      await page.fill('input[type="password"]', 'test-password');
+      await page.fill('input[type="password"]', 'SuperAdmin123!');
       await page.click('button[type="submit"]');
 
       await page.waitForURL('**/app/**');
@@ -227,7 +227,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
 
       // Login as super admin
       await page.fill('input[type="email"]', superAdmin.email);
-      await page.fill('input[type="password"]', 'test-password');
+      await page.fill('input[type="password"]', 'SuperAdmin123!');
       await page.click('button[type="submit"]');
 
       await page.waitForURL('**/app/**');
@@ -261,7 +261,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
 
       // Login
       await page.fill('input[type="email"]', superAdmin.email);
-      await page.fill('input[type="password"]', 'test-password');
+      await page.fill('input[type="password"]', 'SuperAdmin123!');
       await page.click('button[type="submit"]');
 
       await page.waitForURL('**/app/**');
@@ -297,7 +297,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
 
       // Login
       await page.fill('input[type="email"]', superAdmin.email);
-      await page.fill('input[type="password"]', 'test-password');
+      await page.fill('input[type="password"]', 'SuperAdmin123!');
       await page.click('button[type="submit"]');
 
       await page.waitForURL('**/app/**');
@@ -352,7 +352,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
 
       // Login as super admin
       await page.fill('input[type="email"]', superAdmin.email);
-      await page.fill('input[type="password"]', 'test-password');
+      await page.fill('input[type="password"]', 'SuperAdmin123!');
       await page.click('button[type="submit"]');
 
       await page.waitForURL('**/app/**');
