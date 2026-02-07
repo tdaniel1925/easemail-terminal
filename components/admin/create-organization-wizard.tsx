@@ -50,6 +50,8 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserRole, setNewUserRole] = useState<'OWNER' | 'ADMIN' | 'MEMBER'>('MEMBER');
+  const [newUserPassword, setNewUserPassword] = useState('');
+  const [newUserConfirmPassword, setNewUserConfirmPassword] = useState('');
 
   // Step 3: API Key Configuration
   const [apiKeyConfig, setApiKeyConfig] = useState({
@@ -72,6 +74,17 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
       return;
     }
 
+    // Validate password
+    if (!newUserPassword || newUserPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+
+    if (newUserPassword !== newUserConfirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
     // Check for duplicate emails
     if (users.some(u => u.email.toLowerCase() === newUserEmail.toLowerCase())) {
       toast.error('A user with this email already exists');
@@ -83,12 +96,16 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
       email: newUserEmail,
       name: newUserName,
       role: newUserRole,
+      password: newUserPassword,
+      confirmPassword: newUserConfirmPassword,
     };
 
     setUsers([...users, newUser]);
     setNewUserEmail('');
     setNewUserName('');
     setNewUserRole('MEMBER');
+    setNewUserPassword('');
+    setNewUserConfirmPassword('');
     toast.success('User added');
   };
 
@@ -234,7 +251,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
         // Reset form
         setCurrentStep(1);
         setOrgDetails({ name: '', domain: '', description: '' });
-        setUsers([{ id: '1', email: '', name: '', role: 'OWNER' }]);
+        setUsers([{ id: '1', email: '', name: '', role: 'OWNER', password: '', confirmPassword: '' }]);
         setApiKeyConfig({ usesMasterKey: 'true', apiKeyName: '', apiKeyValue: '' });
         setBillingConfig({ plan: 'PRO', seats: 1, billingCycle: 'monthly' });
       } else {
@@ -416,37 +433,75 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                             </SelectContent>
                           </Select>
                         </div>
-                        </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Add User Form */}
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
-                  <div className="grid grid-cols-12 gap-4">
-                    <div className="col-span-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-semibold text-gray-700">Add New User</h4>
+                    <Button
+                      onClick={addUser}
+                      size="sm"
+                      className="bg-blue-500 hover:bg-blue-600"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add User
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs text-gray-600">Name *</Label>
                       <Input
-                        placeholder="New user name"
+                        placeholder="John Doe"
                         value={newUserName}
                         onChange={(e) => setNewUserName(e.target.value)}
-                        className="h-10 border-gray-300"
+                        className="h-10 border-gray-300 mt-1"
                         onKeyPress={(e) => e.key === 'Enter' && addUser()}
                       />
                     </div>
-                    <div className="col-span-4">
+                    <div>
+                      <Label className="text-xs text-gray-600">Email *</Label>
                       <Input
                         type="email"
-                        placeholder="email@example.com"
+                        placeholder="john@acme.com"
                         value={newUserEmail}
                         onChange={(e) => setNewUserEmail(e.target.value)}
-                        className="h-10 border-gray-300"
+                        className="h-10 border-gray-300 mt-1"
                         onKeyPress={(e) => e.key === 'Enter' && addUser()}
                       />
                     </div>
-                    <div className="col-span-3">
+                    <div>
+                      <Label className="text-xs text-gray-600">Password *</Label>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        value={newUserPassword}
+                        onChange={(e) => setNewUserPassword(e.target.value)}
+                        className="h-10 border-gray-300 mt-1"
+                        onKeyPress={(e) => e.key === 'Enter' && addUser()}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-600">Confirm Password *</Label>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        value={newUserConfirmPassword}
+                        onChange={(e) => setNewUserConfirmPassword(e.target.value)}
+                        className={`h-10 border-gray-300 mt-1 ${newUserPassword && newUserConfirmPassword && newUserPassword !== newUserConfirmPassword ? 'border-red-500' : ''}`}
+                        onKeyPress={(e) => e.key === 'Enter' && addUser()}
+                      />
+                      {newUserPassword && newUserConfirmPassword && newUserPassword !== newUserConfirmPassword && (
+                        <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-600">Role *</Label>
                       <Select value={newUserRole} onValueChange={(value: 'OWNER' | 'ADMIN' | 'MEMBER') => setNewUserRole(value)}>
-                        <SelectTrigger className="h-10 border-gray-300">
+                        <SelectTrigger className="h-10 border-gray-300 mt-1">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -456,17 +511,9 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="col-span-1 flex justify-end">
-                      <Button
-                        onClick={addUser}
-                        className="h-10 w-10 p-0 bg-blue-500 hover:bg-blue-600"
-                      >
-                        <Plus className="h-5 w-5" />
-                      </Button>
-                    </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Add multiple users at once. Press Enter or click + to add. At least one OWNER is required.
+                  <p className="text-xs text-gray-500 mt-3">
+                    Add multiple users at once. Press Enter or click "Add User" to add. At least one OWNER is required.
                   </p>
                 </div>
 
@@ -474,7 +521,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                   <p className="text-sm text-blue-900 flex items-start gap-2">
                     <Users className="h-5 w-5 flex-shrink-0 mt-0.5" />
                     <span>
-                      <strong>{users.length} user(s) will be created.</strong> Temporary passwords will be generated and emailed to each user.
+                      <strong>{users.length} user(s) will be created.</strong> Each user will be able to login with their email and the password you set.
                     </span>
                   </p>
                 </div>
