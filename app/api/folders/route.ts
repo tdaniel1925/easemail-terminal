@@ -43,27 +43,41 @@ export async function GET(request: NextRequest) {
 
     const grantId = account.grant_id;
 
-    // Fetch folders from Nylas
-    const nylasClient = nylas();
-    const response = await nylasClient.folders.list({
-      identifier: grantId,
-    });
-
-    // Ensure folders is always an array
-    const folders = response.data || [];
-
-    console.log('Folders fetched:', folders.length, 'folders');
-    if (folders.length > 0) {
-      console.log('Sample folder:', {
-        id: folders[0].id,
-        name: folders[0].name,
-        attributes: folders[0].attributes,
-      });
+    if (!grantId) {
+      console.log('No grant_id found for account:', account.id);
+      return NextResponse.json({ folders: [], message: 'Email account not properly configured' });
     }
 
-    return NextResponse.json({
-      folders,
-    });
+    // Fetch folders from Nylas
+    try {
+      const nylasClient = nylas();
+      const response = await nylasClient.folders.list({
+        identifier: grantId,
+      });
+
+      // Ensure folders is always an array
+      const folders = response.data || [];
+
+      console.log('Folders fetched:', folders.length, 'folders');
+      if (folders.length > 0) {
+        console.log('Sample folder:', {
+          id: folders[0].id,
+          name: folders[0].name,
+          attributes: folders[0].attributes,
+        });
+      }
+
+      return NextResponse.json({
+        folders,
+      });
+    } catch (nylasError: any) {
+      console.error('Nylas folders error:', nylasError.message || nylasError);
+      // Return empty folders array instead of error for better UX
+      return NextResponse.json({
+        folders: [],
+        message: 'Could not fetch folders from email provider'
+      });
+    }
   } catch (error) {
     console.error('Fetch folders error:', error);
     return NextResponse.json(

@@ -16,24 +16,38 @@ export async function GET(
     const { id } = await params;
     const orgId = id;
 
-    // Check if user is a member and has appropriate role
-    const { data: membership } = (await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', orgId)
-      .eq('user_id', user.id)
-      .single()) as { data: any };
+    // Check if user is super admin
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single() as { data: { is_super_admin: boolean } | null };
 
-    if (!membership) {
-      return NextResponse.json({ error: 'Not a member of this organization' }, { status: 403 });
-    }
+    const isSuperAdmin = userData?.is_super_admin || false;
 
-    // Only OWNER and ADMIN roles can access organization management
-    if (membership.role === 'MEMBER') {
-      return NextResponse.json(
-        { error: 'Insufficient permissions. Only organization admins can manage the organization.' },
-        { status: 403 }
-      );
+    // Check if user is a member and has appropriate role (skip for super admins)
+    let membership: any = null;
+    if (!isSuperAdmin) {
+      const { data: memberData } = (await supabase
+        .from('organization_members')
+        .select('role')
+        .eq('organization_id', orgId)
+        .eq('user_id', user.id)
+        .single()) as { data: any };
+
+      membership = memberData;
+
+      if (!membership) {
+        return NextResponse.json({ error: 'Not a member of this organization' }, { status: 403 });
+      }
+
+      // Only OWNER and ADMIN roles can access organization management
+      if (membership.role === 'MEMBER') {
+        return NextResponse.json(
+          { error: 'Insufficient permissions. Only organization admins can manage the organization.' },
+          { status: 403 }
+        );
+      }
     }
 
     // Get organization details
@@ -62,7 +76,7 @@ export async function GET(
       organization,
       members,
       pendingInvites: pendingInvites || [],
-      currentUserRole: membership.role,
+      currentUserRole: isSuperAdmin ? 'SUPER_ADMIN' : membership.role,
     });
   } catch (error) {
     console.error('Get organization error:', error);
@@ -88,16 +102,30 @@ export async function PATCH(
     const { id } = await params;
     const orgId = id;
 
-    // Check if user is owner or admin
-    const { data: membership } = (await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', orgId)
-      .eq('user_id', user.id)
-      .single()) as { data: any };
+    // Check if user is super admin
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single() as { data: { is_super_admin: boolean } | null };
 
-    if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    const isSuperAdmin = userData?.is_super_admin || false;
+
+    // Check if user is owner or admin (skip for super admins)
+    let membership: any = null;
+    if (!isSuperAdmin) {
+      const { data: memberData } = (await supabase
+        .from('organization_members')
+        .select('role')
+        .eq('organization_id', orgId)
+        .eq('user_id', user.id)
+        .single()) as { data: any };
+
+      membership = memberData;
+
+      if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
+        return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+      }
     }
 
     const updates = await request.json();
@@ -105,7 +133,7 @@ export async function PATCH(
     // Only allow certain fields to be updated
     const allowedUpdates: any = {};
     if (updates.name) allowedUpdates.name = updates.name;
-    if (updates.seats && membership.role === 'OWNER') allowedUpdates.seats = updates.seats;
+    if (updates.seats && (isSuperAdmin || membership?.role === 'OWNER')) allowedUpdates.seats = updates.seats;
 
     const { data: organization, error } = (await (supabase as any)
       .from('organizations')
@@ -143,16 +171,27 @@ export async function DELETE(
     const { id } = await params;
     const orgId = id;
 
-    // Check if user is owner
-    const { data: membership } = (await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', orgId)
-      .eq('user_id', user.id)
-      .single()) as { data: any };
+    // Check if user is super admin
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single() as { data: { is_super_admin: boolean } | null };
 
-    if (!membership || membership.role !== 'OWNER') {
-      return NextResponse.json({ error: 'Only owners can delete organizations' }, { status: 403 });
+    const isSuperAdmin = userData?.is_super_admin || false;
+
+    // Check if user is owner (skip for super admins)
+    if (!isSuperAdmin) {
+      const { data: membership } = (await supabase
+        .from('organization_members')
+        .select('role')
+        .eq('organization_id', orgId)
+        .eq('user_id', user.id)
+        .single()) as { data: any };
+
+      if (!membership || membership.role !== 'OWNER') {
+        return NextResponse.json({ error: 'Only owners can delete organizations' }, { status: 403 });
+      }
     }
 
     // Delete organization (cascade will handle members)
