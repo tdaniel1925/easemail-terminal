@@ -12,6 +12,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get query parameters for date range
+    const searchParams = request.nextUrl.searchParams;
+    const start = searchParams.get('start');
+    const end = searchParams.get('end');
+
     const { data: account } = (await supabase
       .from('email_accounts')
       .select('*')
@@ -24,33 +29,50 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ events: [], message: 'No email account connected' });
     }
 
+    // Check if account has grant_id
+    if (!account.grant_id) {
+      console.log('No grant_id for account:', account.id);
+      return NextResponse.json({ events: [], message: 'Email account not fully configured' });
+    }
+
+    // Build query params for Nylas
+    const queryParams: any = {
+      calendarId: '*', // All calendars
+      limit: 100,
+    };
+
+    // Add date range if provided
+    if (start) {
+      queryParams.start = Math.floor(new Date(start).getTime() / 1000);
+    }
+    if (end) {
+      queryParams.end = Math.floor(new Date(end).getTime() / 1000);
+    }
+
     // Fetch events from Nylas
     const events = await getCachedOrFetch(
-      `events:${account.grant_id}`,
+      `events:${account.grant_id}:${start || 'all'}:${end || 'all'}`,
       async () => {
-        const nylasClient = nylas();
-        const response = await nylasClient.events.list({
-          identifier: account.grant_id,
-          queryParams: {
-            calendarId: '*', // All calendars
-            limit: 100,
-          },
-        });
-        return response.data;
+        try {
+          const nylasClient = nylas();
+          const response = await nylasClient.events.list({
+            identifier: account.grant_id,
+            queryParams,
+          });
+          return response.data;
+        } catch (nylasError: any) {
+          console.error('Nylas events error:', nylasError.message || nylasError);
+          return [];
+        }
       },
       60 // Cache for 1 minute
     );
 
     return NextResponse.json({ events: events || [] });
-  } catch (error) {
-    console.error('Fetch events error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch events',
-        events: []
-      },
-      { status: 500 }
-    );
+  } catch (error: any) {
+    console.error('Fetch events error:', error?.message || error);
+    // Return empty events instead of 500 error for better UX
+    return NextResponse.json({ events: [], message: 'Could not fetch calendar events' });
   }
 }
 
