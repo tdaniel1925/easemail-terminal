@@ -26,6 +26,8 @@ interface UserToCreate {
   email: string;
   name: string;
   role: 'OWNER' | 'ADMIN' | 'MEMBER';
+  password: string;
+  confirmPassword: string;
 }
 
 type WizardStep = 1 | 2 | 3 | 4;
@@ -43,7 +45,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
 
   // Step 2: Bulk Users
   const [users, setUsers] = useState<UserToCreate[]>([
-    { id: '1', email: '', name: '', role: 'OWNER' },
+    { id: '1', email: '', name: '', role: 'OWNER', password: '', confirmPassword: '' },
   ]);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
@@ -179,6 +181,20 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
     try {
       setSubmitting(true);
 
+      // Validate all users have passwords and they match
+      for (const user of users) {
+        if (!user.password || user.password.length < 8) {
+          toast.error(`Password for ${user.email} must be at least 8 characters`);
+          setSubmitting(false);
+          return;
+        }
+        if (user.password !== user.confirmPassword) {
+          toast.error(`Passwords for ${user.email} do not match`);
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const payload = {
         // Organization details
         organization: {
@@ -189,11 +205,12 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
           seats: billingConfig.seats,
           billing_cycle: billingConfig.billingCycle,
         },
-        // Users (bulk)
+        // Users (bulk) - include passwords
         users: users.map(u => ({
           email: u.email,
           name: u.name,
           role: u.role,
+          password: u.password,
         })),
         // API key
         api_key: {
@@ -326,39 +343,70 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
             {currentStep === 2 && (
               <div className="space-y-6">
                 {/* User List */}
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 px-4 py-3 grid grid-cols-12 gap-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    <div className="col-span-4">Name</div>
-                    <div className="col-span-4">Email</div>
-                    <div className="col-span-3">Role</div>
-                    <div className="col-span-1"></div>
-                  </div>
-                  <div className="divide-y divide-gray-200">
-                    {users.map((user, idx) => (
-                      <div key={user.id} className="px-4 py-4 grid grid-cols-12 gap-4 items-center hover:bg-gray-50 transition-colors">
-                        <div className="col-span-4">
+                <div className="space-y-4">
+                  {users.map((user, idx) => (
+                    <div key={user.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-gray-700">User {idx + 1}</h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeUser(user.id)}
+                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs text-gray-600">Name *</Label>
                           <Input
                             placeholder="John Doe"
                             value={user.name}
                             onChange={(e) => setUsers(users.map(u => u.id === user.id ? { ...u, name: e.target.value } : u))}
-                            className="h-10 border-gray-300"
+                            className="h-10 border-gray-300 mt-1"
                           />
                         </div>
-                        <div className="col-span-4">
+                        <div>
+                          <Label className="text-xs text-gray-600">Email *</Label>
                           <Input
                             type="email"
                             placeholder="john@acme.com"
                             value={user.email}
                             onChange={(e) => setUsers(users.map(u => u.id === user.id ? { ...u, email: e.target.value } : u))}
-                            className="h-10 border-gray-300"
+                            className="h-10 border-gray-300 mt-1"
                           />
                         </div>
-                        <div className="col-span-3">
+                        <div>
+                          <Label className="text-xs text-gray-600">Password *</Label>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            value={user.password}
+                            onChange={(e) => setUsers(users.map(u => u.id === user.id ? { ...u, password: e.target.value } : u))}
+                            className="h-10 border-gray-300 mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600">Confirm Password *</Label>
+                          <Input
+                            type="password"
+                            placeholder="••••••••"
+                            value={user.confirmPassword}
+                            onChange={(e) => setUsers(users.map(u => u.id === user.id ? { ...u, confirmPassword: e.target.value } : u))}
+                            className={`h-10 border-gray-300 mt-1 ${user.password && user.confirmPassword && user.password !== user.confirmPassword ? 'border-red-500' : ''}`}
+                          />
+                          {user.password && user.confirmPassword && user.password !== user.confirmPassword && (
+                            <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label className="text-xs text-gray-600">Role *</Label>
                           <Select
                             value={user.role}
                             onValueChange={(value: 'OWNER' | 'ADMIN' | 'MEMBER') => updateUserRole(user.id, value)}
                           >
-                            <SelectTrigger className="h-10 border-gray-300">
+                            <SelectTrigger className="h-10 border-gray-300 mt-1">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -368,15 +416,6 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="col-span-1 flex justify-end">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeUser(user.id)}
-                            className="h-10 w-10 p-0 hover:bg-red-50 hover:text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
                     ))}

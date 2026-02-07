@@ -90,9 +90,10 @@ export async function POST(request: NextRequest) {
 
     for (const userToCreate of users) {
       try {
-        // Create new user via Supabase Auth using service client
+        // Create new user via Supabase Auth using service client with password
         const { data: newAuthUser, error: authError } = await serviceClient.auth.admin.createUser({
           email: userToCreate.email,
+          password: userToCreate.password,
           email_confirm: true,
           user_metadata: {
             name: userToCreate.name,
