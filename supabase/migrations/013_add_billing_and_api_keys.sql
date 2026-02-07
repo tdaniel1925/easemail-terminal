@@ -104,13 +104,12 @@ CREATE TABLE IF NOT EXISTS public.payment_methods (
 
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now(),
-
-    CONSTRAINT unique_org_default_payment UNIQUE(organization_id, is_default) WHERE is_default = true
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE INDEX idx_payment_methods_org ON public.payment_methods(organization_id);
-CREATE INDEX idx_payment_methods_default ON public.payment_methods(organization_id, is_default) WHERE is_default = true;
+-- Partial unique index to ensure only one default payment method per org
+CREATE UNIQUE INDEX unique_org_default_payment ON public.payment_methods(organization_id, is_default) WHERE is_default = true;
 
 -- RLS Policies
 ALTER TABLE public.payment_methods ENABLE ROW LEVEL SECURITY;
