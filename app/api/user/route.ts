@@ -10,7 +10,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json({ user });
+    // Fetch additional user data from users table
+    const { data: userData } = await supabase
+      .from('users')
+      .select('name, role, is_super_admin, profile_picture_url')
+      .eq('id', user.id)
+      .single() as { data: { name: string; role: string; is_super_admin: boolean; profile_picture_url?: string } | null };
+
+    // Merge auth user with database user data
+    const enrichedUser = {
+      ...user,
+      name: userData?.name || user.user_metadata?.name || '',
+      role: userData?.role || null,
+      is_super_admin: userData?.is_super_admin || false,
+      profile_picture_url: userData?.profile_picture_url || null,
+    };
+
+    return NextResponse.json({ user: enrichedUser });
   } catch (error) {
     console.error('Get user error:', error);
     return NextResponse.json(

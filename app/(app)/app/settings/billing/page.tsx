@@ -5,12 +5,16 @@
  *
  * Simplified billing page that shows beta status and provides basic
  * subscription management without payment processing during beta.
+ *
+ * Access: OWNER and ADMIN roles only. MEMBER role users are redirected.
  */
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SubscriptionStatus } from '@/components/billing/subscription-status';
+import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { ArrowRight, CreditCard, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -22,29 +26,59 @@ interface UserOrganization {
 }
 
 export default function BillingPage() {
+  const router = useRouter();
   const [organizations, setOrganizations] = useState<UserOrganization[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
 
   useEffect(() => {
-    const fetchOrganizations = async () => {
+    const checkAccessAndFetchData = async () => {
       try {
+        // Check user role
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push('/app/settings/account');
+          return;
+        }
+
+        const { data: userData } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single() as { data: { role: string } | null };
+
+        // MEMBER role users cannot access billing page
+        if (userData && userData.role === 'MEMBER') {
+          router.push('/app/settings/account');
+          return;
+        }
+
+        setHasAccess(true);
+
+        // Fetch organizations
         const response = await fetch('/api/organization/list');
         if (response.ok) {
           const data = await response.json();
           setOrganizations(data.organizations || []);
         }
       } catch (error) {
-        console.error('Error fetching organizations:', error);
+        console.error('Error:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrganizations();
-  }, []);
+    checkAccessAndFetchData();
+  }, [router]);
 
   const isOrgAdmin = organizations.some((org) => org.role === 'admin' || org.role === 'owner');
   const isMemberOnly = organizations.length > 0 && !isOrgAdmin;
+
+  // Show nothing while checking access (will redirect if no access)
+  if (loading || !hasAccess) {
+    return null;
+  }
 
   return (
     <div className="container max-w-4xl mx-auto py-8 space-y-8">

@@ -16,7 +16,7 @@ export async function GET(
     const { id } = await params;
     const orgId = id;
 
-    // Check if user is a member
+    // Check if user is a member and has appropriate role
     const { data: membership } = (await supabase
       .from('organization_members')
       .select('role')
@@ -26,6 +26,14 @@ export async function GET(
 
     if (!membership) {
       return NextResponse.json({ error: 'Not a member of this organization' }, { status: 403 });
+    }
+
+    // Only OWNER and ADMIN roles can access organization dashboard
+    if (membership.role === 'MEMBER') {
+      return NextResponse.json(
+        { error: 'Insufficient permissions. Only organization admins can access the dashboard.' },
+        { status: 403 }
+      );
     }
 
     // Get organization details

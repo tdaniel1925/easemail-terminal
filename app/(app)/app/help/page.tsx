@@ -2295,15 +2295,31 @@ export default function HelpPage() {
         const response = await fetch('/api/user');
         const data = await response.json();
         if (data.user) {
-          // Check if super admin
+          // Check if super admin first (highest privilege)
           if (data.user.is_super_admin) {
             setUserRole('super-admin');
+            return;
           }
-          // Check if org admin (would need to query organization_members)
-          // For now, default to 'all'
+
+          // Check if org admin by fetching organization memberships
+          const orgsResponse = await fetch('/api/organization/list');
+          if (orgsResponse.ok) {
+            const orgsData = await orgsResponse.json();
+            const isOrgAdmin = orgsData.organizations?.some(
+              (org: any) => org.role === 'OWNER' || org.role === 'ADMIN'
+            );
+            if (isOrgAdmin) {
+              setUserRole('admin');
+              return;
+            }
+          }
+
+          // Default to regular user
+          setUserRole('all');
         }
       } catch (error) {
         console.error('Failed to fetch user role:', error);
+        setUserRole('all');
       }
     };
 

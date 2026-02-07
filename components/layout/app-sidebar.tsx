@@ -24,6 +24,8 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [labels, setLabels] = useState<any[]>([]);
   const [folders, setFolders] = useState<any[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [folderCounts, setFolderCounts] = useState({
     inbox: 0,
     starred: 0,
@@ -39,6 +41,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
     fetchLabels();
     fetchFolders();
     fetchFolderCounts();
+    fetchUserRole();
 
     // Refresh counts every 60 seconds
     const interval = setInterval(fetchFolderCounts, 60000);
@@ -115,6 +118,27 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
       }
     } catch (error) {
       console.error('Failed to fetch folder counts:', error);
+    }
+  };
+
+  const fetchUserRole = async () => {
+    try {
+      const supabase = (await import('@/lib/supabase/client')).createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role, is_super_admin')
+        .eq('id', user.id)
+        .single() as { data: { role: string; is_super_admin: boolean } | null };
+
+      if (userData) {
+        setUserRole(userData.role);
+        setIsSuperAdmin(userData.is_super_admin || false);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user role:', error);
     }
   };
 
@@ -314,16 +338,18 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               <span className="text-sm">Settings</span>
             </button>
           </Link>
-          <Link href="/app/admin/analytics">
-            <button
-              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
-                pathname?.startsWith('/app/admin') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
-              }`}
-            >
-              <BarChart3 className="h-5 w-5" />
-              <span className="text-sm">Admin</span>
-            </button>
-          </Link>
+          {isSuperAdmin && (
+            <Link href="/app/admin/analytics">
+              <button
+                className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                  pathname?.startsWith('/app/admin') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+                }`}
+              >
+                <BarChart3 className="h-5 w-5" />
+                <span className="text-sm">Admin</span>
+              </button>
+            </Link>
+          )}
         </div>
       </div>
     </div>
