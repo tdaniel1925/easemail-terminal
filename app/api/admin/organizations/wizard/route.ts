@@ -1,12 +1,19 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/resend';
 import { getWelcomeEmailHtml } from '@/lib/email-templates';
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
+
+    // Create service client for admin operations
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Authenticate and verify super admin
     const {
@@ -83,8 +90,8 @@ export async function POST(request: NextRequest) {
 
     for (const userToCreate of users) {
       try {
-        // Create new user via Supabase Auth
-        const { data: newAuthUser, error: authError } = await supabase.auth.admin.createUser({
+        // Create new user via Supabase Auth using service client
+        const { data: newAuthUser, error: authError } = await serviceClient.auth.admin.createUser({
           email: userToCreate.email,
           email_confirm: true,
           user_metadata: {
@@ -98,8 +105,8 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Create user record in public.users table
-        const { error: userInsertError } = await (supabase
+        // Create user record in public.users table using service client
+        const { error: userInsertError } = await (serviceClient
           .from('users') as any)
           .insert({
             id: newAuthUser.user.id,
@@ -132,8 +139,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 2: Create organization
-    const { data: newOrg, error: orgError } = await supabase
+    // Step 2: Create organization using service client
+    const { data: newOrg, error: orgError } = await serviceClient
       .from('organizations')
       .insert({
         name: organization.name,
@@ -167,7 +174,7 @@ export async function POST(request: NextRequest) {
       added_by: user.id,
     }));
 
-    const { error: memberError } = await supabase
+    const { error: memberError } = await serviceClient
       .from('organization_members')
       .insert(memberInserts);
 
@@ -177,10 +184,10 @@ export async function POST(request: NextRequest) {
       // In production, you'd want to rollback or handle this
     }
 
-    // Step 4: Handle API key setup
+    // Step 4: Handle API key setup using service client
     if (!api_key?.uses_master_key && api_key?.key_value) {
       // Organization is providing their own API key
-      const { data: apiKeyRecord, error: apiKeyError } = await supabase
+      const { data: apiKeyRecord, error: apiKeyError } = await serviceClient
         .from('api_keys')
         .insert({
           organization_id: newOrg.id,
@@ -196,7 +203,7 @@ export async function POST(request: NextRequest) {
         console.error('Error creating API key:', apiKeyError);
       } else {
         // Update organization to reference this API key
-        await supabase
+        await serviceClient
           .from('organizations')
           .update({
             api_key_id: apiKeyRecord.id,
@@ -206,8 +213,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Step 5: Create initial billing history record
-    const { error: historyError } = await supabase
+    // Step 5: Create initial billing history record using service client
+    const { error: historyError } = await serviceClient
       .from('billing_history')
       .insert({
         organization_id: newOrg.id,
