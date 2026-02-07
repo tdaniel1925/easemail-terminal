@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// This endpoint is only for testing and should be disabled in production
+// This endpoint is only for testing - requires valid token
 export async function POST(request: NextRequest) {
-  // Only allow in development environment OR with valid test token
+  // Require valid test token
   const testToken = request.headers.get('x-test-token');
-  const isProduction = process.env.NODE_ENV === 'production';
-  // Use environment variable or default test token for E2E testing
   const validTestToken = process.env.TEST_ENDPOINT_TOKEN || 'test-token-for-e2e';
 
-  if (isProduction && testToken !== validTestToken) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  // Token must match exactly
+  if (testToken !== validTestToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
