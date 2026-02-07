@@ -7,7 +7,11 @@
 
 import { getPayPalClient, PAYPAL_PLANS } from './client';
 import { createClient } from '@supabase/supabase-js';
-import { SubscriptionsController } from '@paypal/paypal-server-sdk';
+import {
+  SubscriptionsController,
+  ExperienceContextShippingPreference,
+  ApplicationContextUserAction
+} from '@paypal/paypal-server-sdk';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,12 +51,8 @@ export async function createSubscription(
         applicationContext: {
           brandName: 'EaseMail',
           locale: 'en-US',
-          shippingPreference: 'NO_SHIPPING',
-          userAction: 'SUBSCRIBE_NOW',
-          paymentMethod: {
-            payerSelected: 'PAYPAL',
-            payeePreferred: 'IMMEDIATE_PAYMENT_REQUIRED',
-          },
+          shippingPreference: ExperienceContextShippingPreference.NoShipping,
+          userAction: ApplicationContextUserAction.SubscribeNow,
           returnUrl: params.returnUrl,
           cancelUrl: params.cancelUrl,
         },
