@@ -21,7 +21,7 @@ const environment = process.env.PAYPAL_MODE === 'production'
  * Creates and returns an authenticated PayPal client
  */
 export function getPayPalClient() {
-  const paypalClient = Client({
+  const paypalClient = new Client({
     clientCredentialsAuthCredentials: {
       oAuthClientId: process.env.PAYPAL_CLIENT_ID!,
       oAuthClientSecret: process.env.PAYPAL_CLIENT_SECRET!,

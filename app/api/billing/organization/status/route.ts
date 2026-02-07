@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       .eq('key', 'beta_mode')
       .single();
 
-    if (betaMode?.value?.enabled) {
+    if ((betaMode as any)?.value?.enabled) {
       return NextResponse.json({
         isBeta: true,
         message: 'Organization is in beta mode - no billing required',
@@ -68,9 +68,9 @@ export async function GET(request: NextRequest) {
       .single();
 
     let paypalStatus = null;
-    if (orgData?.paypal_subscription_id) {
+    if ((orgData as any)?.paypal_subscription_id) {
       try {
-        paypalStatus = await getSubscription(orgData.paypal_subscription_id);
+        paypalStatus = await getSubscription((orgData as any).paypal_subscription_id);
       } catch (error) {
         console.error('Error fetching PayPal subscription:', error);
       }
@@ -78,14 +78,14 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       isBeta: false,
-      isAdmin: membership.role === 'admin',
+      isAdmin: (membership as any).role === 'admin',
       localStatus: {
-        subscriptionId: orgData?.paypal_subscription_id,
-        subscriberId: orgData?.paypal_subscriber_id,
-        seats: orgData?.seats,
-        seatsUsed: orgData?.seats_used,
-        trialEndsAt: orgData?.trial_ends_at,
-        trialStartedAt: orgData?.trial_started_at,
+        subscriptionId: (orgData as any)?.paypal_subscription_id,
+        subscriberId: (orgData as any)?.paypal_subscriber_id,
+        seats: (orgData as any)?.seats,
+        seatsUsed: (orgData as any)?.seats_used,
+        trialEndsAt: (orgData as any)?.trial_ends_at,
+        trialStartedAt: (orgData as any)?.trial_started_at,
       },
       paypalStatus: paypalStatus
         ? {

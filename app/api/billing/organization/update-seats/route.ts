@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
 
-    if (!membership || membership.role !== 'admin') {
+    if (!membership || (membership as any).role !== 'admin') {
       return NextResponse.json(
         { error: 'Only organization admins can update subscriptions' },
         { status: 403 }
@@ -69,10 +69,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Ensure new seat count is not less than seats currently in use
-    if (seats < (orgData.seats_used || 0)) {
+    if (seats < ((orgData as any).seats_used || 0)) {
       return NextResponse.json(
         {
-          error: `Cannot reduce seats below current usage. Currently using ${orgData.seats_used} seats.`,
+          error: `Cannot reduce seats below current usage. Currently using ${(orgData as any).seats_used} seats.`,
         },
         { status: 400 }
       );

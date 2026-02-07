@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         {
           error: 'You already have an active subscription',
           subscriptionId: (userData as any).paypal_subscription_id,
-          status: userData.subscription_status,
+          status: (userData as any).subscription_status,
         },
         { status: 400 }
       );

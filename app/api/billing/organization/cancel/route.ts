@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
 
-    if (!membership || membership.role !== 'admin') {
+    if (!membership || (membership as any).role !== 'admin') {
       return NextResponse.json(
         { error: 'Only organization admins can cancel subscriptions' },
         { status: 403 }
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       .eq('id', organizationId)
       .single();
 
-    if (!orgData?.paypal_subscription_id) {
+    if (!(orgData as any)?.paypal_subscription_id) {
       return NextResponse.json(
         { error: 'No active subscription found' },
         { status: 404 }
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Cancel with PayPal
-    await cancelSubscription(orgData.paypal_subscription_id, reason);
+    await cancelSubscription((orgData as any).paypal_subscription_id, reason);
 
     // Update database with service client
     const serviceClient = createServiceClient(

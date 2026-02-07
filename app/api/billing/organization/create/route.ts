@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       .eq('key', 'beta_mode')
       .single();
 
-    if (betaMode?.value?.enabled) {
+    if ((betaMode as any)?.value?.enabled) {
       return NextResponse.json(
         { error: 'Billing is not active during beta mode' },
         { status: 400 }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single();
 
-    if (!membership || membership.role !== 'admin') {
+    if (!membership || (membership as any).role !== 'admin') {
       return NextResponse.json(
         { error: 'Only organization admins can create subscriptions' },
         { status: 403 }
@@ -75,11 +75,11 @@ export async function POST(request: NextRequest) {
       .eq('id', organizationId)
       .single();
 
-    if (orgData?.paypal_subscription_id) {
+    if ((orgData as any)?.paypal_subscription_id) {
       return NextResponse.json(
         {
           error: 'Organization already has an active subscription',
-          subscriptionId: orgData.paypal_subscription_id,
+          subscriptionId: (orgData as any).paypal_subscription_id,
         },
         { status: 400 }
       );
