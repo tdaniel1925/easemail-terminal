@@ -150,7 +150,6 @@ export async function POST(request: NextRequest) {
         name: organization.name,
         slug: uniqueSlug,
         domain: organization.domain || null,
-        description: organization.description || null,
         plan: organization.plan || 'PRO',
         seats: seats,
         billing_cycle: billingCycle,
@@ -159,7 +158,6 @@ export async function POST(request: NextRequest) {
         mrr: mrr,
         arr: arr,
         uses_master_api_key: api_key?.uses_master_key !== false,
-        created_by: user.id,
       })
       .select()
       .single();
