@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,8 +22,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Super admin access required' }, { status: 403 });
     }
 
+    // Use service client to bypass RLS for super admin queries
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Get all organizations with stats
-    const { data: allOrgs } = (await supabase
+    const { data: allOrgs } = (await serviceClient
       .from('organizations')
       .select('*')
       .order('created_at', { ascending: false })) as { data: any };
@@ -36,13 +43,13 @@ export async function GET(request: NextRequest) {
     const statsResults = await Promise.allSettled(
       allOrgs.map(async (org: any) => {
         try {
-          const { count: memberCount } = await supabase
+          const { count: memberCount } = await serviceClient
             .from('organization_members')
             .select('*', { count: 'exact', head: true })
             .eq('organization_id', org.id);
 
           // Get organization members first
-          const { data: orgMembers } = await supabase
+          const { data: orgMembers } = await serviceClient
             .from('organization_members')
             .select('user_id')
             .eq('organization_id', org.id);
@@ -50,13 +57,13 @@ export async function GET(request: NextRequest) {
           // Get email count only if we have member user IDs
           const memberUserIds = orgMembers?.map((m: any) => m.user_id) || [];
           const { count: emailCount } = memberUserIds.length > 0
-            ? await supabase
+            ? await serviceClient
                 .from('email_accounts')
                 .select('*', { count: 'exact', head: true })
                 .in('user_id', memberUserIds)
             : { count: 0 };
 
-          const { count: usageCount } = await supabase
+          const { count: usageCount } = await serviceClient
             .from('usage_tracking')
             .select('*', { count: 'exact', head: true })
             .eq('organization_id', org.id)
