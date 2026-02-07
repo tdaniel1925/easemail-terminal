@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       .eq('key', 'beta_mode')
       .single();
 
-    if (betaMode?.value?.enabled) {
+    if ((betaMode as any)?.value?.enabled) {
       return NextResponse.json(
         { error: 'Billing is not active during beta mode' },
         { status: 400 }
