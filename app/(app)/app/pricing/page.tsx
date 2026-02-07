@@ -37,9 +37,9 @@ export default function PricingPage() {
   });
 
   const calculatePrice = (seatCount: number) => {
-    if (seatCount === 1) return 30;
-    if (seatCount >= 2 && seatCount <= 10) return seatCount * 25;
-    if (seatCount >= 11 && seatCount <= 49) return seatCount * 20;
+    if (seatCount === 1) return 20; // Individual plan: $20/month
+    if (seatCount >= 2 && seatCount <= 9) return seatCount * 18; // Team plan: $18/seat/month
+    if (seatCount >= 10 && seatCount <= 49) return seatCount * 15; // Growth plan: $15/seat/month
     return 0; // Enterprise
   };
 
@@ -251,7 +251,7 @@ export default function PricingPage() {
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-700">Price per seat/month:</span>
                     <span className="font-semibold text-gray-900">
-                      ${seats === 1 ? '30.00' : seats >= 11 ? '20.00' : '25.00'}
+                      ${seats === 1 ? '20.00' : seats >= 10 ? '15.00' : '18.00'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
@@ -325,15 +325,15 @@ export default function PricingPage() {
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="bg-gradient-to-br from-gray-50 to-gray-100">
-                <Badge className="w-fit mb-3 bg-gray-200 text-gray-700">1 Seat</Badge>
+                <Badge className="w-fit mb-3 bg-gray-200 text-gray-700">Individual</Badge>
                 <CardTitle className="text-4xl font-bold text-gray-900">
-                  $30<span className="text-lg font-normal text-gray-600">/mo</span>
+                  $20<span className="text-lg font-normal text-gray-600">/mo</span>
                 </CardTitle>
                 <CardDescription className="text-base">Perfect for solo professionals</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
                 <p className="text-sm text-gray-600">
-                  Get started with all features for individual use.
+                  All features included with 14-day free trial.
                 </p>
               </CardContent>
             </Card>
@@ -343,30 +343,30 @@ export default function PricingPage() {
                 POPULAR
               </div>
               <CardHeader className="bg-gradient-to-br from-blue-50 to-indigo-50">
-                <Badge className="w-fit mb-3 bg-blue-500 hover:bg-blue-600 text-white">2-10 Seats</Badge>
+                <Badge className="w-fit mb-3 bg-blue-500 hover:bg-blue-600 text-white">Team (2-9 Seats)</Badge>
                 <CardTitle className="text-4xl font-bold text-gray-900">
-                  $25<span className="text-lg font-normal text-gray-600">/seat/mo</span>
+                  $18<span className="text-lg font-normal text-gray-600">/seat/mo</span>
                 </CardTitle>
                 <CardDescription className="text-base">Best for small teams</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
                 <p className="text-sm text-gray-600">
-                  16% savings for growing teams. $50-$250/month total.
+                  Great value for growing teams. $36-$162/month total.
                 </p>
               </CardContent>
             </Card>
 
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="bg-gradient-to-br from-purple-50 to-indigo-50">
-                <Badge className="w-fit mb-3 bg-purple-500 hover:bg-purple-600 text-white">11-49 Seats</Badge>
+                <Badge className="w-fit mb-3 bg-purple-500 hover:bg-purple-600 text-white">Growth (10+ Seats)</Badge>
                 <CardTitle className="text-4xl font-bold text-gray-900">
-                  $20<span className="text-lg font-normal text-gray-600">/seat/mo</span>
+                  $15<span className="text-lg font-normal text-gray-600">/seat/mo</span>
                 </CardTitle>
-                <CardDescription className="text-base">Great for larger teams</CardDescription>
+                <CardDescription className="text-base">Best for larger teams</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
                 <p className="text-sm text-gray-600">
-                  33% savings for established teams. $220-$980/month total.
+                  Maximum savings for established teams. $150+/month total.
                 </p>
               </CardContent>
             </Card>

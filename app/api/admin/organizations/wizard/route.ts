@@ -122,6 +122,31 @@ export async function POST(request: NextRequest) {
           // In production, you'd want to handle this more gracefully
         }
 
+        // Create email accounts for this user (if provided)
+        if (userToCreate.emailAccounts && userToCreate.emailAccounts.length > 0) {
+          for (const emailAccount of userToCreate.emailAccounts) {
+            try {
+              await serviceClient.from('email_accounts').insert({
+                user_id: newAuthUser.user.id,
+                email: emailAccount.email,
+                provider: emailAccount.provider,
+                email_provider: emailAccount.provider,
+                name: emailAccount.email.split('@')[0],
+                is_primary: false,
+                grant_id: null, // Will be set when user connects via OAuth
+                needs_oauth_connection: true,
+                added_by_admin: user.id,
+                pre_configured_during_setup: true,
+                metadata: { added_via: 'org_creation_wizard' },
+              });
+              console.log(`Added email account ${emailAccount.email} for user ${userToCreate.email}`);
+            } catch (emailError) {
+              console.error(`Error adding email account ${emailAccount.email}:`, emailError);
+              // Continue with other email accounts
+            }
+          }
+        }
+
         createdUsers.push({
           id: newAuthUser.user.id,
           email: userToCreate.email,

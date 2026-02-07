@@ -13,7 +13,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Building2, Users, Key, CreditCard, Check, X, Plus, UserPlus, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Loader2, Building2, Users, Key, CreditCard, Check, X, Plus, UserPlus, Trash2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CreateOrganizationWizardProps {
@@ -21,13 +29,20 @@ interface CreateOrganizationWizardProps {
   onCancel: () => void;
 }
 
-interface UserToCreate {
+interface EmailAccount {
   id: string;
   email: string;
+  provider: 'gmail' | 'outlook' | 'other';
+}
+
+interface UserToCreate {
+  id: string;
+  email: string; // Login email
   name: string;
   role: 'OWNER' | 'ADMIN' | 'MEMBER';
   password: string;
   confirmPassword: string;
+  emailAccounts: EmailAccount[];
 }
 
 type WizardStep = 1 | 2 | 3 | 4;
@@ -45,13 +60,18 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
 
   // Step 2: Bulk Users
   const [users, setUsers] = useState<UserToCreate[]>([
-    { id: '1', email: '', name: '', role: 'OWNER', password: '', confirmPassword: '' },
+    { id: '1', email: '', name: '', role: 'OWNER', password: '', confirmPassword: '', emailAccounts: [] },
   ]);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserName, setNewUserName] = useState('');
   const [newUserRole, setNewUserRole] = useState<'OWNER' | 'ADMIN' | 'MEMBER'>('MEMBER');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserConfirmPassword, setNewUserConfirmPassword] = useState('');
+
+  // Email accounts modal state
+  const [emailAccountsModalOpen, setEmailAccountsModalOpen] = useState(false);
+  const [currentEditingUserId, setCurrentEditingUserId] = useState<string | null>(null);
+  const [emailAccountsInput, setEmailAccountsInput] = useState('');
 
   // Step 3: API Key Configuration
   const [apiKeyConfig, setApiKeyConfig] = useState({
@@ -98,6 +118,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
       role: newUserRole,
       password: newUserPassword,
       confirmPassword: newUserConfirmPassword,
+      emailAccounts: [],
     };
 
     setUsers([...users, newUser]);
@@ -107,6 +128,62 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
     setNewUserPassword('');
     setNewUserConfirmPassword('');
     toast.success('User added');
+  };
+
+  // Email account helper functions
+  const detectEmailProvider = (email: string): 'gmail' | 'outlook' | 'other' => {
+    const domain = email.toLowerCase().split('@')[1];
+    if (domain === 'gmail.com' || domain === 'googlemail.com') return 'gmail';
+    if (domain === 'outlook.com' || domain === 'hotmail.com' || domain === 'live.com') return 'outlook';
+    return 'other';
+  };
+
+  const openEmailAccountsModal = (userId: string) => {
+    setCurrentEditingUserId(userId);
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      // Pre-fill with existing email accounts
+      setEmailAccountsInput(user.emailAccounts.map(ea => ea.email).join('\n'));
+    }
+    setEmailAccountsModalOpen(true);
+  };
+
+  const saveEmailAccounts = () => {
+    if (!currentEditingUserId) return;
+
+    // Parse email addresses from input (support comma or newline separated)
+    const emailAddresses = emailAccountsInput
+      .split(/[\n,]/)
+      .map(e => e.trim())
+      .filter(e => e.length > 0);
+
+    // Validate email addresses
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const invalidEmails = emailAddresses.filter(e => !emailRegex.test(e));
+
+    if (invalidEmails.length > 0) {
+      toast.error(`Invalid email addresses: ${invalidEmails.join(', ')}`);
+      return;
+    }
+
+    // Create email account objects
+    const emailAccounts: EmailAccount[] = emailAddresses.map(email => ({
+      id: Date.now().toString() + Math.random(),
+      email,
+      provider: detectEmailProvider(email),
+    }));
+
+    // Update user with email accounts
+    setUsers(users.map(u =>
+      u.id === currentEditingUserId
+        ? { ...u, emailAccounts }
+        : u
+    ));
+
+    setEmailAccountsModalOpen(false);
+    setEmailAccountsInput('');
+    setCurrentEditingUserId(null);
+    toast.success(`${emailAccounts.length} email account(s) added`);
   };
 
   const removeUser = (id: string) => {
@@ -251,7 +328,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
         // Reset form
         setCurrentStep(1);
         setOrgDetails({ name: '', domain: '', description: '' });
-        setUsers([{ id: '1', email: '', name: '', role: 'OWNER', password: '', confirmPassword: '' }]);
+        setUsers([{ id: '1', email: '', name: '', role: 'OWNER', password: '', confirmPassword: '', emailAccounts: [] }]);
         setApiKeyConfig({ usesMasterKey: 'true', apiKeyName: '', apiKeyValue: '' });
         setBillingConfig({ plan: 'PRO', seats: 1, billingCycle: 'monthly' });
       } else {
@@ -433,6 +510,39 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                             </SelectContent>
                           </Select>
                         </div>
+                      </div>
+
+                      {/* Email Accounts Section */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-xs text-gray-600 font-semibold">Email Accounts (Optional)</Label>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEmailAccountsModal(user.id)}
+                            className="h-8 text-xs"
+                          >
+                            <Mail className="h-3 w-3 mr-1" />
+                            {user.emailAccounts.length > 0 ? `Manage (${user.emailAccounts.length})` : 'Add Email Accounts'}
+                          </Button>
+                        </div>
+                        {user.emailAccounts.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {user.emailAccounts.map((ea) => (
+                              <Badge key={ea.id} variant="secondary" className="text-xs">
+                                <Mail className="h-3 w-3 mr-1" />
+                                {ea.email}
+                                {ea.provider !== 'other' && (
+                                  <span className="ml-1 text-gray-500">({ea.provider})</span>
+                                )}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2">
+                          User will connect these accounts via OAuth during onboarding
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -773,6 +883,51 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
           </div>
         </div>
       </div>
+
+      {/* Email Accounts Modal */}
+      <Dialog open={emailAccountsModalOpen} onOpenChange={setEmailAccountsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add Email Accounts</DialogTitle>
+            <DialogDescription>
+              Enter email addresses that this user will connect during onboarding.
+              You can enter multiple addresses separated by commas or new lines.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="emailAccounts" className="text-sm font-medium text-gray-700">
+              Email Addresses
+            </Label>
+            <Textarea
+              id="emailAccounts"
+              placeholder="john.doe@gmail.com&#10;john@company.com&#10;john.doe@outlook.com"
+              value={emailAccountsInput}
+              onChange={(e) => setEmailAccountsInput(e.target.value)}
+              rows={6}
+              className="mt-2 font-mono text-sm"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              💡 Provider will be auto-detected (Gmail, Outlook, or Other)
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setEmailAccountsModalOpen(false);
+                setEmailAccountsInput('');
+                setCurrentEditingUserId(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="button" onClick={saveEmailAccounts}>
+              Save Email Accounts
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

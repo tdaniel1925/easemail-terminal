@@ -1,0 +1,43 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e7]: EaseMail
+      - generic [ref=e8]: Create an account
+      - generic [ref=e9]: Get started with EaseMail today
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - text: Full Name
+          - textbox "Full Name" [ref=e13]:
+            - /placeholder: John Doe
+            - text: TDaniel BotMakers
+        - generic [ref=e14]:
+          - text: Email
+          - textbox "Email" [ref=e15]:
+            - /placeholder: you@example.com
+            - text: tdaniel@botmakers.ai
+        - generic [ref=e16]:
+          - text: Password
+          - textbox "Password" [ref=e17]:
+            - /placeholder: ••••••••
+            - text: 4Xkilla1@
+          - paragraph [ref=e18]: Must be at least 8 characters
+      - generic [ref=e19]:
+        - button "Create Account" [active] [ref=e20] [cursor=pointer]
+        - paragraph [ref=e21]:
+          - text: Already have an account?
+          - link "Sign in" [ref=e22] [cursor=pointer]:
+            - /url: /login
+        - paragraph [ref=e23]:
+          - text: By signing up, you agree to our
+          - link "Terms of Service" [ref=e24] [cursor=pointer]:
+            - /url: /terms
+          - text: and
+          - link "Privacy Policy" [ref=e25] [cursor=pointer]:
+            - /url: /privacy
+  - region "Notifications alt+T"
+  - alert [ref=e26]
+```

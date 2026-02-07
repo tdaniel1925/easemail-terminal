@@ -1,69 +1,78 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://bfswjaswmfwvpwvrsqdb.supabase.co';
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmc3dqYXN3bWZ3dnB3dnJzcWRiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTk5NTE1NywiZXhwIjoyMDg1NTcxMTU3fQ.0aG1V7HnAvTXz8dqbdBlEzqJhxBsz4st5MtFVdDUuBA';
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
   }
-});
+);
 
 async function makeSuperAdmin() {
-  const email = 'tdaniel@botmakers.ai';
+  const email = process.argv[2];
+
+  if (!email) {
+    console.error('Usage: node make-super-admin.mjs <email>');
+    process.exit(1);
+  }
 
   console.log(`Making ${email} a super admin...`);
 
-  // Update user to be super admin
-  const { data, error } = await supabase
-    .from('users')
-    .update({ is_super_admin: true })
-    .eq('email', email)
-    .select();
+  try {
+    // Get user by email
+    const { data: users, error: listError } = await supabaseAdmin.auth.admin.listUsers();
 
-  if (error) {
-    console.error('Error updating user:', error);
-    process.exit(1);
-  }
-
-  if (!data || data.length === 0) {
-    console.error(`No user found with email ${email}`);
-    console.log('Checking if user exists...');
-
-    const { data: userData, error: checkError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email);
-
-    if (checkError) {
-      console.error('Error checking user:', checkError);
+    if (listError) {
+      console.error('Error listing users:', listError);
       process.exit(1);
     }
 
-    if (!userData || userData.length === 0) {
-      console.error(`User ${email} does not exist in database. Please sign up first.`);
+    const user = users.users.find(u => u.email === email);
+
+    if (!user) {
+      console.error(`User not found: ${email}`);
+      console.error('Please create the account first.');
       process.exit(1);
     }
 
-    console.log('User exists:', userData[0]);
+    console.log('Found user:', user.id);
+
+    // Check if already a super admin
+    const { data: existingProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (existingProfile?.is_super_admin) {
+      console.log('✓ User is already a super admin!');
+      process.exit(0);
+    }
+
+    // Make user a super admin
+    const { error: updateError } = await supabaseAdmin
+      .from('profiles')
+      .update({
+        is_super_admin: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Error updating profile:', updateError);
+      process.exit(1);
+    }
+
+    console.log('✅ Success! User is now a super admin!');
+    console.log('   Email:', email);
+    console.log('   User ID:', user.id);
+    console.log('   Can now create organizations');
+  } catch (error) {
+    console.error('Error:', error);
     process.exit(1);
-  }
-
-  console.log('✅ Success! User is now a super admin:');
-  console.log('   Email:', data[0].email);
-  console.log('   Super Admin:', data[0].is_super_admin);
-  console.log('   User ID:', data[0].id);
-
-  // Verify
-  const { data: verifyData } = await supabase
-    .from('users')
-    .select('email, is_super_admin, id')
-    .eq('email', email)
-    .single();
-
-  if (verifyData) {
-    console.log('\n✅ Verified:', verifyData);
   }
 }
 

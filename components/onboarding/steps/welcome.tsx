@@ -30,11 +30,16 @@ export function WelcomeStep({ onNext }: any) {
   return (
     <Card className="border-0 shadow-2xl">
       <CardContent className="p-8 space-y-6">
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h1 className="text-3xl font-bold">Welcome to EaseMail</h1>
           <p className="text-muted-foreground">
             What will you use EaseMail for?
           </p>
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <p className="text-sm text-blue-900 dark:text-blue-100">
+              <span className="font-semibold">Beta Access:</span> You have full access to all features at no charge during the beta period. Welcome aboard!
+            </p>
+          </div>
         </div>
 
         <div className="space-y-3">
