@@ -314,6 +314,7 @@ export async function POST(request: NextRequest) {
             organizationName: newOrg.name,
             organizationId: newOrg.id,
             inviterName,
+            temporaryPassword: userPassword, // Include password if provided
           });
           subject = `You're Now an Admin of ${newOrg.name}`;
         } else {
