@@ -361,9 +361,9 @@ test.describe('TDaniel BundleFly Workflow', () => {
 
     // Test navigation to key sections
     const sections = [
-      { name: 'Dashboard', url: '/app/dashboard' },
+      { name: 'Home', url: '/app/home' },
       { name: 'Inbox', url: '/app/inbox' },
-      { name: 'Organization', url: '/app/organization' },
+      { name: 'Calendar', url: '/app/calendar' },
     ];
 
     for (const section of sections) {
