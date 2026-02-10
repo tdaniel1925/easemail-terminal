@@ -19,7 +19,7 @@ export function Chatbot() {
     {
       id: '1',
       role: 'assistant',
-      content: 'Hi! I\'m your EaseMail assistant. I can help you with:\n\n• Understanding app features\n• Finding specific emails\n• Managing your inbox\n• Composing messages\n• Account settings\n\nWhat can I help you with today?',
+      content: 'Welcome to EaseMail! 👋\n\nI\'m your AI assistant, here to help you navigate the platform. I can assist with:\n\n📧 **Email Management**\n• Composing and sending emails\n• Using AI Remix for tone adjustments\n• Voice dictation and voice messages\n• Managing attachments and templates\n• Setting up signatures\n\n🏢 **Organizations**\n• Creating and managing organizations\n• Inviting team members\n• Assigning roles and permissions\n• Organization analytics and audit logs\n\n⚙️ **Settings & Features**\n• Calendar integration\n• MS Teams integration\n• Account preferences\n• Security settings\n\n👤 **Admin Features** (Super Admins)\n• User management\n• Organization oversight\n• System settings\n• Revenue tracking\n\nAsk me anything!',
       timestamp: new Date(),
     },
   ]);
@@ -94,7 +94,7 @@ export function Chatbot() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 left-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all hover:scale-110 flex items-center justify-center"
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all hover:scale-110 flex items-center justify-center"
         aria-label="Open chatbot"
       >
         {isOpen ? (
@@ -106,7 +106,7 @@ export function Chatbot() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 left-6 z-50 w-96 h-[600px] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="fixed bottom-24 right-6 z-50 w-96 h-[600px] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden">
           {/* Header */}
           <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">

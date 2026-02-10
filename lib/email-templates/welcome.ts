@@ -107,6 +107,9 @@ export function getWelcomeEmailHtml({
           <!-- Footer -->
           <tr>
             <td style="background-color: #f9fafb; padding: 30px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="color: #6b7280; font-size: 13px; margin: 0 0 8px 0;">
+                Need help? Contact us at <a href="mailto:support@easemail.com" style="color: #3b82f6; text-decoration: none; font-weight: 600;">support@easemail.com</a>
+              </p>
               <p style="color: #6b7280; font-size: 12px; margin: 0 0 10px 0;">
                 © 2025 EaseMail. All rights reserved.
               </p>
