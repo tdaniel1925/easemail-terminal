@@ -138,18 +138,33 @@ export default function AdminOrganizationsPage() {
       );
 
       const results = await Promise.all(deletePromises);
-      const failures = results.filter(r => !r.ok);
+      const failures = [];
 
-      if (failures.length > 0) {
-        toast.error(`Failed to delete ${failures.length} organization(s)`);
-      } else {
-        toast.success(`Successfully deleted ${idsToDelete.length} organization(s)`);
+      for (const result of results) {
+        if (!result.ok) {
+          try {
+            const data = await result.json();
+            failures.push(data.error || 'Unknown error');
+          } catch {
+            failures.push('Unknown error');
+          }
+        }
       }
 
-      setShowDeleteConfirm(false);
-      setOrgToDelete(null);
-      setSelectedOrgs(new Set());
-      fetchOrganizations();
+      if (failures.length > 0) {
+        // Show the actual error message from the API
+        const errorMsg = failures.length === 1
+          ? failures[0]
+          : `Failed to delete ${failures.length} organization(s): ${failures[0]}`;
+        toast.error(errorMsg);
+        console.error('Delete failures:', failures);
+      } else {
+        toast.success(`Successfully deleted ${idsToDelete.length} organization(s)`);
+        setShowDeleteConfirm(false);
+        setOrgToDelete(null);
+        setSelectedOrgs(new Set());
+        fetchOrganizations();
+      }
     } catch (error) {
       console.error('Delete error:', error);
       toast.error('Failed to delete organization(s)');
