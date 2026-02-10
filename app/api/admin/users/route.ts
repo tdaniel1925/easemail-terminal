@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { ApiErrors } from '@/lib/api-error';
+import { sendEmail } from '@/lib/resend';
+import { getWelcomeEmailHtml } from '@/lib/email-templates';
 
 // Validation schema for creating new user
 const createUserSchema = z.object({
@@ -159,6 +161,26 @@ export async function POST(request: NextRequest) {
 
     if (insertError) {
       console.error('Failed to create user record:', insertError);
+    }
+
+    // Send welcome email to new user
+    try {
+      const userName = name || email.split('@')[0];
+      const html = getWelcomeEmailHtml({
+        userName,
+        userEmail: email,
+      });
+
+      await sendEmail({
+        to: email,
+        subject: 'Welcome to EaseMail!',
+        html,
+      });
+
+      console.log(`Welcome email sent to: ${email}`);
+    } catch (emailError) {
+      console.error('Failed to send welcome email to', email, emailError);
+      // Don't fail the request if email fails
     }
 
     return NextResponse.json({ user: newUser.user });
