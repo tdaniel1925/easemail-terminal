@@ -504,14 +504,30 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       const data = await response.json();
 
       if (data.remixed) {
+        // Convert plain text to HTML paragraphs for TiptapEditor
+        const convertToHTML = (text: string) => {
+          // If text already contains HTML tags, return as is
+          if (text.includes('<p>') || text.includes('<br>') || text.includes('<div>')) {
+            return text;
+          }
+          // Otherwise, convert line breaks to paragraphs
+          return text
+            .split('\n\n')
+            .filter(para => para.trim())
+            .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+            .join('');
+        };
+
+        const htmlBody = convertToHTML(data.remixed);
+
         // If user already has a subject and AI suggested one, confirm
         if (subject && data.suggestedSubject) {
-          setPendingBody(data.remixed);
+          setPendingBody(htmlBody);
           setSuggestedSubject(data.suggestedSubject);
           setShowSubjectConfirm(true);
         } else {
           // No existing subject, just apply everything
-          setBody(data.remixed);
+          setBody(htmlBody);
           if (data.suggestedSubject && !subject) {
             setSubject(data.suggestedSubject);
             toast.success('✨ Email remixed with suggested subject!');
@@ -1017,7 +1033,20 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
               </Tooltip>
 
               <VoiceInput
-                onTranscript={(text) => setBody(text)}
+                onTranscript={(text) => {
+                  // Convert plain text to HTML paragraphs for TiptapEditor
+                  const convertToHTML = (plainText: string) => {
+                    if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
+                      return plainText;
+                    }
+                    return plainText
+                      .split('\n\n')
+                      .filter(para => para.trim())
+                      .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+                      .join('');
+                  };
+                  setBody(convertToHTML(text));
+                }}
                 tone={tone}
               />
 

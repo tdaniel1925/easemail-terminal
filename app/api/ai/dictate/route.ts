@@ -47,7 +47,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       transcript,
-      polished,
+      polished: polished.body,
+      suggestedSubject: polished.suggestedSubject,
       tone,
     });
   } catch (error) {
