@@ -3,20 +3,19 @@ import { transcribeAudio, aiRemix } from '@/lib/openai/client';
 import { getUser } from '@/lib/auth/actions';
 import { createClient } from '@/lib/supabase/server';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
+import { ApiErrors } from '@/lib/api-error';
 
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting for AI endpoints
     const rateLimitResult = await rateLimit(request, RateLimitPresets.AI);
     if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded', message: `Too many AI requests. Try again in ${Math.ceil((rateLimitResult.reset - Date.now()) / 1000)}s.` },
-        { status: 429, headers: { 'X-RateLimit-Reset': rateLimitResult.reset.toString() } }
-      );
+      return ApiErrors.rateLimit(rateLimitResult.reset);
     }
+
     const user = await getUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiErrors.unauthorized();
     }
 
     const formData = await request.formData();
@@ -24,7 +23,7 @@ export async function POST(request: NextRequest) {
     const tone = formData.get('tone') as string || 'professional';
 
     if (!audioFile) {
-      return NextResponse.json({ error: 'No audio file provided' }, { status: 400 });
+      return ApiErrors.badRequest('No audio file provided');
     }
 
     // Convert File to Buffer
@@ -53,9 +52,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('AI Dictate error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process audio' },
-      { status: 500 }
-    );
+    return ApiErrors.externalService('OpenAI Whisper', { message: 'Failed to process audio' });
   }
 }

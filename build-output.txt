@@ -1,0 +1,193 @@
+
+> easemail@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  · serverActions
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 16.9s
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
+PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
+PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
+PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
+⚠ Using edge runtime on a page currently disables static generation for that page
+  Generating static pages using 7 workers (0/128) ...
+  Generating static pages using 7 workers (32/128) 
+  Generating static pages using 7 workers (64/128) 
+  Generating static pages using 7 workers (96/128) 
+✓ Generating static pages using 7 workers (128/128) in 504.6ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/admin/impersonate
+├ ƒ /api/admin/invoices
+├ ƒ /api/admin/notifications
+├ ƒ /api/admin/organizations
+├ ƒ /api/admin/organizations/wizard
+├ ƒ /api/admin/payment-methods
+├ ƒ /api/admin/revenue-snapshot
+├ ƒ /api/admin/system-settings
+├ ƒ /api/admin/users
+├ ƒ /api/admin/webhooks
+├ ƒ /api/ai/dictate
+├ ƒ /api/ai/extract-event
+├ ƒ /api/ai/remix
+├ ƒ /api/analytics
+├ ƒ /api/api-keys
+├ ƒ /api/attachments
+├ ƒ /api/attachments/upload
+├ ƒ /api/auth/2fa/disable
+├ ƒ /api/auth/2fa/enable
+├ ƒ /api/auth/2fa/setup
+├ ƒ /api/auth/2fa/status
+├ ƒ /api/auth/2fa/verify
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/track-login
+├ ƒ /api/billing
+├ ƒ /api/billing/individual/approve
+├ ƒ /api/billing/individual/cancel
+├ ƒ /api/billing/individual/create
+├ ƒ /api/billing/individual/status
+├ ƒ /api/billing/organization/cancel
+├ ƒ /api/billing/organization/create
+├ ƒ /api/billing/organization/status
+├ ƒ /api/billing/organization/update-seats
+├ ƒ /api/calendar
+├ ƒ /api/chatbot
+├ ƒ /api/contacts
+├ ƒ /api/contacts/[id]
+├ ƒ /api/drafts
+├ ƒ /api/drafts/[id]
+├ ƒ /api/email-accounts
+├ ƒ /api/email-accounts/[id]
+├ ƒ /api/email-accounts/set-primary
+├ ƒ /api/email-rules
+├ ƒ /api/email-rules/[id]
+├ ƒ /api/email-rules/process
+├ ƒ /api/emails/notification
+├ ƒ /api/emails/organization-invite
+├ ƒ /api/emails/welcome
+├ ƒ /api/enterprise-leads
+├ ƒ /api/focus-time
+├ ƒ /api/folders
+├ ƒ /api/folders/counts
+├ ƒ /api/invites/accept
+├ ƒ /api/invoices
+├ ƒ /api/labels
+├ ƒ /api/labels/[id]
+├ ƒ /api/messages
+├ ƒ /api/messages/[id]
+├ ƒ /api/messages/[id]/labels
+├ ƒ /api/messages/categorize
+├ ƒ /api/messages/reply
+├ ƒ /api/messages/search
+├ ƒ /api/messages/send
+├ ƒ /api/messages/unified
+├ ƒ /api/nylas/auth
+├ ƒ /api/oauth/callback
+├ ƒ /api/onboarding
+├ ƒ /api/organization
+├ ƒ /api/organization/seats
+├ ƒ /api/organizations
+├ ƒ /api/organizations/[id]
+├ ƒ /api/organizations/[id]/analytics
+├ ƒ /api/organizations/[id]/audit-logs
+├ ƒ /api/organizations/[id]/dashboard
+├ ƒ /api/organizations/[id]/invites/[inviteId]
+├ ƒ /api/organizations/[id]/invites/[inviteId]/resend
+├ ƒ /api/organizations/[id]/members
+├ ƒ /api/organizations/[id]/members/role
+├ ƒ /api/organizations/[id]/transfer-ownership
+├ ƒ /api/organizations/[id]/webhooks
+├ ƒ /api/organizations/[id]/webhooks/[webhookId]
+├ ƒ /api/organizations/[id]/webhooks/[webhookId]/deliveries
+├ ƒ /api/organizations/[id]/webhooks/[webhookId]/deliveries/[deliveryId]/retry
+├ ƒ /api/payment-methods
+├ ƒ /api/scheduled-emails
+├ ƒ /api/scheduled-emails/[id]
+├ ƒ /api/scheduled-emails/process
+├ ƒ /api/signatures
+├ ƒ /api/signatures/[id]
+├ ƒ /api/sms
+├ ƒ /api/sms/webhook
+├ ƒ /api/snooze
+├ ƒ /api/snooze/process
+├ ƒ /api/spam/detect
+├ ƒ /api/spam/report
+├ ƒ /api/stats
+├ ƒ /api/stripe/cancel-subscription
+├ ƒ /api/stripe/change-billing-cycle
+├ ƒ /api/stripe/checkout
+├ ƒ /api/stripe/portal
+├ ƒ /api/stripe/webhook
+├ ƒ /api/teams/auth
+├ ƒ /api/teams/callback
+├ ƒ /api/teams/meetings
+├ ƒ /api/teams/status
+├ ƒ /api/templates
+├ ƒ /api/templates/[id]
+├ ƒ /api/test/create-user
+├ ƒ /api/test/send-emails
+├ ƒ /api/threads/[id]
+├ ƒ /api/user
+├ ƒ /api/webhooks/events
+├ ƒ /api/webhooks/nylas
+├ ƒ /api/webhooks/paypal
+├ ƒ /app
+├ ƒ /app/admin/analytics
+├ ƒ /app/admin/billing
+├ ƒ /app/admin/organizations
+├ ƒ /app/admin/revenue
+├ ƒ /app/admin/sales
+├ ƒ /app/admin/system
+├ ƒ /app/admin/users
+├ ƒ /app/attachments
+├ ƒ /app/calendar
+├ ƒ /app/connect
+├ ƒ /app/contacts
+├ ƒ /app/help
+├ ƒ /app/home
+├ ƒ /app/inbox
+├ ƒ /app/organization
+├ ƒ /app/organization/[id]
+├ ƒ /app/organization/[id]/analytics
+├ ƒ /app/organization/[id]/audit-logs
+├ ƒ /app/organization/[id]/dashboard
+├ ƒ /app/organization/[id]/webhooks
+├ ƒ /app/organization/[id]/webhooks/[webhookId]/deliveries
+├ ƒ /app/pricing
+├ ƒ /app/settings
+├ ƒ /app/settings/account
+├ ƒ /app/settings/api-keys
+├ ƒ /app/settings/appearance
+├ ƒ /app/settings/billing
+├ ƒ /app/settings/email-accounts
+├ ƒ /app/settings/notifications
+├ ƒ /app/settings/rules
+├ ƒ /app/settings/security
+├ ƒ /app/settings/signatures
+├ ƒ /app/sms
+├ ƒ /app/teams
+├ ○ /auth/verify
+├ ○ /contact
+├ ○ /features
+├ ƒ /icon
+├ ƒ /invite/[token]
+├ ○ /login
+├ ○ /onboarding
+└ ○ /signup
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

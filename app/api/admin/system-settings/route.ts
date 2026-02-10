@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,8 +11,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Create service client for super admin operations
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Check if user is super admin
-    const { data: userData } = (await supabase
+    const { data: userData } = (await serviceClient
       .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
@@ -21,17 +28,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Super admin access required' }, { status: 403 });
     }
 
-    // Get system settings (stored in a dedicated table or config)
-    // For now, return default/env-based settings
-    const settings = {
-      maintenance_mode: false,
-      allow_signups: true,
-      require_email_verification: process.env.REQUIRE_EMAIL_VERIFICATION === 'true',
-      max_file_upload_size: 25, // MB
-      session_timeout: 7200, // seconds
-      rate_limiting_enabled: true,
-      analytics_enabled: true,
-    };
+    // Get all system settings from database using service client
+    const { data: settingsData, error } = await serviceClient
+      .from('system_settings')
+      .select('*')
+      .order('key', { ascending: true });
+
+    if (error) throw error;
+
+    // Transform settings array into an object with camelCase keys
+    const settings: Record<string, any> = {};
+    settingsData?.forEach((setting: any) => {
+      // Convert snake_case to camelCase for frontend
+      const camelKey = setting.key.replace(/_([a-z])/g, (g: string) => g[1].toUpperCase());
+      settings[camelKey] = setting.value;
+    });
 
     return NextResponse.json({ settings });
   } catch (error) {
@@ -43,7 +54,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -52,8 +63,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Create service client for super admin operations
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Check if user is super admin
-    const { data: userData } = (await supabase
+    const { data: userData } = (await serviceClient
       .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
@@ -65,27 +82,27 @@ export async function POST(request: NextRequest) {
 
     const settings = await request.json();
 
-    // Validate settings
-    if (typeof settings.maintenance_mode !== 'boolean') {
-      return NextResponse.json({ error: 'Invalid maintenance_mode value' }, { status: 400 });
-    }
+    // Convert camelCase keys to snake_case for database
+    const settingsToUpdate: Array<{ key: string; value: any }> = [];
 
-    // Create system_settings table if it doesn't exist, or store in a config table
-    // For now, we'll log the settings and return success
-    // In production, you'd want to persist these to a database table
+    Object.entries(settings).forEach(([camelKey, value]) => {
+      const snakeKey = camelKey.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+      settingsToUpdate.push({ key: snakeKey, value });
+    });
 
-    console.log('System settings updated by', user.email, ':', settings);
+    // Update each setting in database using service client
+    const updatePromises = settingsToUpdate.map(async ({ key, value }) => {
+      return serviceClient
+        .from('system_settings')
+        .update({
+          value,
+          updated_at: new Date().toISOString(),
+          updated_by: user.id
+        })
+        .eq('key', key);
+    });
 
-    // TODO: Persist settings to database
-    // Example structure:
-    // await supabase
-    //   .from('system_settings')
-    //   .upsert({
-    //     key: 'app_config',
-    //     value: settings,
-    //     updated_by: user.id,
-    //     updated_at: new Date().toISOString()
-    //   });
+    await Promise.all(updatePromises);
 
     return NextResponse.json({
       success: true,

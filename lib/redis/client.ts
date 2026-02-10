@@ -1,28 +1,19 @@
-import Redis from 'ioredis';
+import { Redis } from '@upstash/redis';
 
 let redisInstance: Redis | null = null;
 
 function getRedisClient(): Redis {
   if (!redisInstance) {
-    if (!process.env.REDIS_URL) {
-      throw new Error('REDIS_URL environment variable is not set');
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+      throw new Error('UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN environment variables must be set');
     }
 
-    redisInstance = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 3,
-      retryStrategy(times) {
-        const delay = Math.min(times * 50, 2000);
-        return delay;
-      },
+    redisInstance = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
 
-    redisInstance.on('error', (error) => {
-      console.error('Redis error:', error);
-    });
-
-    redisInstance.on('connect', () => {
-      console.log('Redis connected');
-    });
+    console.log('Upstash Redis client initialized');
   }
 
   return redisInstance;
@@ -34,7 +25,7 @@ export const redis = getRedisClient;
 export async function getCache<T>(key: string): Promise<T | null> {
   try {
     const redisClient = getRedisClient();
-    const data = await redisClient.get(key);
+    const data = await redisClient.get<string>(key);
     return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error('Cache get error:', error);
@@ -49,7 +40,7 @@ export async function setCache(
 ): Promise<void> {
   try {
     const redisClient = getRedisClient();
-    await redisClient.setex(key, expirationSeconds, JSON.stringify(value));
+    await redisClient.set(key, JSON.stringify(value), { ex: expirationSeconds });
   } catch (error) {
     console.error('Cache set error:', error);
   }

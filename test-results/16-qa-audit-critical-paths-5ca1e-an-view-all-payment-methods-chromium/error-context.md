@@ -1,0 +1,193 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - heading "EaseMail" [level=1] [ref=e6]
+          - generic [ref=e7]:
+            - button "Toggle theme" [ref=e8] [cursor=pointer]:
+              - img
+              - img
+              - generic [ref=e9]: Toggle theme
+            - button [ref=e10] [cursor=pointer]:
+              - img
+        - button "Compose" [ref=e11] [cursor=pointer]:
+          - img
+          - text: Compose
+      - navigation [ref=e15]:
+        - generic [ref=e16]:
+          - link "Inbox" [ref=e17] [cursor=pointer]:
+            - /url: /app/inbox
+            - button "Inbox" [ref=e18]:
+              - generic [ref=e19]:
+                - img [ref=e20]
+                - generic [ref=e23]: Inbox
+          - link "Starred" [ref=e24] [cursor=pointer]:
+            - /url: /app/inbox?filter=starred
+            - button "Starred" [ref=e25]:
+              - generic [ref=e26]:
+                - img [ref=e27]
+                - generic [ref=e29]: Starred
+          - link "Sent" [ref=e30] [cursor=pointer]:
+            - /url: /app/inbox?filter=sent
+            - button "Sent" [ref=e31]:
+              - generic [ref=e32]:
+                - img [ref=e33]
+                - generic [ref=e36]: Sent
+          - link "Snoozed" [ref=e37] [cursor=pointer]:
+            - /url: /app/inbox?filter=snoozed
+            - button "Snoozed" [ref=e38]:
+              - generic [ref=e39]:
+                - img [ref=e40]
+                - generic [ref=e43]: Snoozed
+          - link "Archive" [ref=e44] [cursor=pointer]:
+            - /url: /app/inbox?filter=archive
+            - button "Archive" [ref=e45]:
+              - generic [ref=e46]:
+                - img [ref=e47]
+                - generic [ref=e50]: Archive
+          - link "Trash" [ref=e51] [cursor=pointer]:
+            - /url: /app/inbox?filter=trash
+            - button "Trash" [ref=e52]:
+              - generic [ref=e53]:
+                - img [ref=e54]
+                - generic [ref=e57]: Trash
+        - generic [ref=e58]:
+          - generic [ref=e59]: Folders (0)
+          - generic [ref=e60]: No folders available
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]: Labels
+            - link [ref=e64] [cursor=pointer]:
+              - /url: /app/settings
+              - button [ref=e65]:
+                - img
+          - generic [ref=e66]: No labels yet
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]: Accounts
+          - generic [ref=e71]:
+            - generic [ref=e73]: tdaniel@bundlefly.com
+            - generic [ref=e74]: Primary
+          - link "Manage Accounts" [ref=e75] [cursor=pointer]:
+            - /url: /app/settings/email-accounts
+            - button "Manage Accounts" [ref=e76]:
+              - img
+              - text: Manage Accounts
+        - generic [ref=e77]:
+          - link "Help" [ref=e78] [cursor=pointer]:
+            - /url: /app/help
+            - button "Help" [ref=e79]:
+              - img [ref=e80]
+              - generic [ref=e83]: Help
+          - link "Settings" [ref=e84] [cursor=pointer]:
+            - /url: /app/settings
+            - button "Settings" [ref=e85]:
+              - img [ref=e86]
+              - generic [ref=e89]: Settings
+          - link "Admin" [ref=e90] [cursor=pointer]:
+            - /url: /app/admin/analytics
+            - button "Admin" [ref=e91]:
+              - img [ref=e92]
+              - generic [ref=e94]: Admin
+    - generic [ref=e95]:
+      - banner [ref=e96]:
+        - generic [ref=e98]:
+          - link "Home" [ref=e99] [cursor=pointer]:
+            - /url: /app/home
+            - button "Home" [ref=e100]:
+              - img [ref=e101]
+              - generic [ref=e104]: Home
+          - link "Contacts" [ref=e105] [cursor=pointer]:
+            - /url: /app/contacts
+            - button "Contacts" [ref=e106]:
+              - img [ref=e107]
+              - generic [ref=e111]: Contacts
+          - link "Calendar" [ref=e112] [cursor=pointer]:
+            - /url: /app/calendar
+            - button "Calendar" [ref=e113]:
+              - img [ref=e114]
+              - generic [ref=e116]: Calendar
+          - link "MS Teams" [ref=e117] [cursor=pointer]:
+            - /url: /app/teams
+            - button "MS Teams" [ref=e118]:
+              - img [ref=e119]
+              - generic [ref=e122]: MS Teams
+      - generic [ref=e124]:
+        - generic [ref=e125]:
+          - generic [ref=e126]:
+            - generic [ref=e127]:
+              - img [ref=e128]
+              - heading "Super Admin" [level=1] [ref=e130]
+            - paragraph [ref=e131]: Manage all organizations, users, and system settings
+          - button "10" [ref=e132] [cursor=pointer]:
+            - img
+            - generic [ref=e133]: "10"
+        - generic [ref=e135]:
+          - link "Analytics" [ref=e136] [cursor=pointer]:
+            - /url: /app/admin/analytics
+            - button "Analytics" [ref=e137]:
+              - img [ref=e138]
+              - text: Analytics
+          - link "Users" [ref=e140] [cursor=pointer]:
+            - /url: /app/admin/users
+            - button "Users" [ref=e141]:
+              - img [ref=e142]
+              - text: Users
+          - link "Organizations" [ref=e147] [cursor=pointer]:
+            - /url: /app/admin/organizations
+            - button "Organizations" [ref=e148]:
+              - img [ref=e149]
+              - text: Organizations
+          - link "Billing" [ref=e153] [cursor=pointer]:
+            - /url: /app/admin/billing
+            - button "Billing" [ref=e154]:
+              - img [ref=e155]
+              - text: Billing
+          - link "Revenue" [ref=e157] [cursor=pointer]:
+            - /url: /app/admin/revenue
+            - button "Revenue" [ref=e158]:
+              - img [ref=e159]
+              - text: Revenue
+          - link "Sales Pipeline" [ref=e162] [cursor=pointer]:
+            - /url: /app/admin/sales
+            - button "Sales Pipeline" [ref=e163]:
+              - img [ref=e164]
+              - text: Sales Pipeline
+          - link "System" [ref=e167] [cursor=pointer]:
+            - /url: /app/admin/system
+            - button "System" [ref=e168]:
+              - img [ref=e169]
+              - text: System
+        - generic [ref=e173]:
+          - generic [ref=e174]:
+            - generic [ref=e175]:
+              - generic [ref=e177]: Total Payment Methods
+              - generic [ref=e179]: "0"
+            - generic [ref=e180]:
+              - generic [ref=e182]: Active
+              - generic [ref=e184]: "0"
+            - generic [ref=e185]:
+              - generic [ref=e187]: Expiring Soon
+              - generic [ref=e189]: "0"
+            - generic [ref=e190]:
+              - generic [ref=e192]: Expired
+              - generic [ref=e194]: "0"
+          - generic [ref=e197]:
+            - img [ref=e198]
+            - textbox "Search payment methods by organization, brand, or last 4 digits..." [ref=e201]
+          - generic [ref=e202]:
+            - generic [ref=e203]:
+              - generic [ref=e204]: Payment Methods (0)
+              - generic [ref=e205]: All system payment methods
+            - generic [ref=e208]: No payment methods found
+    - button "Open chatbot" [ref=e209] [cursor=pointer]:
+      - img [ref=e210]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e217] [cursor=pointer]:
+    - img [ref=e218]
+  - alert [ref=e221]
+```

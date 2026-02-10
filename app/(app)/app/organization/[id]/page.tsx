@@ -317,6 +317,36 @@ export default function OrganizationDetailPage() {
     }
   };
 
+  const handleLeaveOrganization = async () => {
+    if (!confirm('Are you sure you want to leave this organization?')) {
+      return;
+    }
+
+    try {
+      // Get current user ID from members list
+      const currentUserData = members.find((m) => m.role === currentUserRole);
+      if (!currentUserData) {
+        toast.error('Could not determine user ID');
+        return;
+      }
+
+      const response = await fetch(`/api/organizations/${orgId}/members?userId=${currentUserData.user_id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('You have left the organization');
+        router.push('/app/organization');
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Failed to leave organization');
+      }
+    } catch (error) {
+      console.error('Leave organization error:', error);
+      toast.error('Failed to leave organization');
+    }
+  };
+
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'OWNER':
@@ -609,7 +639,7 @@ export default function OrganizationDetailPage() {
               </Button>
             </div>
 
-            {canDelete && (
+            {(canDelete || currentUserRole !== 'OWNER') && (
               <div className="pt-4 border-t">
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-4">
                   <div>
@@ -619,8 +649,26 @@ export default function OrganizationDetailPage() {
                     </p>
                   </div>
 
+                  {currentUserRole !== 'OWNER' && (
+                    <div>
+                      <p className="text-sm font-medium mb-1">Leave Organization</p>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Remove yourself from this organization. You will lose access immediately.
+                      </p>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setShowSettingsDialog(false);
+                          handleLeaveOrganization();
+                        }}
+                      >
+                        Leave Organization
+                      </Button>
+                    </div>
+                  )}
+
                   {currentUserRole === 'OWNER' && members.length > 1 && (
-                    <div className="border-t pt-4">
+                    <div className={currentUserRole !== 'OWNER' ? 'border-t pt-4' : ''}>
                       <p className="text-sm font-medium mb-1">Transfer Ownership</p>
                       <p className="text-sm text-muted-foreground mb-3">
                         Transfer organization ownership to another member. You will become an admin.
@@ -638,21 +686,23 @@ export default function OrganizationDetailPage() {
                     </div>
                   )}
 
-                  <div className={currentUserRole === 'OWNER' && members.length > 1 ? 'border-t pt-4' : ''}>
-                    <p className="text-sm font-medium mb-1">Delete Organization</p>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Permanently delete this organization and all associated data. This action cannot be undone.
-                    </p>
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        setShowSettingsDialog(false);
-                        setShowDeleteDialog(true);
-                      }}
-                    >
-                      Delete Organization
-                    </Button>
-                  </div>
+                  {canDelete && (
+                    <div className={(currentUserRole === 'OWNER' && members.length > 1) || currentUserRole !== 'OWNER' ? 'border-t pt-4' : ''}>
+                      <p className="text-sm font-medium mb-1">Delete Organization</p>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Permanently delete this organization and all associated data. This action cannot be undone.
+                      </p>
+                      <Button
+                        variant="destructive"
+                        onClick={() => {
+                          setShowSettingsDialog(false);
+                          setShowDeleteDialog(true);
+                        }}
+                      >
+                        Delete Organization
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

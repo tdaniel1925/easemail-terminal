@@ -1,0 +1,933 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - heading [level=1]: EaseMail
+          - generic:
+            - button:
+              - img
+              - generic: Toggle theme
+            - button:
+              - img
+        - button:
+          - img
+          - text: Compose
+      - generic:
+        - generic:
+          - generic:
+            - navigation:
+              - generic:
+                - link:
+                  - /url: /app/inbox
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Inbox
+                - link:
+                  - /url: /app/inbox?filter=starred
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Starred
+                - link:
+                  - /url: /app/inbox?filter=sent
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Sent
+                - link:
+                  - /url: /app/inbox?filter=snoozed
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Snoozed
+                - link:
+                  - /url: /app/inbox?filter=archive
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Archive
+                - link:
+                  - /url: /app/inbox?filter=trash
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Trash
+              - generic:
+                - generic:
+                  - generic: Folders (50)
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAKOubYeAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: "1: to respond"
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAKOubYdAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: "2: FYI"
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAKOubYjAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: "4: notification"
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAKOubYhAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: "6: awaiting reply"
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAKOubYgAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: "7: actioned"
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAKOubYfAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: "8: marketing"
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKEwwAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Archive
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAIBOAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Conversation History
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAIBCgAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Deleted Items
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAIBDwAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Drafts
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAIBDAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Inbox
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAIBFAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Junk Email
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAIBCwAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Outbox
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAAADXFyAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: RSS Feeds
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAIBCQAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Sent Items
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFrQAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: Sync Issues
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAJkYpH2AAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Divroce
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFGAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - a Life Insurance
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFGQAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - 1 Dental
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAKmPsahAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - a False Positives - Shield
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFGgAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Abenity
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFDwAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Accudata
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFIAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Advertisers
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAHWtDEMAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - AI Coaches
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFFAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - All Access TV
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFCgAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - aTrading Accounts
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFMQAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Attorney Callie Jones
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFLQAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Authorize Net
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFJwAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Banner Buzz
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFJQAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Banyan Printing
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFKQAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Bessy
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFMgAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Biz Credit Stuff
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFMAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - BofA
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFEgAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Card Dot Com
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAHWtDEPAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Chris Scottsdale
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFPAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Design Clients
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAJkYpH1AAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Divorce
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFEwAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Dragon
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAHWtDENAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - EVMUX
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAAADXG9AAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Forex.com
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFHwAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - FreeRolls Daily Reports
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFCAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - FTMO
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFFQAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Game On Social
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFGwAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Hana Lulu
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFHAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Harris County
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFBwAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Hugos Way
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAJG381xAAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - iHost
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFNAAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Jalene
+                - link:
+                  - /url: /app/inbox?folder=AQMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjYwBhZGI2OTUALgAAA03cBbIdEd1EkFA0VUU5188BAPnqV7TcGY9GoWRRD_cnB7oAAAKFHgAAAA==
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Jeremy Dauphin
+                - link:
+                  - /url: /app/inbox?folder=AAMkAGRhNWQzY2FjLWEzMDItNGI3NC05NzE1LTNiMDJjY2FkYjY5NQAuAAAAAABN3AWyHRHdRJBQNFVFOdfPAQD56le03BmPRqFkUQ-nJwe6AAAADXF_AAA=
+                  - button:
+                    - generic:
+                      - img
+                      - generic: 1 - Jose Cubero
+              - generic:
+                - generic:
+                  - generic: Labels
+                  - link:
+                    - /url: /app/settings
+                    - button:
+                      - img
+                - generic: No labels yet
+      - generic:
+        - generic:
+          - generic: Accounts
+          - generic:
+            - generic:
+              - generic: tdaniel@bundlefly.com
+              - generic: Primary
+          - link:
+            - /url: /app/settings/email-accounts
+            - button:
+              - img
+              - text: Manage Accounts
+        - generic:
+          - link:
+            - /url: /app/help
+            - button:
+              - img
+              - generic: Help
+          - link:
+            - /url: /app/settings
+            - button:
+              - img
+              - generic: Settings
+          - link:
+            - /url: /app/admin/analytics
+            - button:
+              - img
+              - generic: Admin
+    - generic:
+      - banner:
+        - generic:
+          - generic:
+            - link:
+              - /url: /app/home
+              - button:
+                - img
+                - generic: Home
+            - link:
+              - /url: /app/contacts
+              - button:
+                - img
+                - generic: Contacts
+            - link:
+              - /url: /app/calendar
+              - button:
+                - img
+                - generic: Calendar
+            - link:
+              - /url: /app/teams
+              - button:
+                - img
+                - generic: MS Teams
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - img
+                - heading [level=1]: Super Admin
+              - paragraph: Manage all organizations, users, and system settings
+            - button:
+              - img
+              - generic: "10"
+          - generic:
+            - generic:
+              - link:
+                - /url: /app/admin/analytics
+                - button:
+                  - img
+                  - text: Analytics
+              - link:
+                - /url: /app/admin/users
+                - button:
+                  - img
+                  - text: Users
+              - link:
+                - /url: /app/admin/organizations
+                - button:
+                  - img
+                  - text: Organizations
+              - link:
+                - /url: /app/admin/billing
+                - button:
+                  - img
+                  - text: Billing
+              - link:
+                - /url: /app/admin/revenue
+                - button:
+                  - img
+                  - text: Revenue
+              - link:
+                - /url: /app/admin/sales
+                - button:
+                  - img
+                  - text: Sales Pipeline
+              - link:
+                - /url: /app/admin/system
+                - button:
+                  - img
+                  - text: System
+          - generic:
+            - generic:
+              - generic:
+                - button:
+                  - img
+                  - text: Create Organization
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: Total Organizations
+                  - generic:
+                    - generic: "12"
+                - generic:
+                  - generic:
+                    - generic: Total Members
+                  - generic:
+                    - generic: "3"
+                - generic:
+                  - generic:
+                    - generic: Total Seats
+                  - generic:
+                    - generic: "26"
+                - generic:
+                  - generic:
+                    - generic: Paid Plans
+                  - generic:
+                    - generic: "7"
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - checkbox
+                      - generic: Select All
+                    - generic:
+                      - img
+                      - textbox:
+                        - /placeholder: Search organizations by name...
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: Test Org to Delete 1770755500877
+                      - generic:
+                        - generic: FREE
+                        - button:
+                          - img
+                    - generic: Created 2/10/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "1"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: Leave Test Org 1770753558660
+                      - generic:
+                        - generic: FREE
+                        - button:
+                          - img
+                    - generic: Created 2/10/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "1"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: Member Test Org 1770753513648
+                      - generic:
+                        - generic: FREE
+                        - button:
+                          - img
+                    - generic: Created 2/10/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "0"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: Invite Test Org 1770753510133
+                      - generic:
+                        - generic: FREE
+                        - button:
+                          - img
+                    - generic: Created 2/10/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "0"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: Test Org 1770753466666
+                      - generic:
+                        - generic: FREE
+                        - button:
+                          - img
+                    - generic: Created 2/10/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "1"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: Darren Miller Law Firm
+                      - generic:
+                        - generic: ENTERPRISE
+                        - button:
+                          - img
+                    - generic: Created 2/7/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "0"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 15
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 15 seats available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: botmakers-1770477495452
+                      - generic:
+                        - generic: PRO
+                        - button:
+                          - img
+                    - generic: Created 2/7/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "0"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: botmakers-1770477121223
+                      - generic:
+                        - generic: PRO
+                        - button:
+                          - img
+                    - generic: Created 2/7/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "0"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: botmakers-1770477085332
+                      - generic:
+                        - generic: PRO
+                        - button:
+                          - img
+                    - generic: Created 2/7/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "0"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: botmakers-1770469006586
+                      - generic:
+                        - generic: PRO
+                        - button:
+                          - img
+                    - generic: Created 2/7/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "0"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: botmakers-1770468870054
+                      - generic:
+                        - generic: PRO
+                        - button:
+                          - img
+                    - generic: Created 2/7/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "0"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - checkbox
+                        - img
+                        - generic: botmakers-1770461370743
+                      - generic:
+                        - generic: PRO
+                        - button:
+                          - img
+                    - generic: Created 2/7/2026
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Members
+                        - generic: "0"
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Seats
+                        - generic: 0 / 1
+                      - generic:
+                        - generic:
+                          - img
+                          - text: Usage (30d)
+                        - generic: "0"
+                    - generic:
+                      - paragraph: 1 seat available
+    - button:
+      - img
+  - region "Notifications alt+T"
+  - generic [ref=e5] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e6]:
+      - img [ref=e7]
+    - generic [ref=e10]:
+      - button "Open issues overlay" [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]: "0"
+          - generic [ref=e14]: "1"
+        - generic [ref=e15]: Issue
+      - button "Collapse issues badge" [ref=e16]:
+        - img [ref=e17]
+  - alert
+  - dialog [ref=e20]:
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - heading "Create Organization" [level=2] [ref=e23]
+        - paragraph [ref=e24]: Quick create with basic details
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - text: Organization Name *
+          - textbox "Organization Name *" [ref=e27]:
+            - /placeholder: Acme Corporation
+            - text: Admin Created Org 1770755520496
+        - generic [ref=e28]:
+          - text: Owner Email *
+          - textbox "Owner Email *" [active] [ref=e29]:
+            - /placeholder: owner@example.com
+            - text: owner@example.com
+          - paragraph [ref=e30]: User must already exist in the system
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - text: Plan
+            - combobox "Plan" [ref=e33]:
+              - option "Free"
+              - option "Pro" [selected]
+              - option "Business"
+              - option "Enterprise"
+          - generic [ref=e34]:
+            - text: Seats
+            - spinbutton "Seats" [ref=e35]: "1"
+      - button "Need more options? Use Advanced Wizard →" [ref=e37] [cursor=pointer]
+      - generic [ref=e38]:
+        - button "Cancel" [ref=e39] [cursor=pointer]
+        - button "Create" [ref=e40] [cursor=pointer]:
+          - img
+          - text: Create
+    - button "Close" [ref=e41] [cursor=pointer]:
+      - img [ref=e42]
+      - generic [ref=e45]: Close
+```

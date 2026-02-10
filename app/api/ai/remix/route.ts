@@ -1,42 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { aiRemix, AITone } from '@/lib/openai/client';
 import { getUser } from '@/lib/auth/actions';
 import { createClient } from '@/lib/supabase/server';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
+import { ApiErrors } from '@/lib/api-error';
+
+// Validation schema for AI Remix requests
+const remixSchema = z.object({
+  text: z.string().min(10, 'Text must be at least 10 characters').max(10000, 'Text too long'),
+  tone: z.enum(['professional', 'friendly', 'brief', 'detailed']).optional().default('professional')
+});
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting for AI endpoints
   const rateLimitResult = await rateLimit(request, RateLimitPresets.AI);
   if (!rateLimitResult.success) {
-    return NextResponse.json(
-      {
-        error: 'Rate limit exceeded',
-        message: `Too many AI requests. Please try again in ${Math.ceil((rateLimitResult.reset - Date.now()) / 1000)} seconds.`,
-      },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-          'X-RateLimit-Remaining': '0',
-          'X-RateLimit-Reset': rateLimitResult.reset.toString(),
-        }
-      }
-    );
+    return ApiErrors.rateLimit(rateLimitResult.reset);
   }
   try {
     const user = await getUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiErrors.unauthorized();
     }
 
-    const { text, tone = 'professional' } = await request.json();
+    // Parse and validate request body
+    const requestBody = await request.json();
+    const validation = remixSchema.safeParse(requestBody);
 
-    if (!text || text.length < 10) {
-      return NextResponse.json(
-        { error: 'Text must be at least 10 characters' },
-        { status: 400 }
-      );
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.errors);
     }
+
+    const { text, tone } = validation.data;
 
     // Check usage limits (implement later with proper plan checking)
     // For now, just track usage
@@ -58,9 +54,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('AI Remix error:', error);
-    return NextResponse.json(
-      { error: 'Failed to remix email' },
-      { status: 500 }
-    );
+    return ApiErrors.externalService('OpenAI', { message: 'Failed to remix email' });
   }
 }

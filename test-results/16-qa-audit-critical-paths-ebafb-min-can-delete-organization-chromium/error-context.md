@@ -1,0 +1,556 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - heading "EaseMail" [level=1] [ref=e6]
+          - generic [ref=e7]:
+            - button "Toggle theme" [ref=e8] [cursor=pointer]:
+              - img
+              - img
+              - generic [ref=e9]: Toggle theme
+            - button [ref=e10] [cursor=pointer]:
+              - img
+        - button "Compose" [ref=e11] [cursor=pointer]:
+          - img
+          - text: Compose
+      - navigation [ref=e15]:
+        - generic [ref=e16]:
+          - link "Inbox" [ref=e17] [cursor=pointer]:
+            - /url: /app/inbox
+            - button "Inbox" [ref=e18]:
+              - generic [ref=e19]:
+                - img [ref=e20]
+                - generic [ref=e23]: Inbox
+          - link "Starred" [ref=e24] [cursor=pointer]:
+            - /url: /app/inbox?filter=starred
+            - button "Starred" [ref=e25]:
+              - generic [ref=e26]:
+                - img [ref=e27]
+                - generic [ref=e29]: Starred
+          - link "Sent" [ref=e30] [cursor=pointer]:
+            - /url: /app/inbox?filter=sent
+            - button "Sent" [ref=e31]:
+              - generic [ref=e32]:
+                - img [ref=e33]
+                - generic [ref=e36]: Sent
+          - link "Snoozed" [ref=e37] [cursor=pointer]:
+            - /url: /app/inbox?filter=snoozed
+            - button "Snoozed" [ref=e38]:
+              - generic [ref=e39]:
+                - img [ref=e40]
+                - generic [ref=e43]: Snoozed
+          - link "Archive" [ref=e44] [cursor=pointer]:
+            - /url: /app/inbox?filter=archive
+            - button "Archive" [ref=e45]:
+              - generic [ref=e46]:
+                - img [ref=e47]
+                - generic [ref=e50]: Archive
+          - link "Trash" [ref=e51] [cursor=pointer]:
+            - /url: /app/inbox?filter=trash
+            - button "Trash" [ref=e52]:
+              - generic [ref=e53]:
+                - img [ref=e54]
+                - generic [ref=e57]: Trash
+        - generic [ref=e58]:
+          - generic [ref=e59]: Folders (0)
+          - generic [ref=e60]: No folders available
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]: Labels
+            - link [ref=e64] [cursor=pointer]:
+              - /url: /app/settings
+              - button [ref=e65]:
+                - img
+          - generic [ref=e66]: No labels yet
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]: Accounts
+          - generic [ref=e71]:
+            - generic [ref=e73]: tdaniel@bundlefly.com
+            - generic [ref=e74]: Primary
+          - link "Manage Accounts" [ref=e75] [cursor=pointer]:
+            - /url: /app/settings/email-accounts
+            - button "Manage Accounts" [ref=e76]:
+              - img
+              - text: Manage Accounts
+        - generic [ref=e77]:
+          - link "Help" [ref=e78] [cursor=pointer]:
+            - /url: /app/help
+            - button "Help" [ref=e79]:
+              - img [ref=e80]
+              - generic [ref=e83]: Help
+          - link "Settings" [ref=e84] [cursor=pointer]:
+            - /url: /app/settings
+            - button "Settings" [ref=e85]:
+              - img [ref=e86]
+              - generic [ref=e89]: Settings
+          - link "Admin" [ref=e90] [cursor=pointer]:
+            - /url: /app/admin/analytics
+            - button "Admin" [ref=e91]:
+              - img [ref=e92]
+              - generic [ref=e94]: Admin
+    - generic [ref=e95]:
+      - banner [ref=e96]:
+        - generic [ref=e98]:
+          - link "Home" [ref=e99] [cursor=pointer]:
+            - /url: /app/home
+            - button "Home" [ref=e100]:
+              - img [ref=e101]
+              - generic [ref=e104]: Home
+          - link "Contacts" [ref=e105] [cursor=pointer]:
+            - /url: /app/contacts
+            - button "Contacts" [ref=e106]:
+              - img [ref=e107]
+              - generic [ref=e111]: Contacts
+          - link "Calendar" [ref=e112] [cursor=pointer]:
+            - /url: /app/calendar
+            - button "Calendar" [ref=e113]:
+              - img [ref=e114]
+              - generic [ref=e116]: Calendar
+          - link "MS Teams" [ref=e117] [cursor=pointer]:
+            - /url: /app/teams
+            - button "MS Teams" [ref=e118]:
+              - img [ref=e119]
+              - generic [ref=e122]: MS Teams
+      - generic [ref=e124]:
+        - generic [ref=e125]:
+          - generic [ref=e126]:
+            - generic [ref=e127]:
+              - img [ref=e128]
+              - heading "Super Admin" [level=1] [ref=e130]
+            - paragraph [ref=e131]: Manage all organizations, users, and system settings
+          - button "10" [ref=e132] [cursor=pointer]:
+            - img
+            - generic [ref=e133]: "10"
+        - generic [ref=e135]:
+          - link "Analytics" [ref=e136] [cursor=pointer]:
+            - /url: /app/admin/analytics
+            - button "Analytics" [ref=e137]:
+              - img [ref=e138]
+              - text: Analytics
+          - link "Users" [ref=e140] [cursor=pointer]:
+            - /url: /app/admin/users
+            - button "Users" [ref=e141]:
+              - img [ref=e142]
+              - text: Users
+          - link "Organizations" [ref=e147] [cursor=pointer]:
+            - /url: /app/admin/organizations
+            - button "Organizations" [ref=e148]:
+              - img [ref=e149]
+              - text: Organizations
+          - link "Billing" [ref=e153] [cursor=pointer]:
+            - /url: /app/admin/billing
+            - button "Billing" [ref=e154]:
+              - img [ref=e155]
+              - text: Billing
+          - link "Revenue" [ref=e157] [cursor=pointer]:
+            - /url: /app/admin/revenue
+            - button "Revenue" [ref=e158]:
+              - img [ref=e159]
+              - text: Revenue
+          - link "Sales Pipeline" [ref=e162] [cursor=pointer]:
+            - /url: /app/admin/sales
+            - button "Sales Pipeline" [ref=e163]:
+              - img [ref=e164]
+              - text: Sales Pipeline
+          - link "System" [ref=e167] [cursor=pointer]:
+            - /url: /app/admin/system
+            - button "System" [ref=e168]:
+              - img [ref=e169]
+              - text: System
+        - generic [ref=e173]:
+          - button "Create Organization" [ref=e175] [cursor=pointer]:
+            - img
+            - text: Create Organization
+          - generic [ref=e176]:
+            - generic [ref=e177]:
+              - generic [ref=e179]: Total Organizations
+              - generic [ref=e181]: "12"
+            - generic [ref=e182]:
+              - generic [ref=e184]: Total Members
+              - generic [ref=e186]: "3"
+            - generic [ref=e187]:
+              - generic [ref=e189]: Total Seats
+              - generic [ref=e191]: "26"
+            - generic [ref=e192]:
+              - generic [ref=e194]: Paid Plans
+              - generic [ref=e196]: "7"
+          - generic [ref=e199]:
+            - generic [ref=e200] [cursor=pointer]:
+              - checkbox "Select All" [ref=e201]
+              - generic [ref=e202]: Select All
+            - generic [ref=e203]:
+              - img [ref=e204]
+              - textbox "Search organizations by name..." [ref=e207]
+          - generic [ref=e208]:
+            - generic [ref=e209]:
+              - generic [ref=e210]:
+                - generic [ref=e211]:
+                  - generic [ref=e212]:
+                    - checkbox [ref=e213]
+                    - img [ref=e214]
+                    - generic [ref=e218] [cursor=pointer]: Test Org to Delete 1770755500877
+                  - generic [ref=e219]:
+                    - generic [ref=e220]: FREE
+                    - button [ref=e221] [cursor=pointer]:
+                      - img
+                - generic [ref=e222]: Created 2/10/2026
+              - generic [ref=e223]:
+                - generic [ref=e224]:
+                  - generic [ref=e225]:
+                    - generic [ref=e226]:
+                      - img [ref=e227]
+                      - text: Members
+                    - generic [ref=e232]: "1"
+                  - generic [ref=e233]:
+                    - generic [ref=e234]:
+                      - img [ref=e235]
+                      - text: Seats
+                    - generic [ref=e237]: 0 / 1
+                  - generic [ref=e238]:
+                    - generic [ref=e239]:
+                      - img [ref=e240]
+                      - text: Usage (30d)
+                    - generic [ref=e243]: "0"
+                - paragraph [ref=e246]: 1 seat available
+            - generic [ref=e247]:
+              - generic [ref=e248]:
+                - generic [ref=e249]:
+                  - generic [ref=e250]:
+                    - checkbox [ref=e251]
+                    - img [ref=e252]
+                    - generic [ref=e256] [cursor=pointer]: Leave Test Org 1770753558660
+                  - generic [ref=e257]:
+                    - generic [ref=e258]: FREE
+                    - button [ref=e259] [cursor=pointer]:
+                      - img
+                - generic [ref=e260]: Created 2/10/2026
+              - generic [ref=e261]:
+                - generic [ref=e262]:
+                  - generic [ref=e263]:
+                    - generic [ref=e264]:
+                      - img [ref=e265]
+                      - text: Members
+                    - generic [ref=e270]: "1"
+                  - generic [ref=e271]:
+                    - generic [ref=e272]:
+                      - img [ref=e273]
+                      - text: Seats
+                    - generic [ref=e275]: 0 / 1
+                  - generic [ref=e276]:
+                    - generic [ref=e277]:
+                      - img [ref=e278]
+                      - text: Usage (30d)
+                    - generic [ref=e281]: "0"
+                - paragraph [ref=e284]: 1 seat available
+            - generic [ref=e285]:
+              - generic [ref=e286]:
+                - generic [ref=e287]:
+                  - generic [ref=e288]:
+                    - checkbox [ref=e289]
+                    - img [ref=e290]
+                    - generic [ref=e294] [cursor=pointer]: Member Test Org 1770753513648
+                  - generic [ref=e295]:
+                    - generic [ref=e296]: FREE
+                    - button [ref=e297] [cursor=pointer]:
+                      - img
+                - generic [ref=e298]: Created 2/10/2026
+              - generic [ref=e299]:
+                - generic [ref=e300]:
+                  - generic [ref=e301]:
+                    - generic [ref=e302]:
+                      - img [ref=e303]
+                      - text: Members
+                    - generic [ref=e308]: "0"
+                  - generic [ref=e309]:
+                    - generic [ref=e310]:
+                      - img [ref=e311]
+                      - text: Seats
+                    - generic [ref=e313]: 0 / 1
+                  - generic [ref=e314]:
+                    - generic [ref=e315]:
+                      - img [ref=e316]
+                      - text: Usage (30d)
+                    - generic [ref=e319]: "0"
+                - paragraph [ref=e322]: 1 seat available
+            - generic [ref=e323]:
+              - generic [ref=e324]:
+                - generic [ref=e325]:
+                  - generic [ref=e326]:
+                    - checkbox [ref=e327]
+                    - img [ref=e328]
+                    - generic [ref=e332] [cursor=pointer]: Invite Test Org 1770753510133
+                  - generic [ref=e333]:
+                    - generic [ref=e334]: FREE
+                    - button [ref=e335] [cursor=pointer]:
+                      - img
+                - generic [ref=e336]: Created 2/10/2026
+              - generic [ref=e337]:
+                - generic [ref=e338]:
+                  - generic [ref=e339]:
+                    - generic [ref=e340]:
+                      - img [ref=e341]
+                      - text: Members
+                    - generic [ref=e346]: "0"
+                  - generic [ref=e347]:
+                    - generic [ref=e348]:
+                      - img [ref=e349]
+                      - text: Seats
+                    - generic [ref=e351]: 0 / 1
+                  - generic [ref=e352]:
+                    - generic [ref=e353]:
+                      - img [ref=e354]
+                      - text: Usage (30d)
+                    - generic [ref=e357]: "0"
+                - paragraph [ref=e360]: 1 seat available
+            - generic [ref=e361]:
+              - generic [ref=e362]:
+                - generic [ref=e363]:
+                  - generic [ref=e364]:
+                    - checkbox [ref=e365]
+                    - img [ref=e366]
+                    - generic [ref=e370] [cursor=pointer]: Test Org 1770753466666
+                  - generic [ref=e371]:
+                    - generic [ref=e372]: FREE
+                    - button [ref=e373] [cursor=pointer]:
+                      - img
+                - generic [ref=e374]: Created 2/10/2026
+              - generic [ref=e375]:
+                - generic [ref=e376]:
+                  - generic [ref=e377]:
+                    - generic [ref=e378]:
+                      - img [ref=e379]
+                      - text: Members
+                    - generic [ref=e384]: "1"
+                  - generic [ref=e385]:
+                    - generic [ref=e386]:
+                      - img [ref=e387]
+                      - text: Seats
+                    - generic [ref=e389]: 0 / 1
+                  - generic [ref=e390]:
+                    - generic [ref=e391]:
+                      - img [ref=e392]
+                      - text: Usage (30d)
+                    - generic [ref=e395]: "0"
+                - paragraph [ref=e398]: 1 seat available
+            - generic [ref=e399]:
+              - generic [ref=e400]:
+                - generic [ref=e401]:
+                  - generic [ref=e402]:
+                    - checkbox [ref=e403]
+                    - img [ref=e404]
+                    - generic [ref=e408] [cursor=pointer]: Darren Miller Law Firm
+                  - generic [ref=e409]:
+                    - generic [ref=e410]: ENTERPRISE
+                    - button [ref=e411] [cursor=pointer]:
+                      - img
+                - generic [ref=e412]: Created 2/7/2026
+              - generic [ref=e413]:
+                - generic [ref=e414]:
+                  - generic [ref=e415]:
+                    - generic [ref=e416]:
+                      - img [ref=e417]
+                      - text: Members
+                    - generic [ref=e422]: "0"
+                  - generic [ref=e423]:
+                    - generic [ref=e424]:
+                      - img [ref=e425]
+                      - text: Seats
+                    - generic [ref=e427]: 0 / 15
+                  - generic [ref=e428]:
+                    - generic [ref=e429]:
+                      - img [ref=e430]
+                      - text: Usage (30d)
+                    - generic [ref=e433]: "0"
+                - paragraph [ref=e436]: 15 seats available
+            - generic [ref=e437]:
+              - generic [ref=e438]:
+                - generic [ref=e439]:
+                  - generic [ref=e440]:
+                    - checkbox [ref=e441]
+                    - img [ref=e442]
+                    - generic [ref=e446] [cursor=pointer]: botmakers-1770477495452
+                  - generic [ref=e447]:
+                    - generic [ref=e448]: PRO
+                    - button [ref=e449] [cursor=pointer]:
+                      - img
+                - generic [ref=e450]: Created 2/7/2026
+              - generic [ref=e451]:
+                - generic [ref=e452]:
+                  - generic [ref=e453]:
+                    - generic [ref=e454]:
+                      - img [ref=e455]
+                      - text: Members
+                    - generic [ref=e460]: "0"
+                  - generic [ref=e461]:
+                    - generic [ref=e462]:
+                      - img [ref=e463]
+                      - text: Seats
+                    - generic [ref=e465]: 0 / 1
+                  - generic [ref=e466]:
+                    - generic [ref=e467]:
+                      - img [ref=e468]
+                      - text: Usage (30d)
+                    - generic [ref=e471]: "0"
+                - paragraph [ref=e474]: 1 seat available
+            - generic [ref=e475]:
+              - generic [ref=e476]:
+                - generic [ref=e477]:
+                  - generic [ref=e478]:
+                    - checkbox [ref=e479]
+                    - img [ref=e480]
+                    - generic [ref=e484] [cursor=pointer]: botmakers-1770477121223
+                  - generic [ref=e485]:
+                    - generic [ref=e486]: PRO
+                    - button [ref=e487] [cursor=pointer]:
+                      - img
+                - generic [ref=e488]: Created 2/7/2026
+              - generic [ref=e489]:
+                - generic [ref=e490]:
+                  - generic [ref=e491]:
+                    - generic [ref=e492]:
+                      - img [ref=e493]
+                      - text: Members
+                    - generic [ref=e498]: "0"
+                  - generic [ref=e499]:
+                    - generic [ref=e500]:
+                      - img [ref=e501]
+                      - text: Seats
+                    - generic [ref=e503]: 0 / 1
+                  - generic [ref=e504]:
+                    - generic [ref=e505]:
+                      - img [ref=e506]
+                      - text: Usage (30d)
+                    - generic [ref=e509]: "0"
+                - paragraph [ref=e512]: 1 seat available
+            - generic [ref=e513]:
+              - generic [ref=e514]:
+                - generic [ref=e515]:
+                  - generic [ref=e516]:
+                    - checkbox [ref=e517]
+                    - img [ref=e518]
+                    - generic [ref=e522] [cursor=pointer]: botmakers-1770477085332
+                  - generic [ref=e523]:
+                    - generic [ref=e524]: PRO
+                    - button [ref=e525] [cursor=pointer]:
+                      - img
+                - generic [ref=e526]: Created 2/7/2026
+              - generic [ref=e527]:
+                - generic [ref=e528]:
+                  - generic [ref=e529]:
+                    - generic [ref=e530]:
+                      - img [ref=e531]
+                      - text: Members
+                    - generic [ref=e536]: "0"
+                  - generic [ref=e537]:
+                    - generic [ref=e538]:
+                      - img [ref=e539]
+                      - text: Seats
+                    - generic [ref=e541]: 0 / 1
+                  - generic [ref=e542]:
+                    - generic [ref=e543]:
+                      - img [ref=e544]
+                      - text: Usage (30d)
+                    - generic [ref=e547]: "0"
+                - paragraph [ref=e550]: 1 seat available
+            - generic [ref=e551]:
+              - generic [ref=e552]:
+                - generic [ref=e553]:
+                  - generic [ref=e554]:
+                    - checkbox [ref=e555]
+                    - img [ref=e556]
+                    - generic [ref=e560] [cursor=pointer]: botmakers-1770469006586
+                  - generic [ref=e561]:
+                    - generic [ref=e562]: PRO
+                    - button [ref=e563] [cursor=pointer]:
+                      - img
+                - generic [ref=e564]: Created 2/7/2026
+              - generic [ref=e565]:
+                - generic [ref=e566]:
+                  - generic [ref=e567]:
+                    - generic [ref=e568]:
+                      - img [ref=e569]
+                      - text: Members
+                    - generic [ref=e574]: "0"
+                  - generic [ref=e575]:
+                    - generic [ref=e576]:
+                      - img [ref=e577]
+                      - text: Seats
+                    - generic [ref=e579]: 0 / 1
+                  - generic [ref=e580]:
+                    - generic [ref=e581]:
+                      - img [ref=e582]
+                      - text: Usage (30d)
+                    - generic [ref=e585]: "0"
+                - paragraph [ref=e588]: 1 seat available
+            - generic [ref=e589]:
+              - generic [ref=e590]:
+                - generic [ref=e591]:
+                  - generic [ref=e592]:
+                    - checkbox [ref=e593]
+                    - img [ref=e594]
+                    - generic [ref=e598] [cursor=pointer]: botmakers-1770468870054
+                  - generic [ref=e599]:
+                    - generic [ref=e600]: PRO
+                    - button [ref=e601] [cursor=pointer]:
+                      - img
+                - generic [ref=e602]: Created 2/7/2026
+              - generic [ref=e603]:
+                - generic [ref=e604]:
+                  - generic [ref=e605]:
+                    - generic [ref=e606]:
+                      - img [ref=e607]
+                      - text: Members
+                    - generic [ref=e612]: "0"
+                  - generic [ref=e613]:
+                    - generic [ref=e614]:
+                      - img [ref=e615]
+                      - text: Seats
+                    - generic [ref=e617]: 0 / 1
+                  - generic [ref=e618]:
+                    - generic [ref=e619]:
+                      - img [ref=e620]
+                      - text: Usage (30d)
+                    - generic [ref=e623]: "0"
+                - paragraph [ref=e626]: 1 seat available
+            - generic [ref=e627]:
+              - generic [ref=e628]:
+                - generic [ref=e629]:
+                  - generic [ref=e630]:
+                    - checkbox [ref=e631]
+                    - img [ref=e632]
+                    - generic [ref=e636] [cursor=pointer]: botmakers-1770461370743
+                  - generic [ref=e637]:
+                    - generic [ref=e638]: PRO
+                    - button [ref=e639] [cursor=pointer]:
+                      - img
+                - generic [ref=e640]: Created 2/7/2026
+              - generic [ref=e641]:
+                - generic [ref=e642]:
+                  - generic [ref=e643]:
+                    - generic [ref=e644]:
+                      - img [ref=e645]
+                      - text: Members
+                    - generic [ref=e650]: "0"
+                  - generic [ref=e651]:
+                    - generic [ref=e652]:
+                      - img [ref=e653]
+                      - text: Seats
+                    - generic [ref=e655]: 0 / 1
+                  - generic [ref=e656]:
+                    - generic [ref=e657]:
+                      - img [ref=e658]
+                      - text: Usage (30d)
+                    - generic [ref=e661]: "0"
+                - paragraph [ref=e664]: 1 seat available
+    - button "Open chatbot" [ref=e665] [cursor=pointer]:
+      - img [ref=e666]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e673] [cursor=pointer]:
+    - img [ref=e674]
+  - alert [ref=e677]
+```

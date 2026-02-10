@@ -600,12 +600,24 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
         }
       }
 
-      // Process attachments if any
+      // Process attachments if any (including voice attachments)
       let processedAttachments: any[] = [];
-      if (attachments.length > 0) {
+      if (attachments.length > 0 || voiceAttachments.length > 0) {
         const formData = new FormData();
+
+        // Add regular file attachments
         attachments.forEach((attachment) => {
           formData.append('files', attachment.file);
+        });
+
+        // Add voice message attachments
+        voiceAttachments.forEach((voiceAttachment, index) => {
+          const voiceFile = new File(
+            [voiceAttachment.blob],
+            `voice-message-${index + 1}.webm`,
+            { type: 'audio/webm' }
+          );
+          formData.append('files', voiceFile);
         });
 
         const uploadResponse = await fetch('/api/attachments/upload', {

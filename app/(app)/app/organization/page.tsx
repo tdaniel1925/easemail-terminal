@@ -269,7 +269,7 @@ export default function OrganizationPage() {
                     router.push(`/app/organization/${org.id}`);
                   }}>
                     <Settings className="mr-2 h-4 w-4" />
-                    Manage
+                    View Details
                   </Button>
                 </div>
               </CardContent>

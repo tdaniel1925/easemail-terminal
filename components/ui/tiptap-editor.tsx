@@ -454,7 +454,9 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
       </div>
 
       {/* Editor Content */}
-      <EditorContent editor={editor} />
+      <div data-testid="email-body">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }

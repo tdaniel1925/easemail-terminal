@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { ApiErrors } from '@/lib/api-error';
+
+// Validation schema for creating new user
+const createUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  name: z.string().optional()
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +17,7 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiErrors.unauthorized();
     }
 
     // Use service client to bypass RLS for super admin queries
@@ -25,7 +34,7 @@ export async function GET(request: NextRequest) {
       .single()) as { data: any; error: any };
 
     if (!userData?.is_super_admin) {
-      return NextResponse.json({ error: 'Super admin access required' }, { status: 403 });
+      return ApiErrors.forbidden('Super admin access required');
     }
 
     // Get all users with stats
@@ -87,10 +96,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ users: usersWithStats });
   } catch (error) {
     console.error('Admin users error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch users' },
-      { status: 500 }
-    );
+    return ApiErrors.internalError('Failed to fetch users');
   }
 }
 
@@ -100,7 +106,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiErrors.unauthorized();
     }
 
     // Create service client for admin operations
@@ -117,14 +123,18 @@ export async function POST(request: NextRequest) {
       .single()) as { data: any; error: any };
 
     if (!userData?.is_super_admin) {
-      return NextResponse.json({ error: 'Super admin access required' }, { status: 403 });
+      return ApiErrors.forbidden('Super admin access required');
     }
 
-    const { email, name, password } = await request.json();
+    // Parse and validate request body
+    const requestBody = await request.json();
+    const validation = createUserSchema.safeParse(requestBody);
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.errors);
     }
+
+    const { email, name, password } = validation.data;
 
     // Create user via Supabase Admin API using service client
     const { data: newUser, error: createError } = await serviceClient.auth.admin.createUser({
@@ -135,7 +145,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (createError) {
-      return NextResponse.json({ error: createError.message }, { status: 400 });
+      return ApiErrors.badRequest(createError.message);
     }
 
     // Create user record in public.users table using service client
@@ -154,9 +164,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ user: newUser.user });
   } catch (error) {
     console.error('Create user error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create user' },
-      { status: 500 }
-    );
+    return ApiErrors.internalError('Failed to create user');
   }
 }

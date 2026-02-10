@@ -15,43 +15,108 @@ const supabase = createClient(
 
 /**
  * Verify PayPal webhook signature
- * In production, you should verify the webhook came from PayPal
+ * Implements proper signature verification to prevent forged webhooks
  * https://developer.paypal.com/docs/api-basics/notifications/webhooks/notification-messages/#verify-webhook-signature
  */
-async function verifyWebhookSignature(request: NextRequest): Promise<boolean> {
-  // TODO: Implement PayPal webhook signature verification
-  // For now, we'll trust the webhook (development only)
-  // In production, MUST verify signature
-
+async function verifyWebhookSignature(request: NextRequest, body: string): Promise<boolean> {
+  // Extract required headers
   const webhookId = request.headers.get('paypal-transmission-id');
   const transmissionSig = request.headers.get('paypal-transmission-sig');
   const transmissionTime = request.headers.get('paypal-transmission-time');
   const certUrl = request.headers.get('paypal-cert-url');
   const authAlgo = request.headers.get('paypal-auth-algo');
 
-  // Basic validation
-  if (!webhookId || !transmissionSig || !transmissionTime) {
-    console.error('Missing PayPal webhook headers');
+  // Basic validation - all headers must be present
+  if (!webhookId || !transmissionSig || !transmissionTime || !certUrl || !authAlgo) {
+    console.error('[PayPal Webhook] Missing required headers', {
+      hasWebhookId: !!webhookId,
+      hasTransmissionSig: !!transmissionSig,
+      hasTransmissionTime: !!transmissionTime,
+      hasCertUrl: !!certUrl,
+      hasAuthAlgo: !!authAlgo
+    });
     return false;
   }
 
-  // In production, verify signature using PayPal SDK
-  // https://github.com/paypal/PayPal-node-SDK/blob/master/samples/notifications/webhook-events/verify.js
+  // Verify webhook using PayPal's verification endpoint
+  try {
+    const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID;
 
-  return true; // Development mode - accept all
+    if (!PAYPAL_WEBHOOK_ID) {
+      console.error('[PayPal Webhook] PAYPAL_WEBHOOK_ID not configured');
+      // In development, allow if PAYPAL_WEBHOOK_ID is not set
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[PayPal Webhook] Development mode - skipping verification (INSECURE)');
+        return true;
+      }
+      return false;
+    }
+
+    // Use PayPal's webhook verification API
+    const isProduction = process.env.PAYPAL_MODE === 'live';
+    const baseUrl = isProduction
+      ? 'https://api-m.paypal.com'
+      : 'https://api-m.sandbox.paypal.com';
+
+    const authToken = Buffer.from(
+      `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+    ).toString('base64');
+
+    const verifyResponse = await fetch(`${baseUrl}/v1/notifications/verify-webhook-signature`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${authToken}`
+      },
+      body: JSON.stringify({
+        transmission_id: webhookId,
+        transmission_time: transmissionTime,
+        cert_url: certUrl,
+        auth_algo: authAlgo,
+        transmission_sig: transmissionSig,
+        webhook_id: PAYPAL_WEBHOOK_ID,
+        webhook_event: JSON.parse(body)
+      })
+    });
+
+    if (!verifyResponse.ok) {
+      console.error('[PayPal Webhook] Verification API error', {
+        status: verifyResponse.status,
+        statusText: verifyResponse.statusText
+      });
+      return false;
+    }
+
+    const verification = await verifyResponse.json();
+
+    if (verification.verification_status === 'SUCCESS') {
+      console.log('[PayPal Webhook] Signature verified successfully');
+      return true;
+    } else {
+      console.error('[PayPal Webhook] Signature verification failed', verification);
+      return false;
+    }
+
+  } catch (error: any) {
+    console.error('[PayPal Webhook] Verification error:', error.message);
+    return false;
+  }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    // Read the raw body for signature verification
+    const body = await request.text();
+
     // Verify webhook signature
-    const isValid = await verifyWebhookSignature(request);
+    const isValid = await verifyWebhookSignature(request, body);
     if (!isValid) {
-      console.error('Invalid PayPal webhook signature');
+      console.error('[PayPal Webhook] Invalid webhook signature - potential forgery attempt');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
 
-    const event = await request.json();
-    console.log('PayPal webhook event received:', event.event_type);
+    const event = JSON.parse(body);
+    console.log('[PayPal Webhook] Event received and verified:', event.event_type);
 
     const { event_type, resource } = event;
 

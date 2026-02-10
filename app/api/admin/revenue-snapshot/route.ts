@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    return NextResponse.json({ history: history || [] });
+    return NextResponse.json({ snapshots: history || [] });
   } catch (error) {
     console.error('Error fetching revenue history:', error);
     return NextResponse.json(

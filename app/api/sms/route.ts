@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { sendSMS, getSMSMessages } from '@/lib/twilio/client';
+import { ApiErrors } from '@/lib/api-error';
+
+// Validation schema for SMS requests
+const smsSchema = z.object({
+  to: z.string()
+    .min(10, 'Phone number must be at least 10 digits')
+    .max(15, 'Phone number too long')
+    .regex(/^[+]?[0-9\s\-()]+$/, 'Invalid phone number format'),
+  body: z.string()
+    .min(1, 'Message body is required')
+    .max(1600, 'Message too long (max 1600 characters for SMS)')
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +21,7 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiErrors.unauthorized();
     }
 
     // Get SMS messages from database
@@ -22,10 +35,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ messages: messages || [] });
   } catch (error) {
     console.error('Get SMS error:', error);
-    return NextResponse.json(
-      { error: 'Failed to get messages' },
-      { status: 500 }
-    );
+    return ApiErrors.internalError('Failed to get messages');
   }
 }
 
@@ -35,26 +45,24 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiErrors.unauthorized();
     }
 
-    const { to, body } = await request.json();
+    // Parse and validate request body
+    const requestBody = await request.json();
+    const validation = smsSchema.safeParse(requestBody);
 
-    if (!to || !body) {
-      return NextResponse.json(
-        { error: 'To and body are required' },
-        { status: 400 }
-      );
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.errors);
     }
+
+    const { to, body } = validation.data;
 
     // Send SMS via Twilio
     const result = await sendSMS(to, body);
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error || 'Failed to send SMS' },
-        { status: 500 }
-      );
+      return ApiErrors.externalService('Twilio SMS', { error: result.error });
     }
 
     // Store in database
@@ -85,9 +93,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message });
   } catch (error) {
     console.error('Send SMS error:', error);
-    return NextResponse.json(
-      { error: 'Failed to send SMS' },
-      { status: 500 }
-    );
+    return ApiErrors.internalError('Failed to send SMS');
   }
 }

@@ -1,10 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { nylas } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
 import { errorResponse, successResponse, safeQuery, safeExternalCall } from '@/lib/api-helpers';
 import { logger } from '@/lib/logger';
 import { isString, isArray } from '@/lib/guards';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
+import { ApiErrors } from '@/lib/api-error';
+
+// Validation schema for email send requests
+const sendEmailSchema = z.object({
+  to: z.union([
+    z.string().email('Invalid email address'),
+    z.array(z.string().email('Invalid email address')).min(1, 'At least one recipient required')
+  ]),
+  cc: z.union([
+    z.array(z.string().email()),
+    z.undefined()
+  ]).optional(),
+  bcc: z.union([
+    z.array(z.string().email()),
+    z.undefined()
+  ]).optional(),
+  subject: z.string().min(1, 'Subject is required').max(998, 'Subject too long'),
+  body: z.string().min(1, 'Email body is required'),
+  attachments: z.array(z.any()).optional(),
+  readReceipt: z.boolean().optional()
+});
 
 interface EmailAccount {
   id: string;
@@ -22,44 +44,26 @@ export async function POST(request: NextRequest) {
     // Apply rate limiting for email sending
     const rateLimitResult = await rateLimit(request, RateLimitPresets.EMAIL_SEND);
     if (!rateLimitResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          message: `Too many emails sent. Please try again in ${Math.ceil((rateLimitResult.reset - Date.now()) / 1000)} seconds.`,
-        },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': rateLimitResult.reset.toString(),
-          }
-        }
-      );
+      return ApiErrors.rateLimit(rateLimitResult.reset);
     }
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return errorResponse('Unauthorized', 401);
+      return ApiErrors.unauthorized();
     }
 
     userId = user.id;
 
     // Parse and validate request body
-    const body = await request.json();
-    const { to, cc, bcc, subject, body: emailBody, attachments: attachmentData, readReceipt } = body;
+    const requestBody = await request.json();
+    const validation = sendEmailSchema.safeParse(requestBody);
 
-    // Validate required fields
-    if (!to || (!isString(to) && !isArray(to))) {
-      return errorResponse('Invalid "to" field: must be email string or array', 400);
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.errors);
     }
-    if (!subject || !isString(subject)) {
-      return errorResponse('Subject is required and must be a string', 400);
-    }
-    if (!emailBody || !isString(emailBody)) {
-      return errorResponse('Email body is required and must be a string', 400);
-    }
+
+    const { to, cc, bcc, subject, body: emailBody, attachments: attachmentData, readReceipt } = validation.data;
 
     // Get user's email account with proper error handling
     const { data: account, error: accountError } = (await supabase
@@ -71,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     if (accountError || !account) {
       logger.error('No email account found for user', undefined, { userId: user.id, error: accountError });
-      return errorResponse('No email account connected. Please connect an account first.', 400);
+      return ApiErrors.badRequest('No email account connected. Please connect an account first.');
     }
 
     // Prepare recipients with validation
@@ -127,7 +131,7 @@ export async function POST(request: NextRequest) {
         accountId: account.id,
         error: sendError,
       });
-      return errorResponse(sendError || 'Failed to send email', 502);
+      return ApiErrors.externalService('Nylas', { error: sendError });
     }
 
     // Track usage for analytics (non-blocking)
@@ -159,10 +163,9 @@ export async function POST(request: NextRequest) {
       userId,
       component: 'api/messages/send',
     });
-    return errorResponse(
+    return ApiErrors.internalError(
       'Failed to send email',
-      500,
-      process.env.NODE_ENV === 'development' ? error.message : undefined
+      process.env.NODE_ENV === 'development' ? { message: error.message } : undefined
     );
   }
 }

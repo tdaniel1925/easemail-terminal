@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { CreateOrganizationWizard } from '@/components/admin/create-organization-wizard';
@@ -43,6 +44,14 @@ export default function AdminOrganizationsPage() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState<Organization | null>(null);
+
+  // Quick create form state
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
+  const [quickCreateName, setQuickCreateName] = useState('');
+  const [quickCreateOwnerEmail, setQuickCreateOwnerEmail] = useState('');
+  const [quickCreatePlan, setQuickCreatePlan] = useState('PRO');
+  const [quickCreateSeats, setQuickCreateSeats] = useState(1);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetchOrganizations();
@@ -84,6 +93,55 @@ export default function AdminOrganizationsPage() {
     setShowWizard(false);
     fetchOrganizations();
     toast.success('Organization created successfully!');
+  };
+
+  const handleQuickCreate = async () => {
+    if (!quickCreateName.trim()) {
+      toast.error('Organization name is required');
+      return;
+    }
+    if (!quickCreateOwnerEmail.trim()) {
+      toast.error('Owner email is required');
+      return;
+    }
+
+    try {
+      setCreating(true);
+      const response = await fetch('/api/admin/organizations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: quickCreateName,
+          owner_email: quickCreateOwnerEmail,
+          plan: quickCreatePlan,
+          seats: quickCreateSeats,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Organization created successfully!');
+        setShowQuickCreate(false);
+        setQuickCreateName('');
+        setQuickCreateOwnerEmail('');
+        setQuickCreatePlan('PRO');
+        setQuickCreateSeats(1);
+        fetchOrganizations();
+      } else {
+        toast.error(data.error || 'Failed to create organization');
+      }
+    } catch (error) {
+      console.error('Quick create error:', error);
+      toast.error('Failed to create organization');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const switchToWizard = () => {
+    setShowQuickCreate(false);
+    setShowWizard(true);
   };
 
   const getPlanBadgeColor = (plan: string) => {
@@ -209,7 +267,7 @@ export default function AdminOrganizationsPage() {
             </>
           )}
         </div>
-        <Button onClick={() => setShowWizard(true)}>
+        <Button onClick={() => setShowQuickCreate(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Create Organization
         </Button>
@@ -377,6 +435,112 @@ export default function AdminOrganizationsPage() {
           </div>
         )}
       </div>
+
+      {/* Quick Create Organization Dialog */}
+      <Dialog open={showQuickCreate} onOpenChange={setShowQuickCreate}>
+        <DialogContent>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold">Create Organization</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Quick create with basic details
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">Organization Name *</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Acme Corporation"
+                  value={quickCreateName}
+                  onChange={(e) => setQuickCreateName(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="ownerEmail">Owner Email *</Label>
+                <Input
+                  id="ownerEmail"
+                  name="ownerEmail"
+                  type="email"
+                  placeholder="owner@example.com"
+                  value={quickCreateOwnerEmail}
+                  onChange={(e) => setQuickCreateOwnerEmail(e.target.value)}
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  User must already exist in the system
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="plan">Plan</Label>
+                  <select
+                    id="plan"
+                    value={quickCreatePlan}
+                    onChange={(e) => setQuickCreatePlan(e.target.value)}
+                    className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background"
+                  >
+                    <option value="FREE">Free</option>
+                    <option value="PRO">Pro</option>
+                    <option value="BUSINESS">Business</option>
+                    <option value="ENTERPRISE">Enterprise</option>
+                  </select>
+                </div>
+
+                <div>
+                  <Label htmlFor="seats">Seats</Label>
+                  <Input
+                    id="seats"
+                    type="number"
+                    min="1"
+                    value={quickCreateSeats}
+                    onChange={(e) => setQuickCreateSeats(parseInt(e.target.value) || 1)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <button
+                type="button"
+                onClick={switchToWizard}
+                className="text-sm text-primary hover:underline"
+              >
+                Need more options? Use Advanced Wizard →
+              </button>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowQuickCreate(false)}
+                disabled={creating}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleQuickCreate} disabled={creating}>
+                {creating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Create Organization Wizard */}
       <Dialog open={showWizard} onOpenChange={setShowWizard}>

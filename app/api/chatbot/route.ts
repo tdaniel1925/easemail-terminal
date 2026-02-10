@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { ApiErrors } from '@/lib/api-error';
+
+// Validation schema for chatbot requests
+const chatbotSchema = z.object({
+  message: z.string().min(1, 'Message cannot be empty').max(2000, 'Message too long'),
+  history: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string()
+  })).max(20, 'Message history too long').optional()
+});
 
 // System prompt with app knowledge
 const SYSTEM_PROMPT = `You are the EaseMail Assistant, a helpful AI that helps users with their email management app.
@@ -36,14 +47,18 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiErrors.unauthorized();
     }
 
-    const { message, history } = await request.json();
+    // Parse and validate request body
+    const requestBody = await request.json();
+    const validation = chatbotSchema.safeParse(requestBody);
 
-    if (!message) {
-      return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.errors);
     }
+
+    const { message, history } = validation.data;
 
     // Build conversation history for context
     const conversationHistory: Message[] = history
@@ -63,10 +78,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Chatbot API error:', error);
-    return NextResponse.json(
-      { error: 'Failed to process message' },
-      { status: 500 }
-    );
+    return ApiErrors.internalError('Failed to process message');
   }
 }
 

@@ -1,26 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { nylas } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
+import { ApiErrors } from '@/lib/api-error';
+
+// Validation schema for reply requests
+const replySchema = z.object({
+  messageId: z.string().min(1, 'Message ID is required'),
+  to: z.union([
+    z.string().email('Invalid email address'),
+    z.array(z.string().email('Invalid email address')).min(1, 'At least one recipient required')
+  ]),
+  cc: z.union([
+    z.array(z.string().email()),
+    z.undefined()
+  ]).optional(),
+  bcc: z.union([
+    z.array(z.string().email()),
+    z.undefined()
+  ]).optional(),
+  subject: z.string().min(1, 'Subject is required').max(998, 'Subject too long'),
+  body: z.string().min(1, 'Message body is required'),
+  replyAll: z.boolean().optional(),
+  attachments: z.array(z.any()).optional(),
+  readReceipt: z.boolean().optional()
+});
 
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting for email replies
     const rateLimitResult = await rateLimit(request, RateLimitPresets.EMAIL_SEND);
     if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { error: 'Rate limit exceeded', message: `Too many emails sent. Try again in ${Math.ceil((rateLimitResult.reset - Date.now()) / 1000)}s.` },
-        { status: 429, headers: { 'X-RateLimit-Reset': rateLimitResult.reset.toString() } }
-      );
+      return ApiErrors.rateLimit(rateLimitResult.reset);
     }
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiErrors.unauthorized();
     }
 
-    const { messageId, to, cc, bcc, subject, body, replyAll, attachments: attachmentData, readReceipt } = await request.json();
+    // Parse and validate request body
+    const requestBody = await request.json();
+    const validation = replySchema.safeParse(requestBody);
+
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.errors);
+    }
+
+    const { messageId, to, cc, bcc, subject, body, replyAll, attachments: attachmentData, readReceipt } = validation.data;
 
     // Get user's email account
     const { data: account } = (await supabase
@@ -31,7 +60,7 @@ export async function POST(request: NextRequest) {
       .single()) as { data: any };
 
     if (!account) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+      return ApiErrors.badRequest('No email account connected');
     }
 
     const nylasClient = nylas();
@@ -63,10 +92,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Reply sent successfully', data: message });
   } catch (error) {
     console.error('Reply message error:', error);
-    return NextResponse.json(
-      { error: 'Failed to send reply' },
-      { status: 500 }
-    );
+    return ApiErrors.internalError('Failed to send reply');
   }
 }
 
@@ -77,14 +103,14 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return ApiErrors.unauthorized();
     }
 
     const searchParams = request.nextUrl.searchParams;
     const messageId = searchParams.get('messageId');
 
     if (!messageId) {
-      return NextResponse.json({ error: 'Message ID required' }, { status: 400 });
+      return ApiErrors.badRequest('Message ID required');
     }
 
     // Get user's email account
@@ -96,7 +122,7 @@ export async function GET(request: NextRequest) {
       .single()) as { data: any };
 
     if (!account) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+      return ApiErrors.badRequest('No email account connected');
     }
 
     const nylasClient = nylas();
@@ -110,9 +136,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: message.data });
   } catch (error) {
     console.error('Fetch message error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch message' },
-      { status: 500 }
-    );
+    return ApiErrors.internalError('Failed to fetch message');
   }
 }

@@ -1,25 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Redis from 'ioredis';
+import { Redis } from '@upstash/redis';
 
 // Initialize Redis client for rate limiting
 let redis: Redis | null = null;
 
 function getRedisClient(): Redis | null {
-  if (!process.env.REDIS_URL || !process.env.REDIS_TOKEN) {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
     console.warn('Redis not configured - rate limiting disabled');
     return null;
   }
 
   if (!redis) {
-    redis = new Redis(process.env.REDIS_URL, {
-      password: process.env.REDIS_TOKEN,
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-
-    redis.on('error', (err) => {
-      console.error('Redis connection error:', err);
+    redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
   }
 
@@ -85,9 +79,9 @@ export async function rateLimit(
 
     if (requestCount >= config.maxRequests) {
       // Rate limit exceeded
-      const oldestRequest = await client.zrange(key, 0, 0, 'WITHSCORES');
+      const oldestRequest = await client.zrange(key, 0, 0, { withScores: true });
       const resetTime = oldestRequest.length > 1
-        ? parseInt(oldestRequest[1]) + config.windowSeconds * 1000
+        ? parseInt(String(oldestRequest[1])) + config.windowSeconds * 1000
         : now + config.windowSeconds * 1000;
 
       return {

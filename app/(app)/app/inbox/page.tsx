@@ -1386,6 +1386,13 @@ export default function InboxPage() {
               <TooltipContent>Refresh messages</TooltipContent>
             </Tooltip>
             <Button
+              onClick={() => setComposing(true)}
+              className="ml-2"
+            >
+              <PenSquare className="mr-2 h-4 w-4" />
+              Compose
+            </Button>
+            <Button
               variant="ghost"
               size="sm"
               onClick={handleLogout}

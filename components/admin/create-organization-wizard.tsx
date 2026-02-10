@@ -399,6 +399,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                     </Label>
                     <Input
                       id="orgName"
+                      name="name"
                       placeholder="Acme Corporation"
                       value={orgDetails.name}
                       onChange={(e) => setOrgDetails({ ...orgDetails, name: e.target.value })}
