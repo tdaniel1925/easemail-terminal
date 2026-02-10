@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,20 +15,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is super admin
-    const { data: userData } = (await supabase
-      .from('users')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()) as { data: { is_admin: boolean } | null };
+    // Use service client to bypass RLS for super admin queries
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    const isSuperAdmin = userData?.is_admin === true;
+    // Check if user is super admin
+    const { data: userData } = (await serviceClient
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: { is_super_admin: boolean } | null };
+
+    const isSuperAdmin = userData?.is_super_admin === true;
 
     let paymentMethods;
 
     if (isSuperAdmin) {
       // Super admin - fetch all payment methods across all organizations
-      const { data, error } = await supabase
+      const { data, error } = await serviceClient
         .from('payment_methods')
         .select(`
           *,
@@ -48,7 +55,7 @@ export async function GET(request: NextRequest) {
       })) || [];
     } else {
       // Org admin - fetch only for their organization
-      const { data: membership } = (await supabase
+      const { data: membership } = (await serviceClient
         .from('organization_members')
         .select('organization_id, role')
         .eq('user_id', user.id)
@@ -68,7 +75,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await serviceClient
         .from('payment_methods')
         .select(`
           *,

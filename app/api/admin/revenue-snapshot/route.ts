@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 
 // This endpoint creates a monthly snapshot of revenue data
 // Should be called via cron job or manually at the end of each month
@@ -17,14 +18,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: userData } = (await supabase
-      .from('users')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()) as { data: { is_admin: boolean } | null };
+    // Create service client for super admin operations
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    if (!userData?.is_admin) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    const { data: userData } = (await serviceClient
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: { is_super_admin: boolean } | null };
+
+    if (!userData?.is_super_admin) {
+      return NextResponse.json({ error: 'Forbidden - Super admin access required' }, { status: 403 });
     }
 
     // Get current month (first day)
@@ -32,8 +39,8 @@ export async function POST(request: NextRequest) {
     const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthStr = currentMonth.toISOString().split('T')[0];
 
-    // Fetch all organizations
-    const { data: organizations, error: orgsError } = await supabase
+    // Fetch all organizations using service client
+    const { data: organizations, error: orgsError} = await serviceClient
       .from('organizations')
       .select('*');
 
@@ -55,7 +62,7 @@ export async function POST(request: NextRequest) {
     prevMonth.setMonth(prevMonth.getMonth() - 1);
     const prevMonthStr = prevMonth.toISOString().split('T')[0];
 
-    const { data: prevData } = (await supabase
+    const { data: prevData } = (await serviceClient
       .from('revenue_history')
       .select('*')
       .eq('month', prevMonthStr)
@@ -65,8 +72,8 @@ export async function POST(request: NextRequest) {
     const newSubscriptions = Math.max(0, activeSubscriptions - prevActiveSubscriptions);
     const churnedSubscriptions = Math.max(0, prevActiveSubscriptions - activeSubscriptions);
 
-    // Upsert the snapshot (update if exists for this month, insert if not)
-    const { data: snapshot, error: snapshotError } = (await supabase
+    // Upsert the snapshot (update if exists for this month, insert if not) using service client
+    const { data: snapshot, error: snapshotError } = (await serviceClient
       .from('revenue_history')
       .upsert(
         {
@@ -115,18 +122,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: userData } = (await supabase
-      .from('users')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()) as { data: { is_admin: boolean } | null };
+    // Create service client for super admin operations
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    if (!userData?.is_admin) {
-      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 });
+    const { data: userData } = (await serviceClient
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: { is_super_admin: boolean } | null };
+
+    if (!userData?.is_super_admin) {
+      return NextResponse.json({ error: 'Forbidden - Super admin access required' }, { status: 403 });
     }
 
-    // Get last 12 months of history
-    const { data: history, error } = await supabase
+    // Get last 12 months of history using service client
+    const { data: history, error } = await serviceClient
       .from('revenue_history')
       .select('*')
       .order('month', { ascending: false })

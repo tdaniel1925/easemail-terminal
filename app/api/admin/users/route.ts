@@ -11,8 +11,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Use service client to bypass RLS for super admin queries
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Check if user is super admin
-    const { data: userData } = (await supabase
+    const { data: userData } = (await serviceClient
       .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
@@ -23,7 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all users with stats
-    const { data: allUsers } = (await supabase
+    const { data: allUsers } = (await serviceClient
       .from('users')
       .select('id, email, name, two_factor_enabled, created_at')
       .order('created_at', { ascending: false })) as { data: any };
@@ -37,12 +43,12 @@ export async function GET(request: NextRequest) {
     const statsResults = await Promise.allSettled(
       allUsers.map(async (u: any) => {
         try {
-          const { count: orgCount } = await supabase
+          const { count: orgCount } = await serviceClient
             .from('organization_members')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', u.id);
 
-          const { count: emailCount } = await supabase
+          const { count: emailCount } = await serviceClient
             .from('email_accounts')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', u.id);

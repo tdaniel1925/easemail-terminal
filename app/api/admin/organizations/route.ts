@@ -122,8 +122,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Use service client to bypass RLS for super admin queries
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Check if user is super admin
-    const { data: userData } = (await supabase
+    const { data: userData } = (await serviceClient
       .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
@@ -143,7 +149,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find the owner user
-    const { data: ownerUser } = (await supabase
+    const { data: ownerUser } = (await serviceClient
       .from('users')
       .select('id')
       .eq('email', owner_email)
@@ -158,7 +164,7 @@ export async function POST(request: NextRequest) {
 
     // Create organization
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    const { data: newOrg, error: createError } = (await (supabase
+    const { data: newOrg, error: createError } = (await (serviceClient
       .from('organizations') as any)
       .insert({
         name,
@@ -176,7 +182,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Add owner as OWNER member
-    const { error: memberError } = (await (supabase
+    const { error: memberError } = (await (serviceClient
       .from('organization_members') as any)
       .insert({
         organization_id: newOrg.id,
