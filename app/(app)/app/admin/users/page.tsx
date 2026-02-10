@@ -23,6 +23,7 @@ import {
   Eye,
   Settings,
   UserCog,
+  Send,
 } from 'lucide-react';
 
 interface User {
@@ -54,6 +55,9 @@ export default function AdminUsersPage() {
   const [impersonateUserId, setImpersonateUserId] = useState<string | null>(null);
   const [impersonateReason, setImpersonateReason] = useState('');
   const [impersonating, setImpersonating] = useState(false);
+
+  // Resend welcome email
+  const [resendingUserId, setResendingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -165,6 +169,28 @@ export default function AdminUsersPage() {
       console.error('Impersonate error:', error);
       toast.error('Failed to impersonate user');
       setImpersonating(false);
+    }
+  };
+
+  const handleResendWelcomeEmail = async (userId: string, userEmail: string) => {
+    try {
+      setResendingUserId(userId);
+      const response = await fetch(`/api/admin/users/${userId}/resend-welcome`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`Welcome email sent to ${userEmail}`);
+      } else {
+        toast.error(data.error || 'Failed to send email');
+      }
+    } catch (error) {
+      console.error('Resend welcome email error:', error);
+      toast.error('Failed to send email');
+    } finally {
+      setResendingUserId(null);
     }
   };
 
@@ -294,8 +320,22 @@ export default function AdminUsersPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedUser(user)}
+                    title="View user details"
                   >
                     <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleResendWelcomeEmail(user.id, user.email)}
+                    disabled={resendingUserId === user.id}
+                    title="Resend welcome email"
+                  >
+                    {resendingUserId === user.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
                   </Button>
                   <Button
                     variant="outline"
