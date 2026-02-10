@@ -1,5 +1,6 @@
 export { getWelcomeEmailHtml } from './welcome';
 export { getPasswordResetEmailHtml } from './password-reset';
+export { getAdminPasswordResetEmailHtml } from './admin-password-reset';
 export { getOrganizationInviteEmailHtml } from './organization-invite';
 export { getNotificationEmailHtml } from './notification';
 export { getSuperAdminWelcomeEmailHtml } from './super-admin-welcome';

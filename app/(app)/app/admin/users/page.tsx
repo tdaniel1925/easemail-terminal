@@ -24,6 +24,7 @@ import {
   Settings,
   UserCog,
   Send,
+  Key,
 } from 'lucide-react';
 
 interface User {
@@ -58,6 +59,9 @@ export default function AdminUsersPage() {
 
   // Resend welcome email
   const [resendingUserId, setResendingUserId] = useState<string | null>(null);
+
+  // Reset password
+  const [resettingPasswordUserId, setResettingPasswordUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -191,6 +195,41 @@ export default function AdminUsersPage() {
       toast.error('Failed to send email');
     } finally {
       setResendingUserId(null);
+    }
+  };
+
+  const handleResetPassword = async (userId: string, userEmail: string) => {
+    // Confirm before resetting
+    const confirmed = window.confirm(
+      `Are you sure you want to reset the password for ${userEmail}?\n\nA new temporary password will be generated and emailed to the user.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setResettingPasswordUserId(userId);
+      const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.warning) {
+          toast.warning(`Password reset but ${data.warning}`);
+        } else {
+          toast.success(`Password reset and email sent to ${userEmail}`);
+        }
+      } else {
+        toast.error(data.error || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      toast.error('Failed to reset password');
+    } finally {
+      setResettingPasswordUserId(null);
     }
   };
 
@@ -335,6 +374,19 @@ export default function AdminUsersPage() {
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleResetPassword(user.id, user.email)}
+                    disabled={resettingPasswordUserId === user.id}
+                    title="Reset password"
+                  >
+                    {resettingPasswordUserId === user.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Key className="h-4 w-4" />
                     )}
                   </Button>
                   <Button
