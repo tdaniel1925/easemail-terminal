@@ -37,7 +37,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
     }
 
-    if (invitation.email !== userData.email) {
+    if ((invitation as any).email !== (userData as any).email) {
       return NextResponse.json({ error: 'Unauthorized to decline this invitation' }, { status: 403 });
     }
 

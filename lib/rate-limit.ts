@@ -93,7 +93,7 @@ export async function rateLimit(
     }
 
     // Add current request
-    await client.zadd(key, now, `${now}:${Math.random()}`);
+    await client.zadd(key, { score: now, member: `${now}:${Math.random()}` });
     await client.expire(key, config.windowSeconds);
 
     return {

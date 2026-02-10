@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         ...(bcc && bcc.length > 0 && { bcc: bcc.map((email: string) => ({ email })) }),
         subject,
         body,
-        reply_to_message_id: messageId, // This maintains the thread
+        replyToMessageId: messageId, // This maintains the thread
         ...(attachmentData && attachmentData.length > 0 && { attachments: attachmentData }),
         ...(readReceipt && Object.keys(customHeaders).length > 0 && {
           custom_headers: customHeaders

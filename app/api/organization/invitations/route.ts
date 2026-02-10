@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
           name
         )
       `)
-      .eq('email', userData.email)
+      .eq('email', (userData as any).email)
       .order('created_at', { ascending: false });
 
     if (error) {

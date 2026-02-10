@@ -62,13 +62,14 @@ export async function DELETE(request: NextRequest) {
       'messages',
     ];
 
-    tagsToRevalidate.forEach((tag) => {
+    for (const tag of tagsToRevalidate) {
       try {
-        revalidateTag(tag);
+        // Next.js 16 requires cache profile as second argument
+        revalidateTag(tag, 'max');
       } catch (error) {
         console.error(`Failed to revalidate tag ${tag}:`, error);
       }
-    });
+    }
 
     return NextResponse.json({
       success: true,

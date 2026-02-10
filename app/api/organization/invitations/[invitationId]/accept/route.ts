@@ -38,17 +38,17 @@ export async function POST(
     }
 
     // Verify invitation belongs to this user's email
-    if (invitation.email !== userData.email) {
+    if ((invitation as any).email !== (userData as any).email) {
       return NextResponse.json({ error: 'This invitation is not for you' }, { status: 403 });
     }
 
     // Check if already accepted
-    if (invitation.accepted_at) {
+    if ((invitation as any).accepted_at) {
       return NextResponse.json({ error: 'Invitation already accepted' }, { status: 400 });
     }
 
     // Check if expired
-    if (new Date(invitation.expires_at) < new Date()) {
+    if (new Date((invitation as any).expires_at) < new Date()) {
       return NextResponse.json({ error: 'Invitation has expired' }, { status: 400 });
     }
 
@@ -56,7 +56,7 @@ export async function POST(
     const { data: existingMember } = await supabase
       .from('organization_members')
       .select('id')
-      .eq('organization_id', invitation.organization_id)
+      .eq('organization_id', (invitation as any).organization_id)
       .eq('user_id', user.id)
       .single();
 
@@ -68,9 +68,9 @@ export async function POST(
     const { error: memberError } = await supabase
       .from('organization_members')
       .insert({
-        organization_id: invitation.organization_id,
+        organization_id: (invitation as any).organization_id,
         user_id: user.id,
-        role: invitation.role,
+        role: (invitation as any).role,
       } as any);
 
     if (memberError) {
@@ -78,9 +78,9 @@ export async function POST(
     }
 
     // Mark invitation as accepted
-    const { error: updateError } = await supabase
-      .from('organization_invites')
-      .update({ accepted_at: new Date().toISOString() } as any)
+    const { error: updateError } = await (supabase
+      .from('organization_invites') as any)
+      .update({ accepted_at: new Date().toISOString() })
       .eq('id', invitationId);
 
     if (updateError) {
@@ -89,8 +89,8 @@ export async function POST(
     }
 
     // Increment seats_used
-    const { error: seatsError } = await supabase.rpc('increment_seats', {
-      org_id: invitation.organization_id
+    const { error: seatsError } = await (supabase as any).rpc('increment_seats', {
+      org_id: (invitation as any).organization_id
     });
 
     if (seatsError) {
@@ -98,7 +98,7 @@ export async function POST(
       // Don't fail the request
     }
 
-    return NextResponse.json({ success: true, organization_id: invitation.organization_id });
+    return NextResponse.json({ success: true, organization_id: (invitation as any).organization_id });
   } catch (error) {
     console.error('Accept invitation error:', error);
     return NextResponse.json(
