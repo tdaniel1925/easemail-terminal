@@ -253,8 +253,14 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               { icon: Trash2, label: 'Trash', href: '/app/inbox?filter=trash', countKey: 'trash' },
             ].map((item) => {
               const count = item.countKey ? folderCounts[item.countKey as keyof typeof folderCounts] : 0;
+              // Build href with accountId if selected
+              let href = item.href;
+              if (selectedAccount) {
+                const hasQuery = href.includes('?');
+                href = `${href}${hasQuery ? '&' : '?'}accountId=${selectedAccount}`;
+              }
               return (
-                <Link key={item.label} href={item.href}>
+                <Link key={item.label} href={href}>
                   <button
                     className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
                       isActive(item.href) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
@@ -283,23 +289,30 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
                   Folders ({folders.length})
                 </span>
               </div>
-              {folders.map((folder) => (
-                <Link key={folder.id} href={`/app/inbox?folder=${folder.id}`}>
-                  <button
-                    className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors text-foreground/80`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Tag className="h-5 w-5" />
-                      <span className="text-sm truncate">{folder.name}</span>
-                    </div>
-                    {folder.unread_count > 0 && (
-                      <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs shrink-0">
-                        {folder.unread_count}
-                      </Badge>
-                    )}
-                  </button>
-                </Link>
-              ))}
+              {folders.map((folder) => {
+                // Build href with accountId
+                let folderHref = `/app/inbox?folder=${folder.id}`;
+                if (selectedAccount) {
+                  folderHref += `&accountId=${selectedAccount}`;
+                }
+                return (
+                  <Link key={folder.id} href={folderHref}>
+                    <button
+                      className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors text-foreground/80`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <Tag className="h-5 w-5" />
+                        <span className="text-sm truncate">{folder.name}</span>
+                      </div>
+                      {folder.unread_count > 0 && (
+                        <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs shrink-0">
+                          {folder.unread_count}
+                        </Badge>
+                      )}
+                    </button>
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <div className="space-y-0.5 mt-4">

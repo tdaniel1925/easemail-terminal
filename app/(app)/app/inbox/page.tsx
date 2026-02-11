@@ -69,7 +69,6 @@ export default function InboxPage() {
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
   const [threadMessages, setThreadMessages] = useState<Record<string, any[]>>({});
   const [accounts, setAccounts] = useState<any[]>([]);
-  const [selectedAccount, setSelectedAccount] = useState<string>('unified'); // 'unified' or account ID
 
   // Snooze state
   const [showSnooze, setShowSnooze] = useState(false);
@@ -128,10 +127,6 @@ export default function InboxPage() {
       let endpoint = '/api/messages';
       if (accountIdParam) {
         endpoint = `/api/messages?accountId=${accountIdParam}`;
-      } else if (selectedAccount === 'unified') {
-        endpoint = '/api/messages/unified';
-      } else if (selectedAccount && selectedAccount !== 'primary') {
-        endpoint = `/api/messages?accountId=${selectedAccount}`;
       }
 
       // Add folder filtering (supports both filter and folder params)
@@ -154,7 +149,7 @@ export default function InboxPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedAccount, activeFolderFilter, accountIdParam]);
+  }, [activeFolderFilter, accountIdParam]);
 
   const loadMoreMessages = async () => {
     if (!nextCursor || loadingMore) return;
@@ -164,10 +159,8 @@ export default function InboxPage() {
 
       // Build endpoint with folder parameter if present
       let endpoint = `/api/messages?page_token=${encodeURIComponent(nextCursor)}`;
-      if (selectedAccount === 'unified') {
-        endpoint = `/api/messages/unified?page_token=${encodeURIComponent(nextCursor)}`;
-      } else if (selectedAccount !== 'primary') {
-        endpoint = `/api/messages?accountId=${selectedAccount}&page_token=${encodeURIComponent(nextCursor)}`;
+      if (accountIdParam) {
+        endpoint = `/api/messages?accountId=${accountIdParam}&page_token=${encodeURIComponent(nextCursor)}`;
       }
 
       // Add folder parameter
@@ -640,7 +633,7 @@ export default function InboxPage() {
   useEffect(() => {
     // Refetch messages when account or folder changes
     fetchMessages(true);
-  }, [selectedAccount, activeFolderFilter, accountIdParam, fetchMessages]);
+  }, [activeFolderFilter, accountIdParam, fetchMessages]);
 
   // Infinite scroll with IntersectionObserver
   useEffect(() => {
@@ -1365,23 +1358,6 @@ export default function InboxPage() {
                 </TooltipContent>
               </Tooltip>
             </div>
-
-            {/* Account Selector */}
-            {accounts.length > 1 && (
-              <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-                <SelectTrigger className="w-[280px]">
-                  <SelectValue placeholder="Select account" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unified">📬 All Accounts ({accounts.length})</SelectItem>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      📧 {account.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
 
             <Tooltip>
               <TooltipTrigger asChild>
