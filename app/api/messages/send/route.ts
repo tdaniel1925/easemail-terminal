@@ -104,6 +104,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Validate grant_id exists and is valid
+    if (!account.grant_id || account.grant_id.trim() === '') {
+      logger.error('Email account missing grant_id', undefined, {
+        userId: user.id,
+        accountId: account.id,
+        email: account.email
+      });
+      return ApiErrors.badRequest('Email account is not properly connected. Please reconnect your email account.');
+    }
+
     // Prepare recipients with validation
     const toRecipients = isArray(to)
       ? to.filter(isString).map((email: string) => ({ email }))
@@ -123,13 +133,6 @@ export async function POST(request: NextRequest) {
 
     // Send email via Nylas with error handling
     const nylasClient = nylas();
-
-    console.log('[SEND DEBUG] Account details:', {
-      accountId: account.id,
-      grantId: account.grant_id,
-      email: account.email,
-      hasGrantId: !!account.grant_id
-    });
 
     // Prepare custom headers for read receipt if requested
     const customHeaders: any = {};
@@ -152,8 +155,6 @@ export async function POST(request: NextRequest) {
       }),
     };
 
-    console.log('[SEND DEBUG] Nylas request body:', JSON.stringify(nylasRequestBody, null, 2));
-
     const { data: message, error: sendError } = await safeExternalCall(
       () => nylasClient.messages.send({
         identifier: account.grant_id,
@@ -161,13 +162,6 @@ export async function POST(request: NextRequest) {
       }),
       'Nylas Send Email'
     );
-
-    console.log('[SEND DEBUG] Nylas response:', {
-      hasMessage: !!message,
-      hasError: !!sendError,
-      error: sendError,
-      messageData: message ? JSON.stringify(message).substring(0, 200) : null
-    });
 
     if (sendError || !message) {
       logger.error('Failed to send email via Nylas', undefined, {

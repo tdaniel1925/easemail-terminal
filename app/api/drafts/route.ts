@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { nylas } from '@/lib/nylas/client';
+import { safeExternalCall } from '@/lib/api-helpers';
+import { logger } from '@/lib/logger';
+import { ApiErrors } from '@/lib/api-error';
+
+interface EmailAccount {
+  id: string;
+  user_id: string;
+  grant_id: string;
+  email: string;
+  provider: string;
+  is_primary: boolean;
+}
 
 // GET - Fetch all drafts for the user
 export async function GET(request: NextRequest) {
@@ -20,13 +32,13 @@ export async function GET(request: NextRequest) {
       .order('updated_at', { ascending: false });
 
     if (error) {
-      console.error('Fetch drafts error:', error);
+      logger.error('Fetch drafts error', error, { userId: user.id });
       return NextResponse.json({ error: 'Failed to fetch drafts' }, { status: 500 });
     }
 
     return NextResponse.json({ drafts });
-  } catch (error) {
-    console.error('Fetch drafts error:', error);
+  } catch (error: any) {
+    logger.error('Fetch drafts error', error);
     return NextResponse.json({ error: 'Failed to fetch drafts' }, { status: 500 });
   }
 }
@@ -53,46 +65,76 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     // Get user's email account (with grant_id for Nylas)
-    let account: any;
+    let account: EmailAccount | null;
+    let accountError: any = null;
+
     if (email_account_id) {
-      const { data } = await supabase
+      const result = (await supabase
         .from('email_accounts')
         .select('*')
         .eq('user_id', user.id)
         .eq('id', email_account_id)
-        .single();
-      account = data;
+        .single()) as { data: EmailAccount | null; error: any };
+      account = result.data;
+      accountError = result.error;
     } else {
-      const { data } = await supabase
+      const result = (await supabase
         .from('email_accounts')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_primary', true)
-        .single();
-      account = data;
+        .single()) as { data: EmailAccount | null; error: any };
+      account = result.data;
+      accountError = result.error;
     }
 
-    if (!account) {
-      return NextResponse.json({ error: 'No email account found' }, { status: 400 });
+    if (accountError || !account) {
+      logger.error('No email account found for draft', undefined, {
+        userId: user.id,
+        emailAccountId: email_account_id,
+        error: accountError
+      });
+      return ApiErrors.badRequest('No email account connected. Please connect an account first.');
     }
 
-    // Create draft in Nylas
+    // Validate grant_id exists and is valid
+    if (!account.grant_id || account.grant_id.trim() === '') {
+      logger.error('Email account missing grant_id for draft', undefined, {
+        userId: user.id,
+        accountId: account.id,
+        email: account.email
+      });
+      return ApiErrors.badRequest('Email account is not properly connected. Please reconnect your email account.');
+    }
+
+    // Create draft in Nylas with error handling
     const nylasClient = nylas();
-    const nylasDraft = await nylasClient.drafts.create({
-      identifier: account.grant_id,
-      requestBody: {
-        to: to_recipients || [],
-        cc: cc_recipients || [],
-        bcc: bcc_recipients || [],
-        subject: subject || '',
-        body: body || '',
-        replyToMessageId: reply_to_message_id || undefined,
-      },
-    });
+    const { data: nylasDraft, error: nylasError } = await safeExternalCall(
+      () => nylasClient.drafts.create({
+        identifier: account.grant_id,
+        requestBody: {
+          to: to_recipients || [],
+          cc: cc_recipients || [],
+          bcc: bcc_recipients || [],
+          subject: subject || '',
+          body: body || '',
+          replyToMessageId: reply_to_message_id || undefined,
+        },
+      }),
+      'Nylas Create Draft'
+    );
+
+    if (nylasError || !nylasDraft) {
+      logger.error('Failed to create draft in Nylas', undefined, {
+        userId: user.id,
+        accountId: account.id,
+        error: nylasError
+      });
+      return ApiErrors.externalService('Nylas', { error: nylasError });
+    }
 
     // Create draft in local database
-    const supabaseClient: any = supabase;
-    const { data: draft, error } = await supabaseClient
+    const { data: draft, error: dbError } = await (supabase as any)
       .from('drafts')
       .insert({
         user_id: user.id,
@@ -109,14 +151,20 @@ export async function POST(request: NextRequest) {
       .select()
       .single();
 
-    if (error) {
-      console.error('Create draft error:', error);
+    if (dbError) {
+      logger.error('Create draft database error', dbError, { userId: user.id });
       return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
     }
 
+    logger.info('Draft created successfully', {
+      userId: user.id,
+      draftId: draft.id,
+      nylasDraftId: nylasDraft.data.id
+    });
+
     return NextResponse.json({ draft, message: 'Draft saved' });
-  } catch (error) {
-    console.error('Create draft error:', error);
+  } catch (error: any) {
+    logger.error('Create draft error', error);
     return NextResponse.json({ error: 'Failed to create draft' }, { status: 500 });
   }
 }

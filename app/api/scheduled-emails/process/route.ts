@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { nylas } from '@/lib/nylas/client';
+import { safeExternalCall } from '@/lib/api-helpers';
+import { logger } from '@/lib/logger';
 
 // This endpoint should be called by a cron job (e.g., Vercel Cron, GitHub Actions, or external service)
 // Call it every minute: */1 * * * *
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
       .limit(50); // Process up to 50 emails per run
 
     if (error) {
-      console.error('Fetch scheduled emails error:', error);
+      logger.error('Fetch scheduled emails error', error);
       return NextResponse.json({ error: 'Failed to fetch emails' }, { status: 500 });
     }
 
@@ -52,30 +54,47 @@ export async function GET(request: NextRequest) {
       try {
         const account = scheduledEmail.email_accounts;
 
-        if (!account || !account.grant_id) {
-          throw new Error('Email account not found or invalid');
+        if (!account || !account.grant_id || account.grant_id.trim() === '') {
+          logger.error('Scheduled email has invalid account', undefined, {
+            scheduledEmailId: scheduledEmail.id,
+            hasAccount: !!account,
+            hasGrantId: !!account?.grant_id
+          });
+          throw new Error('Email account not found or not properly connected');
         }
 
-        // Send via Nylas
+        // Send via Nylas with error handling
         const nylasClient = nylas();
-        await nylasClient.messages.send({
-          identifier: account.grant_id,
-          requestBody: {
-            to: scheduledEmail.to_recipients.map((email: string) => ({ email })),
-            ...(scheduledEmail.cc_recipients?.length > 0 && {
-              cc: scheduledEmail.cc_recipients.map((email: string) => ({ email })),
-            }),
-            ...(scheduledEmail.bcc_recipients?.length > 0 && {
-              bcc: scheduledEmail.bcc_recipients.map((email: string) => ({ email })),
-            }),
-            subject: scheduledEmail.subject || '(no subject)',
-            body: scheduledEmail.body,
-            ...(scheduledEmail.reply_to_message_id && {
-              reply_to_message_id: scheduledEmail.reply_to_message_id,
-            }),
-            ...(scheduledEmail.attachments && { attachments: scheduledEmail.attachments }),
-          },
-        });
+        const { data: message, error: sendError } = await safeExternalCall(
+          () => nylasClient.messages.send({
+            identifier: account.grant_id,
+            requestBody: {
+              to: scheduledEmail.to_recipients.map((email: string) => ({ email })),
+              ...(scheduledEmail.cc_recipients?.length > 0 && {
+                cc: scheduledEmail.cc_recipients.map((email: string) => ({ email })),
+              }),
+              ...(scheduledEmail.bcc_recipients?.length > 0 && {
+                bcc: scheduledEmail.bcc_recipients.map((email: string) => ({ email })),
+              }),
+              subject: scheduledEmail.subject || '(no subject)',
+              body: scheduledEmail.body,
+              ...(scheduledEmail.reply_to_message_id && {
+                reply_to_message_id: scheduledEmail.reply_to_message_id,
+              }),
+              ...(scheduledEmail.attachments && { attachments: scheduledEmail.attachments }),
+            },
+          }),
+          'Nylas Send Scheduled Email'
+        );
+
+        if (sendError || !message) {
+          logger.error('Failed to send scheduled email via Nylas', undefined, {
+            scheduledEmailId: scheduledEmail.id,
+            accountId: account.id,
+            error: sendError
+          });
+          throw new Error(typeof sendError === 'string' ? sendError : 'Failed to send email via Nylas');
+        }
 
         // Update status to sent
         await supabase
@@ -87,8 +106,17 @@ export async function GET(request: NextRequest) {
           .eq('id', scheduledEmail.id);
 
         results.sent++;
+
+        logger.info('Scheduled email sent successfully', {
+          scheduledEmailId: scheduledEmail.id,
+          userId: scheduledEmail.user_id,
+          messageId: message.data?.id
+        });
       } catch (error: any) {
-        console.error(`Failed to send scheduled email ${scheduledEmail.id}:`, error);
+        logger.error(`Failed to send scheduled email ${scheduledEmail.id}`, error, {
+          scheduledEmailId: scheduledEmail.id,
+          userId: scheduledEmail.user_id
+        });
 
         // Update status to failed
         await supabase
@@ -111,8 +139,8 @@ export async function GET(request: NextRequest) {
       message: 'Scheduled emails processed',
       ...results,
     });
-  } catch (error) {
-    console.error('Process scheduled emails error:', error);
+  } catch (error: any) {
+    logger.error('Process scheduled emails error', error);
     return NextResponse.json(
       { error: 'Failed to process scheduled emails' },
       { status: 500 }

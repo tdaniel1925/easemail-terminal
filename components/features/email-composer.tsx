@@ -671,21 +671,11 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
         ...(accountId && { accountId }),
       };
 
-      console.log('[COMPOSER DEBUG] Sending email:', {
-        endpoint,
-        hasAccountId: !!accountId,
-        accountId,
-        to: requestData.to,
-        subject: requestData.subject
-      });
-
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData),
       });
-
-      console.log('[COMPOSER DEBUG] Response status:', response.status, response.ok);
 
       const data = await response.json();
 
@@ -696,11 +686,28 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
         toast.success(replyTo?.messageId ? '📧 Reply sent successfully!' : '📧 Email sent successfully!');
         onClose();
       } else {
-        toast.error(data.error || 'Failed to send email');
+        // Show specific error messages based on status code
+        let errorMessage = data.error || 'Failed to send email';
+
+        if (response.status === 401) {
+          errorMessage = 'You are not logged in. Please log in and try again.';
+        } else if (response.status === 429) {
+          errorMessage = 'Too many emails sent. Please wait a moment and try again.';
+        } else if (response.status === 400) {
+          // Server validation error - show the specific message
+          errorMessage = data.error || 'Please check your email details and try again.';
+        } else if (response.status >= 500) {
+          errorMessage = 'Server error. Please try again in a moment.';
+        }
+
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Send error:', error);
-      toast.error('Failed to send email');
+      const errorMessage = error instanceof Error
+        ? `Failed to send email: ${error.message}`
+        : 'Failed to send email. Please check your internet connection and try again.';
+      toast.error(errorMessage);
     } finally {
       setSending(false);
       setUndoSendCountdown(null);

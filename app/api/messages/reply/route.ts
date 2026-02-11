@@ -4,6 +4,8 @@ import { nylas } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
 import { ApiErrors } from '@/lib/api-error';
+import { successResponse, safeExternalCall } from '@/lib/api-helpers';
+import { logger } from '@/lib/logger';
 
 // Validation schema for reply requests
 const replySchema = z.object({
@@ -27,7 +29,17 @@ const replySchema = z.object({
   readReceipt: z.boolean().optional()
 });
 
+interface EmailAccount {
+  id: string;
+  user_id: string;
+  grant_id: string;
+  email: string;
+  provider: string;
+  is_primary: boolean;
+}
+
 export async function POST(request: NextRequest) {
+  let userId: string | undefined;
   try {
     // Apply rate limiting for email replies
     const rateLimitResult = await rateLimit(request, RateLimitPresets.EMAIL_SEND);
@@ -41,6 +53,8 @@ export async function POST(request: NextRequest) {
       return ApiErrors.unauthorized();
     }
 
+    userId = user.id;
+
     // Parse and validate request body
     const requestBody = await request.json();
     const validation = replySchema.safeParse(requestBody);
@@ -51,16 +65,30 @@ export async function POST(request: NextRequest) {
 
     const { messageId, to, cc, bcc, subject, body, replyAll, attachments: attachmentData, readReceipt } = validation.data;
 
-    // Get user's email account
-    const { data: account } = (await supabase
+    // Get user's email account with proper error handling
+    const result = (await supabase
       .from('email_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single()) as { data: any };
+      .single()) as { data: EmailAccount | null; error: any };
 
-    if (!account) {
-      return ApiErrors.badRequest('No email account connected');
+    const account = result.data;
+    const accountError = result.error;
+
+    if (accountError || !account) {
+      logger.error('No email account found for user', undefined, { userId: user.id, error: accountError });
+      return ApiErrors.badRequest('No email account connected. Please connect an account first.');
+    }
+
+    // Validate grant_id exists and is valid
+    if (!account.grant_id || account.grant_id.trim() === '') {
+      logger.error('Email account missing grant_id', undefined, {
+        userId: user.id,
+        accountId: account.id,
+        email: account.email
+      });
+      return ApiErrors.badRequest('Email account is not properly connected. Please reconnect your email account.');
     }
 
     const nylasClient = nylas();
@@ -72,27 +100,53 @@ export async function POST(request: NextRequest) {
       customHeaders['Return-Receipt-To'] = account.email;
     }
 
-    // Send reply via Nylas
-    const message = await nylasClient.messages.send({
-      identifier: account.grant_id,
-      requestBody: {
-        to: Array.isArray(to) ? to.map((email: string) => ({ email })) : [{ email: to }],
-        ...(cc && cc.length > 0 && { cc: cc.map((email: string) => ({ email })) }),
-        ...(bcc && bcc.length > 0 && { bcc: bcc.map((email: string) => ({ email })) }),
-        subject,
-        body,
-        replyToMessageId: messageId, // This maintains the thread
-        ...(attachmentData && attachmentData.length > 0 && { attachments: attachmentData }),
-        ...(readReceipt && Object.keys(customHeaders).length > 0 && {
-          custom_headers: customHeaders
-        }),
-      },
+    // Send reply via Nylas with error handling
+    const { data: message, error: sendError } = await safeExternalCall(
+      () => nylasClient.messages.send({
+        identifier: account.grant_id,
+        requestBody: {
+          to: Array.isArray(to) ? to.map((email: string) => ({ email })) : [{ email: to }],
+          ...(cc && cc.length > 0 && { cc: cc.map((email: string) => ({ email })) }),
+          ...(bcc && bcc.length > 0 && { bcc: bcc.map((email: string) => ({ email })) }),
+          subject,
+          body,
+          replyToMessageId: messageId, // This maintains the thread
+          ...(attachmentData && attachmentData.length > 0 && { attachments: attachmentData }),
+          ...(readReceipt && Object.keys(customHeaders).length > 0 && {
+            custom_headers: customHeaders
+          }),
+        },
+      }),
+      'Nylas Send Reply'
+    );
+
+    if (sendError || !message) {
+      logger.error('Failed to send reply via Nylas', undefined, {
+        userId: user.id,
+        accountId: account.id,
+        messageId,
+        error: sendError,
+      });
+      return ApiErrors.externalService('Nylas', { error: sendError });
+    }
+
+    logger.info('Reply sent successfully', {
+      userId: user.id,
+      accountId: account.id,
+      messageId: message.data?.id,
+      replyToMessageId: messageId,
     });
 
-    return NextResponse.json({ message: 'Reply sent successfully', data: message });
-  } catch (error) {
-    console.error('Reply message error:', error);
-    return ApiErrors.internalError('Failed to send reply');
+    return successResponse(message, 'Reply sent successfully');
+  } catch (error: any) {
+    logger.error('Reply message error', error, {
+      userId,
+      component: 'api/messages/reply',
+    });
+    return ApiErrors.internalError(
+      'Failed to send reply',
+      process.env.NODE_ENV === 'development' ? { message: error.message } : undefined
+    );
   }
 }
 
@@ -114,28 +168,54 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's email account
-    const { data: account } = (await supabase
+    const result = (await supabase
       .from('email_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single()) as { data: any };
+      .single()) as { data: EmailAccount | null; error: any };
 
-    if (!account) {
+    const account = result.data;
+    const accountError = result.error;
+
+    if (accountError || !account) {
+      logger.error('No email account found for user', undefined, { userId: user.id, error: accountError });
       return ApiErrors.badRequest('No email account connected');
+    }
+
+    if (!account.grant_id || account.grant_id.trim() === '') {
+      logger.error('Email account missing grant_id', undefined, {
+        userId: user.id,
+        accountId: account.id
+      });
+      return ApiErrors.badRequest('Email account is not properly connected');
     }
 
     const nylasClient = nylas();
 
-    // Fetch the original message
-    const message = await nylasClient.messages.find({
-      identifier: account.grant_id,
-      messageId: messageId,
-    });
+    // Fetch the original message with error handling
+    const { data: message, error: fetchError } = await safeExternalCall(
+      () => nylasClient.messages.find({
+        identifier: account.grant_id,
+        messageId: messageId,
+      }),
+      'Nylas Fetch Message'
+    );
+
+    if (fetchError || !message) {
+      logger.error('Failed to fetch message via Nylas', undefined, {
+        userId: user.id,
+        messageId,
+        error: fetchError
+      });
+      return ApiErrors.externalService('Nylas', { error: fetchError });
+    }
 
     return NextResponse.json({ message: message.data });
-  } catch (error) {
-    console.error('Fetch message error:', error);
+  } catch (error: any) {
+    logger.error('Fetch message error', error, {
+      component: 'api/messages/reply/GET',
+    });
     return ApiErrors.internalError('Failed to fetch message');
   }
 }
