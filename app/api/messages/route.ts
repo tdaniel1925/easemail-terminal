@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { nylas } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
 import { getCachedOrFetch } from '@/lib/redis/client';
+import { resolveFolderFilter, getFolderIdForAccount } from '@/lib/nylas/folder-utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,9 +59,34 @@ export async function GET(request: NextRequest) {
       queryParams.page_token = pageToken;
     }
 
+    // Resolve folder filter to actual Nylas folder IDs
     if (folderId) {
-      console.log('Filtering messages by folder ID:', folderId);
-      queryParams.in = [folderId];
+      console.log('Filtering messages by folder/filter:', folderId);
+
+      try {
+        // Try to resolve the filter to actual folder IDs
+        const resolvedFolderIds = await resolveFolderFilter(user.id, folderId);
+
+        if (resolvedFolderIds.length > 0) {
+          console.log('Resolved to Nylas folder IDs:', resolvedFolderIds);
+          queryParams.in = resolvedFolderIds;
+        } else {
+          // Fallback: try to get folder ID for this specific account
+          const accountFolderId = await getFolderIdForAccount(account.id, folderId as any);
+          if (accountFolderId) {
+            console.log('Found account-specific folder ID:', accountFolderId);
+            queryParams.in = [accountFolderId];
+          } else {
+            // Last resort: pass the filter as-is (might be a direct Nylas folder ID)
+            console.log('Using folder filter as-is:', folderId);
+            queryParams.in = [folderId];
+          }
+        }
+      } catch (error) {
+        console.error('Error resolving folder filter:', error);
+        // Fallback to original behavior
+        queryParams.in = [folderId];
+      }
     }
 
     // Fetch messages from Nylas

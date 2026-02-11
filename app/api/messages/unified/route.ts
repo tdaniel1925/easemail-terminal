@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nylas } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
+import { resolveFolderFilter, getFolderIdForAccount } from '@/lib/nylas/folder-utils';
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,9 +43,25 @@ export async function GET(request: NextRequest) {
             queryParams.page_token = pageToken;
           }
 
+          // Resolve folder filter to actual Nylas folder IDs for this account
           if (folderId) {
-            console.log(`Filtering messages by folder ID for account ${account.email}:`, folderId);
-            queryParams.in = [folderId];
+            console.log(`Filtering messages by folder/filter for account ${account.email}:`, folderId);
+
+            try {
+              // Try to get folder ID for this specific account
+              const accountFolderId = await getFolderIdForAccount(account.id, folderId as any);
+              if (accountFolderId) {
+                console.log(`Resolved to folder ID for ${account.email}:`, accountFolderId);
+                queryParams.in = [accountFolderId];
+              } else {
+                // Fallback: pass the filter as-is
+                console.log(`Using folder filter as-is for ${account.email}:`, folderId);
+                queryParams.in = [folderId];
+              }
+            } catch (error) {
+              console.error(`Error resolving folder filter for ${account.email}:`, error);
+              queryParams.in = [folderId];
+            }
           }
 
           const response = await nylasClient.messages.list({
