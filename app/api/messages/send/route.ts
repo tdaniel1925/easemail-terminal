@@ -25,7 +25,8 @@ const sendEmailSchema = z.object({
   subject: z.string().min(1, 'Subject is required').max(998, 'Subject too long'),
   body: z.string().min(1, 'Email body is required'),
   attachments: z.array(z.any()).optional(),
-  readReceipt: z.boolean().optional()
+  readReceipt: z.boolean().optional(),
+  accountId: z.string().optional() // Optional account ID to send from specific account
 });
 
 interface EmailAccount {
@@ -63,19 +64,44 @@ export async function POST(request: NextRequest) {
       return ApiErrors.validationError(validation.error.errors);
     }
 
-    const { to, cc, bcc, subject, body: emailBody, attachments: attachmentData, readReceipt } = validation.data;
+    const { to, cc, bcc, subject, body: emailBody, attachments: attachmentData, readReceipt, accountId } = validation.data;
 
     // Get user's email account with proper error handling
-    const { data: account, error: accountError } = (await supabase
-      .from('email_accounts')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_primary', true)
-      .single()) as { data: EmailAccount | null; error: any };
+    let account: EmailAccount | null;
+    let accountError: any = null;
 
-    if (accountError || !account) {
-      logger.error('No email account found for user', undefined, { userId: user.id, error: accountError });
-      return ApiErrors.badRequest('No email account connected. Please connect an account first.');
+    if (accountId) {
+      // Use the specified account
+      const result = (await supabase
+        .from('email_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('id', accountId)
+        .single()) as { data: EmailAccount | null; error: any };
+
+      account = result.data;
+      accountError = result.error;
+
+      if (accountError || !account) {
+        logger.error('Specified email account not found', undefined, { userId: user.id, accountId, error: accountError });
+        return ApiErrors.badRequest('The specified email account was not found.');
+      }
+    } else {
+      // Default to primary account
+      const result = (await supabase
+        .from('email_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_primary', true)
+        .single()) as { data: EmailAccount | null; error: any };
+
+      account = result.data;
+      accountError = result.error;
+
+      if (accountError || !account) {
+        logger.error('No email account found for user', undefined, { userId: user.id, error: accountError });
+        return ApiErrors.badRequest('No email account connected. Please connect an account first.');
+      }
     }
 
     // Prepare recipients with validation

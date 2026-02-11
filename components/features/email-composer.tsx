@@ -31,6 +31,7 @@ const EmojiPicker = dynamic(
 
 interface EmailComposerProps {
   onClose: () => void;
+  accountId?: string; // Selected email account ID for sending
   replyTo?: {
     messageId?: string;
     to: string | string[];
@@ -44,7 +45,7 @@ interface EmailComposerProps {
   };
 }
 
-export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
+export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProps) {
   // Format recipients
   const formatRecipients = (recipients?: string | string[]) => {
     if (!recipients) return '';
@@ -670,6 +671,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           ...(processedAttachments.length > 0 && { attachments: processedAttachments }),
           ...(replyTo?.messageId && { messageId: replyTo.messageId, replyAll: replyTo.replyAll }),
           ...(requestReadReceipt && { readReceipt: true }),
+          ...(accountId && { accountId }),
         }),
       });
 

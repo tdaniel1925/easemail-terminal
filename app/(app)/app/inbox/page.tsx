@@ -2080,13 +2080,17 @@ export default function InboxPage() {
 
       {/* Composer Dialog */}
       {composing && (
-        <EmailComposer onClose={() => setComposing(false)} />
+        <EmailComposer
+          onClose={() => setComposing(false)}
+          accountId={accountIdParam || undefined}
+        />
       )}
 
       {/* Reply/Forward Dialog */}
       {replyMode && (
         <EmailComposer
           onClose={() => setReplyMode(null)}
+          accountId={accountIdParam || undefined}
           replyTo={replyMode.message}
         />
       )}
