@@ -53,23 +53,23 @@ export async function PATCH(
     const updateData: any = await request.json();
 
     // Get existing draft with email account info
-    const { data: existingDraft } = await supabase
+    const { data: existingDraft } = (await supabase
       .from('drafts')
       .select('*, email_accounts(grant_id)')
       .eq('id', id)
       .eq('user_id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!existingDraft) {
       return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
     // Update draft in Nylas if it has a Nylas draft ID
-    if (existingDraft.nylas_draft_id && (existingDraft as any).email_accounts?.grant_id) {
+    if (existingDraft.nylas_draft_id && existingDraft.email_accounts?.grant_id) {
       try {
         const nylasClient = nylas();
         await nylasClient.drafts.update({
-          identifier: (existingDraft as any).email_accounts.grant_id,
+          identifier: existingDraft.email_accounts.grant_id,
           draftId: existingDraft.nylas_draft_id,
           requestBody: {
             to: updateData.to_recipients || [],
@@ -132,23 +132,23 @@ export async function DELETE(
     const { id } = await params;
 
     // Get draft with email account info before deleting
-    const { data: existingDraft } = await supabase
+    const { data: existingDraft } = (await supabase
       .from('drafts')
       .select('*, email_accounts(grant_id)')
       .eq('id', id)
       .eq('user_id', user.id)
-      .single();
+      .single()) as { data: any };
 
     if (!existingDraft) {
       return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
     }
 
     // Delete draft from Nylas if it has a Nylas draft ID
-    if (existingDraft.nylas_draft_id && (existingDraft as any).email_accounts?.grant_id) {
+    if (existingDraft.nylas_draft_id && existingDraft.email_accounts?.grant_id) {
       try {
         const nylasClient = nylas();
         await nylasClient.drafts.destroy({
-          identifier: (existingDraft as any).email_accounts.grant_id,
+          identifier: existingDraft.email_accounts.grant_id,
           draftId: existingDraft.nylas_draft_id,
         });
       } catch (nylasError) {
