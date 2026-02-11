@@ -117,14 +117,14 @@ export async function GET(request: NextRequest) {
     // Get folder mapping counts and last sync times
     const syncStatus = await Promise.all(
       accounts.map(async (account) => {
-        const { data: folderMappings, count } = await supabase
+        const { data: folderMappings, count } = (await supabase
           .from('folder_mappings')
           .select('*', { count: 'exact' })
           .eq('email_account_id', account.id)
-          .eq('is_active', true);
+          .eq('is_active', true)) as { data: any[]; count: number | null };
 
         const lastSynced = folderMappings && folderMappings.length > 0
-          ? folderMappings.reduce((latest, fm) => {
+          ? folderMappings.reduce((latest: number, fm: any) => {
               const syncTime = new Date(fm.last_synced_at).getTime();
               return syncTime > latest ? syncTime : latest;
             }, 0)
