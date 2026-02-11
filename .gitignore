@@ -52,3 +52,6 @@ supabase/.temp
 push-env.bat
 .env.vercel
 image.png
+.env.check
+*.png
+*.jpg

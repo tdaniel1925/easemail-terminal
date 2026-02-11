@@ -369,8 +369,6 @@ export default function OrganizationDetailPage() {
         return Shield;
       case 'MEMBER':
         return User;
-      case 'VIEWER':
-        return Eye;
       default:
         return User;
     }
@@ -384,8 +382,6 @@ export default function OrganizationDetailPage() {
         return 'bg-blue-500';
       case 'MEMBER':
         return 'bg-green-500';
-      case 'VIEWER':
-        return 'bg-gray-500';
       default:
         return 'bg-gray-500';
     }
@@ -746,7 +742,6 @@ export default function OrganizationDetailPage() {
                 <SelectContent>
                   <SelectItem value="ADMIN">Admin</SelectItem>
                   <SelectItem value="MEMBER">Member</SelectItem>
-                  <SelectItem value="VIEWER">Viewer</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -826,7 +821,6 @@ export default function OrganizationDetailPage() {
                 <SelectContent>
                   <SelectItem value="ADMIN">Admin</SelectItem>
                   <SelectItem value="MEMBER">Member</SelectItem>
-                  <SelectItem value="VIEWER">Viewer</SelectItem>
                 </SelectContent>
               </Select>
             </div>

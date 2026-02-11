@@ -90,9 +90,8 @@ export default function OrganizationPage() {
       OWNER: 'bg-purple-500',
       ADMIN: 'bg-blue-500',
       MEMBER: 'bg-green-500',
-      VIEWER: 'bg-gray-500',
     };
-    return colors[role as keyof typeof colors] || colors.VIEWER;
+    return colors[role as keyof typeof colors] || 'bg-gray-500';
   };
 
   const getPlanBadge = (plan: string): "secondary" | "destructive" | "default" | "outline" => {
@@ -160,7 +159,6 @@ export default function OrganizationPage() {
                 <option value="OWNER">Owner</option>
                 <option value="ADMIN">Admin</option>
                 <option value="MEMBER">Member</option>
-                <option value="VIEWER">Viewer</option>
               </select>
               <select
                 value={filterPlan}

@@ -22,7 +22,7 @@ export async function PATCH(
     }
 
     // Validate role
-    if (!['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'].includes(role)) {
+    if (!['OWNER', 'ADMIN', 'MEMBER'].includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
     }
 

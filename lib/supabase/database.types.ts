@@ -102,21 +102,21 @@ export interface Database {
           id: string
           organization_id: string
           user_id: string
-          role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER'
+          role: 'OWNER' | 'ADMIN' | 'MEMBER'
           joined_at: string
         }
         Insert: {
           id?: string
           organization_id: string
           user_id: string
-          role?: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER'
+          role?: 'OWNER' | 'ADMIN' | 'MEMBER'
           joined_at?: string
         }
         Update: {
           id?: string
           organization_id?: string
           user_id?: string
-          role?: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER'
+          role?: 'OWNER' | 'ADMIN' | 'MEMBER'
           joined_at?: string
         }
       }
@@ -192,7 +192,7 @@ export interface Database {
     Functions: {}
     Enums: {
       plan_type: 'FREE' | 'PRO' | 'BUSINESS' | 'ENTERPRISE'
-      role_type: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER'
+      role_type: 'OWNER' | 'ADMIN' | 'MEMBER'
       provider_type: 'GOOGLE' | 'MICROSOFT' | 'IMAP' | 'EXCHANGE' | 'ICLOUD' | 'YAHOO'
       feature_type: 'ai_remix' | 'ai_dictate' | 'voice_message' | 'sms' | 'calendar_event' | 'smart_compose'
     }
