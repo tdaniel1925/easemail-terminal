@@ -7,9 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2, Zap, Braces, MailCheck } from 'lucide-react';
+import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2, Zap, Braces, MailCheck, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHotkeys } from 'react-hotkeys-hook';
 import dynamic from 'next/dynamic';
@@ -125,6 +127,9 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
   // Template variables states
   const [showVariables, setShowVariables] = useState(false);
+
+  // Settings dialog state
+  const [showSettings, setShowSettings] = useState(false);
 
   // Save draft function
   const saveDraft = async (showToast: boolean = false) => {
@@ -906,7 +911,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                       />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top" align="start">
                     <div className="text-xs">
                       <div className="font-semibold">AI Dictate</div>
                       <div className="text-muted-foreground">Speak and AI writes your email</div>
@@ -1022,6 +1027,26 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
               {/* Right: Action Buttons */}
               <div className="flex items-center gap-1">
+                {/* Settings - Icon Only */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => setShowSettings(true)}
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <div className="font-semibold">Email Settings</div>
+                      <div className="text-muted-foreground">Priority, signature, read receipt</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+
                 {/* Schedule - Icon Only */}
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -1206,6 +1231,87 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                   Save Template
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Email Settings Dialog */}
+      {showSettings && (
+        <Dialog open={showSettings} onOpenChange={setShowSettings}>
+          <DialogContent className="max-w-md px-8 py-6">
+            <DialogHeader>
+              <DialogTitle>Email Settings</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 mt-4">
+              {/* Priority */}
+              <div className="space-y-2">
+                <Label htmlFor="priority">Priority</Label>
+                <Select value={priority} onValueChange={(value: any) => setPriority(value)}>
+                  <SelectTrigger id="priority">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">🔽 Low Priority</SelectItem>
+                    <SelectItem value="normal">➡️ Normal Priority</SelectItem>
+                    <SelectItem value="high">🔴 High Priority</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* AI Tone */}
+              <div className="space-y-2">
+                <Label htmlFor="tone">AI Tone (for AI Remix & Dictate)</Label>
+                <Select value={tone} onValueChange={(value: any) => setTone(value)}>
+                  <SelectTrigger id="tone">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="professional">💼 Professional</SelectItem>
+                    <SelectItem value="friendly">😊 Friendly</SelectItem>
+                    <SelectItem value="brief">⚡ Brief</SelectItem>
+                    <SelectItem value="detailed">📝 Detailed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Signature */}
+              <div className="space-y-2">
+                <Label htmlFor="signature">Email Signature</Label>
+                <Select value={selectedSignature} onValueChange={setSelectedSignature}>
+                  <SelectTrigger id="signature">
+                    <SelectValue placeholder="No signature" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {signatures.map((sig) => (
+                      <SelectItem key={sig.id} value={sig.id}>
+                        {sig.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Read Receipt */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="read-receipt">Request Read Receipt</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Get notified when recipient opens email
+                  </p>
+                </div>
+                <Switch
+                  id="read-receipt"
+                  checked={requestReadReceipt}
+                  onCheckedChange={setRequestReadReceipt}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-6">
+              <Button onClick={() => setShowSettings(false)}>
+                Done
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
