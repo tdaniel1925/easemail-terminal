@@ -43,6 +43,7 @@ export default function InboxPage() {
   const folderParam = searchParams.get('folder');
   const filterParam = searchParams.get('filter'); // Support both filter and folder params
   const composeParam = searchParams.get('compose');
+  const accountIdParam = searchParams.get('accountId'); // Get selected account from URL
 
   // Use filter or folder param (filter takes priority for backward compatibility)
   const activeFolderFilter = filterParam || folderParam;
@@ -123,12 +124,13 @@ export default function InboxPage() {
         setLoading(true);
       }
 
-      // Choose endpoint based on selected account
+      // Choose endpoint based on selected account from URL
       let endpoint = '/api/messages';
-      if (selectedAccount === 'unified') {
+      if (accountIdParam) {
+        endpoint = `/api/messages?accountId=${accountIdParam}`;
+      } else if (selectedAccount === 'unified') {
         endpoint = '/api/messages/unified';
-      } else if (selectedAccount !== 'primary') {
-        // Fetch from specific account (will need to implement this)
+      } else if (selectedAccount && selectedAccount !== 'primary') {
         endpoint = `/api/messages?accountId=${selectedAccount}`;
       }
 
@@ -152,7 +154,7 @@ export default function InboxPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedAccount, activeFolderFilter]);
+  }, [selectedAccount, activeFolderFilter, accountIdParam]);
 
   const loadMoreMessages = async () => {
     if (!nextCursor || loadingMore) return;
@@ -638,7 +640,7 @@ export default function InboxPage() {
   useEffect(() => {
     // Refetch messages when account or folder changes
     fetchMessages(true);
-  }, [selectedAccount, activeFolderFilter, fetchMessages]);
+  }, [selectedAccount, activeFolderFilter, accountIdParam, fetchMessages]);
 
   // Infinite scroll with IntersectionObserver
   useEffect(() => {

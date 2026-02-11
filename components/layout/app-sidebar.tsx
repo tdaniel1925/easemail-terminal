@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   PenSquare, Inbox, Send, Star, Trash2, Archive, Clock,
-  Tag, Settings, BarChart3, HelpCircle
+  Tag, Settings, BarChart3, HelpCircle, ChevronDown, Mail
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -22,6 +23,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [accounts, setAccounts] = useState<any[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
   const [labels, setLabels] = useState<any[]>([]);
   const [folders, setFolders] = useState<any[]>([]);
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -39,8 +41,6 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   useEffect(() => {
     fetchAccounts();
     fetchLabels();
-    fetchFolders();
-    fetchFolderCounts();
     fetchUserRole();
 
     // Refresh counts every 60 seconds
@@ -48,12 +48,38 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch folders and counts when selected account changes
+  useEffect(() => {
+    if (selectedAccount) {
+      fetchFolders();
+      fetchFolderCounts();
+    }
+  }, [selectedAccount]);
+
   const fetchAccounts = async () => {
     try {
       const response = await fetch('/api/email-accounts');
       const data = await response.json();
       if (data.accounts) {
         setAccounts(data.accounts);
+
+        // Set selected account on initial load
+        if (!selectedAccount && data.accounts.length > 0) {
+          // Try to get from localStorage
+          const stored = localStorage.getItem('selectedAccountId');
+          const storedAccount = stored ? data.accounts.find((a: any) => a.id === stored) : null;
+
+          if (storedAccount) {
+            setSelectedAccount(stored);
+          } else {
+            // Default to primary account
+            const primary = data.accounts.find((a: any) => a.is_primary);
+            if (primary) {
+              setSelectedAccount(primary.id);
+              localStorage.setItem('selectedAccountId', primary.id);
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to fetch accounts:', error);
@@ -73,9 +99,11 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   };
 
   const fetchFolders = async (retryCount = 0) => {
+    if (!selectedAccount) return;
+
     try {
       console.log('Fetching folders from API... (attempt', retryCount + 1, ')');
-      const response = await fetch('/api/folders');
+      const response = await fetch(`/api/folders?accountId=${selectedAccount}`);
       const data = await response.json();
 
       console.log('Folders API response:', {
@@ -143,6 +171,16 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
 
   const isActive = (path: string) => pathname === path;
 
+  const handleAccountSwitch = (accountId: string) => {
+    setSelectedAccount(accountId);
+    localStorage.setItem('selectedAccountId', accountId);
+
+    // Navigate to inbox with account filter
+    router.push(`/app/inbox?accountId=${accountId}`);
+  };
+
+  const selectedAccountData = accounts.find(a => a.id === selectedAccount);
+
   if (!open) return null;
 
   return (
@@ -157,10 +195,48 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
             <ThemeToggle />
           </div>
         </div>
-        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-sm" onClick={onCompose}>
+        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-sm mb-3" onClick={onCompose}>
           <PenSquare className="mr-2 h-4 w-4" />
           Compose
         </Button>
+
+        {/* Account Switcher */}
+        {accounts.length > 0 && (
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
+              Account
+            </label>
+            <Select value={selectedAccount || undefined} onValueChange={handleAccountSwitch}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select account">
+                  {selectedAccountData ? (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span className="truncate">{selectedAccountData.email}</span>
+                    </div>
+                  ) : (
+                    'Select account'
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span className="truncate">{account.email}</span>
+                      {account.is_primary && (
+                        <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-1">
+                          Primary
+                        </Badge>
+                      )}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {/* Scrollable Content */}
@@ -274,43 +350,6 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
 
       {/* Bottom Section - Sticky */}
       <div className="border-t border-border flex-shrink-0">
-        {/* Account Section */}
-        <div className="p-2">
-          <div className="px-4 py-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Accounts
-            </span>
-          </div>
-          <div className="space-y-1 max-h-32 overflow-y-auto">
-            {accounts.length === 0 ? (
-              <div className="px-4 py-2 text-xs text-muted-foreground">
-                No accounts connected
-              </div>
-            ) : (
-              accounts.slice(0, 2).map((account) => (
-                <div
-                  key={account.id}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-muted"
-                >
-                  <div className="h-2 w-2 rounded-full bg-green-500" />
-                  <span className="text-xs truncate flex-1">{account.email}</span>
-                  {account.is_primary && (
-                    <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                      Primary
-                    </Badge>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-          <Link href="/app/settings/email-accounts">
-            <Button variant="outline" size="sm" className="w-full mt-2">
-              <Tag className="mr-2 h-3 w-3" />
-              Manage Accounts
-            </Button>
-          </Link>
-        </div>
-
         {/* Bottom Navigation */}
         <div className="p-2 space-y-0.5">
           <Link href="/app/help">
