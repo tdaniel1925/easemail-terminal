@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { MessageCircle, X, Send, Loader2, Search, HelpCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
@@ -14,7 +18,11 @@ interface Message {
 }
 
 export function Chatbot() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('chat');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -25,6 +33,7 @@ export function Chatbot() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -89,6 +98,36 @@ export function Chatbot() {
     }
   };
 
+  const handleEmailSearch = () => {
+    if (!searchQuery.trim()) {
+      toast.error('Please enter a search query');
+      return;
+    }
+
+    // Navigate to inbox with search parameter
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('search', searchQuery);
+
+    // If not on inbox page, navigate to it
+    if (!pathname.includes('/inbox')) {
+      router.push(`/app/inbox?${params.toString()}`);
+    } else {
+      router.push(`${pathname}?${params.toString()}`);
+    }
+
+    toast.success(`Searching for: ${searchQuery}`);
+  };
+
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleEmailSearch();
+    }
+    if (e.key === 'Escape') {
+      setSearchQuery('');
+    }
+  };
+
   return (
     <>
       {/* Floating Button */}
@@ -111,11 +150,19 @@ export function Chatbot() {
           <div className="bg-primary text-primary-foreground p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                <MessageCircle className="h-5 w-5" />
+                {activeTab === 'chat' ? (
+                  <MessageCircle className="h-5 w-5" />
+                ) : (
+                  <Search className="h-5 w-5" />
+                )}
               </div>
               <div>
-                <h3 className="font-semibold">EaseMail Assistant</h3>
-                <p className="text-xs opacity-90">Always here to help</p>
+                <h3 className="font-semibold">
+                  {activeTab === 'chat' ? 'EaseMail Assistant' : 'Email Search'}
+                </h3>
+                <p className="text-xs opacity-90">
+                  {activeTab === 'chat' ? 'Always here to help' : 'Search your emails'}
+                </p>
               </div>
             </div>
             <button
@@ -126,69 +173,167 @@ export function Chatbot() {
             </button>
           </div>
 
-          {/* Messages */}
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
-                      message.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-foreground'
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    <p
-                      className={`text-[10px] mt-1 ${
-                        message.role === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'
-                      }`}
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+            <TabsList className="w-full rounded-none border-b">
+              <TabsTrigger value="chat" className="flex-1">
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Chat
+              </TabsTrigger>
+              <TabsTrigger value="search" className="flex-1">
+                <Search className="h-4 w-4 mr-2" />
+                Email Search
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Chat Tab */}
+            <TabsContent value="chat" className="flex-1 flex flex-col mt-0">
+              {/* Messages */}
+              <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      {message.timestamp.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      <div
+                        className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+                          message.role === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted text-foreground'
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        <p
+                          className={`text-[10px] mt-1 ${
+                            message.role === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                          }`}
+                        >
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-muted text-foreground rounded-2xl px-4 py-2.5">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+
+              {/* Chat Input */}
+              <div className="p-4 border-t border-border bg-background">
+                <div className="flex gap-2">
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Ask me anything..."
+                    className="flex-1"
+                    disabled={isLoading}
+                  />
+                  <Button
+                    onClick={handleSend}
+                    disabled={!input.trim() || isLoading}
+                    size="icon"
+                    className="shrink-0"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Press Enter to send
+                </p>
+              </div>
+            </TabsContent>
+
+            {/* Email Search Tab */}
+            <TabsContent value="search" className="flex-1 flex flex-col mt-0">
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Search Your Emails</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Use advanced operators to find exactly what you need. Results will appear in your inbox.
                     </p>
                   </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-muted text-foreground rounded-2xl px-4 py-2.5">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+
+                  <div className="bg-accent/50 rounded-lg p-4 space-y-3">
+                    <div className="flex items-start gap-2">
+                      <HelpCircle className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                      <div className="space-y-2 text-xs">
+                        <p className="font-semibold">Advanced Search Operators:</p>
+                        <ul className="space-y-1 text-muted-foreground">
+                          <li><code className="bg-background px-1.5 py-0.5 rounded">from:john</code> - From specific sender</li>
+                          <li><code className="bg-background px-1.5 py-0.5 rounded">to:mary</code> - To specific recipient</li>
+                          <li><code className="bg-background px-1.5 py-0.5 rounded">subject:meeting</code> - Subject contains word</li>
+                          <li><code className="bg-background px-1.5 py-0.5 rounded">has:attachment</code> - Has attachments</li>
+                          <li><code className="bg-background px-1.5 py-0.5 rounded">is:unread</code> - Unread messages</li>
+                          <li><code className="bg-background px-1.5 py-0.5 rounded">is:read</code> - Read messages</li>
+                          <li><code className="bg-background px-1.5 py-0.5 rounded">is:starred</code> - Starred messages</li>
+                        </ul>
+                        <p className="text-muted-foreground italic pt-1">Combine multiple operators for powerful searches!</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h5 className="font-medium text-sm">Quick Examples:</h5>
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => setSearchQuery('is:unread')}
+                        className="w-full text-left px-3 py-2 bg-accent/30 hover:bg-accent rounded-md text-sm transition-colors"
+                      >
+                        <code>is:unread</code> - All unread emails
+                      </button>
+                      <button
+                        onClick={() => setSearchQuery('has:attachment is:unread')}
+                        className="w-full text-left px-3 py-2 bg-accent/30 hover:bg-accent rounded-md text-sm transition-colors"
+                      >
+                        <code>has:attachment is:unread</code> - Unread with attachments
+                      </button>
+                      <button
+                        onClick={() => setSearchQuery('subject:urgent')}
+                        className="w-full text-left px-3 py-2 bg-accent/30 hover:bg-accent rounded-md text-sm transition-colors"
+                      >
+                        <code>subject:urgent</code> - Urgent in subject
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </ScrollArea>
+              </ScrollArea>
 
-          {/* Input */}
-          <div className="p-4 border-t border-border bg-background">
-            <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask me anything..."
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={handleSend}
-                disabled={!input.trim() || isLoading}
-                size="icon"
-                className="shrink-0"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              Press Enter to send
-            </p>
-          </div>
+              {/* Search Input */}
+              <div className="p-4 border-t border-border bg-background">
+                <div className="flex gap-2">
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleSearchKeyPress}
+                    placeholder="Search emails... (e.g., from:john subject:meeting)"
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={handleEmailSearch}
+                    disabled={!searchQuery.trim()}
+                    size="icon"
+                    className="shrink-0"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Press Enter to search
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
     </>
