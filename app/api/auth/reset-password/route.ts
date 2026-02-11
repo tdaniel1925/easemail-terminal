@@ -34,11 +34,11 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Check if user exists (for security, we don't reveal if email exists)
-    const { data: userData } = await supabase
+    const { data: userData } = (await supabase
       .from('users')
       .select('id, email, name')
       .eq('email', email)
-      .single();
+      .single()) as { data: { id: string; email: string; name: string | null } | null };
 
     if (userData) {
       // Generate password reset link using Supabase
