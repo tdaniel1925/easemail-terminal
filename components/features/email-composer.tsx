@@ -80,6 +80,7 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
   const [tone, setTone] = useState<'professional' | 'friendly' | 'brief' | 'detailed'>('professional');
   const [voiceAttachments, setVoiceAttachments] = useState<Array<{ blob: Blob; duration: number }>>([]);
   const [attachments, setAttachments] = useState<Array<{ id: string; name: string; size: number; type: string; file: File }>>([]);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
 
   // Draft-related state
   const [draftId, setDraftId] = useState<string | null>(null);
@@ -960,7 +961,7 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
                       variant="ghost"
                       size="icon"
                       className="h-9 w-9"
-                      onClick={() => document.getElementById('voice-record-trigger')?.click()}
+                      onClick={() => setShowVoiceRecorder(true)}
                     >
                       <Mic className="h-4 w-4" />
                     </Button>
@@ -1018,11 +1019,6 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
 
                 {/* Hidden uploaders */}
                 <div className="hidden">
-                  <VoiceMessageRecorder
-                    onRecorded={(blob, duration) => {
-                      setVoiceAttachments([...voiceAttachments, { blob, duration }]);
-                    }}
-                  />
                   <AttachmentUploader
                     attachments={attachments}
                     onAttachmentsChange={setAttachments}
@@ -1789,6 +1785,29 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
                   )}
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Voice Message Recorder Dialog */}
+      {showVoiceRecorder && (
+        <Dialog open={showVoiceRecorder} onOpenChange={setShowVoiceRecorder}>
+          <DialogContent className="max-w-md px-8 py-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Mic className="h-5 w-5 text-blue-600" />
+                Record Voice Message
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-4">
+              <VoiceMessageRecorder
+                onRecorded={(blob, duration) => {
+                  setVoiceAttachments([...voiceAttachments, { blob, duration }]);
+                  setShowVoiceRecorder(false);
+                  toast.success('Voice message attached!');
+                }}
+              />
             </div>
           </DialogContent>
         </Dialog>
