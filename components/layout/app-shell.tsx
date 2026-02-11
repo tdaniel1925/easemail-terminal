@@ -30,7 +30,10 @@ export function AppShell({ children }: AppShellProps) {
         onCompose={handleCompose}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AppHeader />
+        <AppHeader
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        />
         <div className="flex-1 overflow-auto">
           {children}
         </div>

@@ -2,10 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, UserCircle, Calendar, Video } from 'lucide-react';
+import { Mail, UserCircle, Calendar, Video, Menu } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export function AppHeader() {
+interface AppHeaderProps {
+  sidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
+}
+
+export function AppHeader({ sidebarOpen, onToggleSidebar }: AppHeaderProps) {
   const pathname = usePathname();
 
   const navItems = [
@@ -19,7 +25,20 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-14 items-center gap-4">
+        {/* Sidebar Toggle Button - Always visible */}
+        {onToggleSidebar && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleSidebar}
+            className="shrink-0"
+            title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
+
         <div className="flex gap-1">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href}>
