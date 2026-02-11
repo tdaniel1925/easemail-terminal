@@ -30,7 +30,26 @@ export async function aiRemix(text: string, tone: AITone = 'professional'): Prom
     messages: [
       {
         role: 'system',
-        content: `${toneInstructions[tone]} Return a JSON object with two fields: "body" (the rewritten email) and "suggestedSubject" (a concise subject line, max 60 characters).`,
+        content: `${toneInstructions[tone]}
+
+Format the email with proper structure:
+1. Add an appropriate greeting (e.g., "Hi," or "Hello," for friendly/casual, "Dear [Name]," for formal)
+2. Add ONE blank line after greeting
+3. Write the email body
+4. Add ONE blank line after body
+5. Add an appropriate closing salutation based on tone:
+   - Professional: "Best regards," or "Kind regards,"
+   - Friendly: "Thanks," or "Cheers,"
+   - Brief: "Thanks," or "Best,"
+   - Detailed: "Sincerely," or "Best regards,"
+
+Do NOT include a signature (name/contact info) - that will be added separately.
+
+Return a JSON object with two fields:
+- "body": The formatted email with greeting, blank lines, body content, blank line, and salutation
+- "suggestedSubject": A concise subject line (max 60 characters)
+
+IMPORTANT: Use \\n\\n for blank lines in the body field.`,
       },
       {
         role: 'user',

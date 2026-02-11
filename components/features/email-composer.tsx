@@ -282,6 +282,20 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
         if (defaultSig && !body) {
           insertSignature(defaultSig.content);
           setSelectedSignature(defaultSig.id);
+        } else if (!defaultSig && !body) {
+          // No signature exists, fetch user profile and use name as fallback
+          try {
+            const userResponse = await fetch('/api/user');
+            const userData = await userResponse.json();
+            if (userResponse.ok && userData.user) {
+              const userName = `${userData.user.first_name || ''} ${userData.user.last_name || ''}`.trim();
+              if (userName) {
+                insertSignature(userName);
+              }
+            }
+          } catch (userError) {
+            console.error('Fetch user profile error:', userError);
+          }
         }
       }
     } catch (error) {
@@ -298,6 +312,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       const bodyWithoutSig = markerIndex >= 0
         ? currentBody.substring(0, markerIndex).trim()
         : currentBody.trim();
+      // Add blank line before signature marker
       return bodyWithoutSig + '\n\n' + SIGNATURE_MARKER + '\n' + signatureContent;
     });
   };
@@ -700,7 +715,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] sm:w-full flex flex-col p-4 sm:p-8">
+      <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] sm:w-full flex flex-col px-6 py-4 sm:px-8 sm:py-6">
         <DialogHeader className="pb-4 sm:pb-6">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl sm:text-3xl">New Message</DialogTitle>
@@ -1154,7 +1169,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Templates Selection Dialog */}
       {showTemplates && (
         <Dialog open={showTemplates} onOpenChange={setShowTemplates}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto p-8">
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto px-8 py-6">
             <DialogHeader className="pb-6">
               <DialogTitle className="text-3xl">Choose a Template</DialogTitle>
             </DialogHeader>
@@ -1200,7 +1215,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Save as Template Dialog */}
       {showSaveTemplate && (
         <Dialog open={showSaveTemplate} onOpenChange={setShowSaveTemplate}>
-          <DialogContent>
+          <DialogContent className="px-8 py-6">
             <DialogHeader>
               <DialogTitle>Save as Template</DialogTitle>
             </DialogHeader>
@@ -1240,7 +1255,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Schedule Send Dialog */}
       {showSchedule && (
         <Dialog open={showSchedule} onOpenChange={setShowSchedule}>
-          <DialogContent>
+          <DialogContent className="px-8 py-6">
             <DialogHeader>
               <DialogTitle>Schedule Email</DialogTitle>
             </DialogHeader>
@@ -1300,7 +1315,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Subject Confirmation Dialog */}
       {showSubjectConfirm && (
         <Dialog open={showSubjectConfirm} onOpenChange={setShowSubjectConfirm}>
-          <DialogContent>
+          <DialogContent className="px-8 py-6">
             <DialogHeader>
               <DialogTitle>Use AI-Suggested Subject?</DialogTitle>
             </DialogHeader>
@@ -1337,7 +1352,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Email Preview Dialog */}
       {showPreview && (
         <Dialog open={showPreview} onOpenChange={setShowPreview}>
-          <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-8">
+          <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col px-8 py-6">
             <DialogHeader className="pb-6">
               <DialogTitle className="text-3xl">Email Preview</DialogTitle>
             </DialogHeader>
@@ -1473,7 +1488,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Canned Responses Dialog */}
       {showCannedResponses && (
         <Dialog open={showCannedResponses} onOpenChange={setShowCannedResponses}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto p-8">
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto px-8 py-6">
             <DialogHeader className="pb-6">
               <DialogTitle className="text-3xl">Insert Canned Response</DialogTitle>
             </DialogHeader>
@@ -1538,7 +1553,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* Template Variables Dialog */}
       {showVariables && (
         <Dialog open={showVariables} onOpenChange={setShowVariables}>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg px-8 py-6">
             <DialogHeader>
               <DialogTitle>Insert Template Variable</DialogTitle>
             </DialogHeader>
@@ -1587,7 +1602,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
       {/* AI Remix Tone Selection Dialog */}
       {showRemixModal && (
         <Dialog open={showRemixModal} onOpenChange={setShowRemixModal}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md px-8 py-6">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-blue-600" />
