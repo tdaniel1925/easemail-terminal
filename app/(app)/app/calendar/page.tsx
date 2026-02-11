@@ -18,16 +18,19 @@ import {
 import {
   Calendar as CalendarIcon, Plus, RefreshCw, Clock, MapPin,
   Video, List, Grid, X, Search, Filter, Check, AlertCircle,
-  TrendingUp, Users as UsersIcon, Repeat, Bell, ExternalLink
+  TrendingUp, Users as UsersIcon, Repeat, Bell, ExternalLink, Edit
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { CreateEventDialog } from '@/components/features/create-event-dialog';
+import { EditEventDialog } from '@/components/features/edit-event-dialog';
 import { toast } from 'sonner';
 
 export default function CalendarPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month' | 'agenda'>('month');
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
@@ -261,6 +264,35 @@ export default function CalendarPage() {
 
   const handleCreateEvent = () => {
     setCreating(true);
+  };
+
+  const handleEditEvent = (event: any) => {
+    setEventToEdit(event);
+    setEditing(true);
+    setSelectedEvent(null);
+  };
+
+  const handleRSVP = async (eventId: string, status: 'yes' | 'no' | 'maybe') => {
+    try {
+      const response = await fetch(`/api/calendar/${eventId}/rsvp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+
+      if (response.ok) {
+        const statusText = status === 'yes' ? 'Accepted' : status === 'no' ? 'Declined' : 'Marked as tentative';
+        toast.success(`${statusText} event`);
+        setSelectedEvent(null);
+        fetchEvents(); // Refresh events to show updated status
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Failed to send RSVP');
+      }
+    } catch (error) {
+      console.error('RSVP error:', error);
+      toast.error('Failed to send RSVP');
+    }
   };
 
   const datesWithEvents = getFilteredEvents()
@@ -1017,6 +1049,22 @@ export default function CalendarPage() {
         />
       )}
 
+      {/* Edit Event Dialog */}
+      {editing && eventToEdit && (
+        <EditEventDialog
+          event={eventToEdit}
+          onClose={() => {
+            setEditing(false);
+            setEventToEdit(null);
+          }}
+          onUpdated={() => {
+            setEditing(false);
+            setEventToEdit(null);
+            fetchEvents();
+          }}
+        />
+      )}
+
       {/* Event Details Dialog */}
       {selectedEvent && (() => {
         const now = new Date();
@@ -1138,6 +1186,16 @@ export default function CalendarPage() {
 
                 {/* Quick Actions */}
                 <div className="flex gap-2 pt-2 border-t border-border">
+                  {selectedEvent.source !== 'teams' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditEvent(selectedEvent)}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit Event
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -1161,46 +1219,39 @@ export default function CalendarPage() {
                 </div>
 
                 {/* RSVP Buttons */}
-                <div className="pt-2 border-t border-border">
-                  <p className="text-sm font-medium mb-2">Response</p>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {
-                        toast.success('Accepted event');
-                        setSelectedEvent(null);
-                      }}
-                    >
-                      <Check className="h-4 w-4 mr-1" />
-                      Accept
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {
-                        toast.info('Marked as tentative');
-                        setSelectedEvent(null);
-                      }}
-                    >
-                      Tentative
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {
-                        toast.error('Declined event');
-                        setSelectedEvent(null);
-                      }}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Decline
-                    </Button>
+                {selectedEvent.source !== 'teams' && (
+                  <div className="pt-2 border-t border-border">
+                    <p className="text-sm font-medium mb-2">Response</p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleRSVP(selectedEvent.id, 'yes')}
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Accept
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleRSVP(selectedEvent.id, 'maybe')}
+                      >
+                        Tentative
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleRSVP(selectedEvent.id, 'no')}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Decline
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Join Meeting Button */}
                 {selectedEvent.joinUrl && (

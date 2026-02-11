@@ -1,23 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Loader2, Sparkles, Video, X, Plus } from 'lucide-react';
+import { Calendar, Loader2, X, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { extractCalendarEvent } from '@/lib/openai/client';
 
-interface CreateEventDialogProps {
+interface EditEventDialogProps {
+  event: any;
   onClose: () => void;
-  onCreated: () => void;
+  onUpdated: () => void;
 }
 
-export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps) {
+export function EditEventDialog({ event, onClose, onUpdated }: EditEventDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -25,11 +24,48 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
   const [location, setLocation] = useState('');
   const [attendees, setAttendees] = useState<string[]>([]);
   const [attendeeInput, setAttendeeInput] = useState('');
-  const [isTeamsMeeting, setIsTeamsMeeting] = useState(false);
   const [recurrenceType, setRecurrenceType] = useState<string>('none');
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
-  const [creating, setCreating] = useState(false);
-  const [aiExtracting, setAiExtracting] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    if (event) {
+      setTitle(event.title || '');
+      setDescription(event.description || '');
+
+      if (event.when?.start_time) {
+        const startDate = new Date(event.when.start_time * 1000);
+        setStartTime(startDate.toISOString().slice(0, 16));
+      }
+
+      if (event.when?.end_time) {
+        const endDate = new Date(event.when.end_time * 1000);
+        setEndTime(endDate.toISOString().slice(0, 16));
+      }
+
+      setLocation(event.location || '');
+
+      if (event.participants && event.participants.length > 0) {
+        setAttendees(event.participants.map((p: any) => p.email).filter(Boolean));
+      }
+
+      // Parse recurrence if exists
+      if (event.recurrence && event.recurrence.length > 0) {
+        const rrule = event.recurrence[0];
+        if (rrule.includes('FREQ=DAILY')) setRecurrenceType('daily');
+        else if (rrule.includes('FREQ=WEEKLY')) setRecurrenceType('weekly');
+        else if (rrule.includes('FREQ=MONTHLY')) setRecurrenceType('monthly');
+        else if (rrule.includes('FREQ=YEARLY')) setRecurrenceType('yearly');
+
+        const intervalMatch = rrule.match(/INTERVAL=(\d+)/);
+        if (intervalMatch) {
+          setRecurrenceInterval(parseInt(intervalMatch[1]));
+        }
+      }
+    }
+  }, [event]);
 
   const addAttendee = () => {
     if (!attendeeInput.trim()) return;
@@ -55,58 +91,14 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
     setAttendees(attendees.filter(a => a !== email));
   };
 
-  const handleAIExtract = async () => {
-    if (!description || description.length < 10) {
-      toast.error('Please write some event details first');
-      return;
-    }
-
-    try {
-      setAiExtracting(true);
-      const response = await fetch('/api/ai/extract-event', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: description }),
-      });
-
-      const data = await response.json();
-
-      if (data.event) {
-        const event = data.event;
-        if (event.title) setTitle(event.title);
-        if (event.date && event.time) {
-          const eventDate = new Date(`${event.date}T${event.time}`);
-          setStartTime(eventDate.toISOString().slice(0, 16));
-
-          // Set end time 1 hour after start
-          const endDate = new Date(eventDate.getTime() + (event.duration || 60) * 60000);
-          setEndTime(endDate.toISOString().slice(0, 16));
-        }
-        if (event.location) setLocation(event.location);
-
-        // Extract attendees if provided
-        if (event.attendees && Array.isArray(event.attendees)) {
-          setAttendees(event.attendees);
-        }
-
-        toast.success('✨ Event details extracted!');
-      }
-    } catch (error) {
-      console.error('AI extract error:', error);
-      toast.error('Failed to extract event details');
-    } finally {
-      setAiExtracting(false);
-    }
-  };
-
-  const handleCreate = async () => {
+  const handleUpdate = async () => {
     if (!title || !startTime || !endTime) {
       toast.error('Please fill in required fields');
       return;
     }
 
     try {
-      setCreating(true);
+      setUpdating(true);
 
       // Build recurrence rules if needed
       let recurrence = null;
@@ -116,100 +108,111 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
         ];
       }
 
-      // If Teams meeting, create via Teams API
-      if (isTeamsMeeting) {
-        const response = await fetch('/api/teams/meetings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            subject: title,
-            startDateTime: startTime,
-            endDateTime: endTime,
-            content: description,
-            attendees: attendees,
-          }),
-        });
+      const response = await fetch(`/api/calendar/${event.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          description,
+          startTime,
+          endTime,
+          location,
+          attendees: attendees.length > 0 ? attendees : undefined,
+          recurrence,
+        }),
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (response.ok) {
-          toast.success('📅 Teams meeting created successfully!');
-          onCreated();
-        } else {
-          toast.error(data.error || 'Failed to create Teams meeting');
-        }
+      if (response.ok) {
+        toast.success('✅ Event updated successfully!');
+        onUpdated();
       } else {
-        // Regular calendar event
-        const response = await fetch('/api/calendar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title,
-            description,
-            startTime,
-            endTime,
-            location,
-            attendees: attendees.length > 0 ? attendees : undefined,
-            recurrence,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          toast.success('📅 Event created successfully!');
-          onCreated();
-        } else {
-          toast.error(data.error || 'Failed to create event');
-        }
+        toast.error(data.error || 'Failed to update event');
       }
     } catch (error) {
-      console.error('Create event error:', error);
-      toast.error('Failed to create event');
+      console.error('Update event error:', error);
+      toast.error('Failed to update event');
     } finally {
-      setCreating(false);
+      setUpdating(false);
     }
   };
 
-  return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Create Calendar Event</DialogTitle>
-        </DialogHeader>
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
 
-        <div className="space-y-4">
-          {/* Description (AI Input) */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Event Description (Natural Language)</Label>
-            <Textarea
-              id="description"
-              placeholder="e.g., 'Meet with John next Tuesday at 2pm to discuss Q1 budget at Conference Room A'"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
+      const response = await fetch(`/api/calendar/${event.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('🗑️ Event deleted successfully!');
+        onUpdated();
+      } else {
+        const data = await response.json();
+        toast.error(data.error || 'Failed to delete event');
+      }
+    } catch (error) {
+      console.error('Delete event error:', error);
+      toast.error('Failed to delete event');
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  if (showDeleteConfirm) {
+    return (
+      <Dialog open onOpenChange={() => setShowDeleteConfirm(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Event?</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete "{title}"? This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter>
             <Button
-              type="button"
               variant="outline"
-              size="sm"
-              onClick={handleAIExtract}
-              disabled={aiExtracting || description.length < 10}
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={deleting}
             >
-              {aiExtracting ? (
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Extracting...
+                  Deleting...
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Extract with AI
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Event
                 </>
               )}
             </Button>
-          </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit Event</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
           {/* Title */}
           <div className="space-y-2">
             <Label htmlFor="title">Title *</Label>
@@ -219,6 +222,18 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+            />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Event description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
             />
           </div>
 
@@ -254,11 +269,7 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
               placeholder="Meeting location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              disabled={isTeamsMeeting}
             />
-            {isTeamsMeeting && (
-              <p className="text-xs text-muted-foreground">Location set to Microsoft Teams (online)</p>
-            )}
           </div>
 
           {/* Attendees */}
@@ -308,24 +319,8 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
             )}
           </div>
 
-          {/* Teams Meeting Toggle */}
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <Video className="h-4 w-4 text-purple-600" />
-              <div>
-                <Label htmlFor="teams-toggle" className="cursor-pointer">Make this a Teams meeting</Label>
-                <p className="text-xs text-muted-foreground">Generates join link automatically</p>
-              </div>
-            </div>
-            <Switch
-              id="teams-toggle"
-              checked={isTeamsMeeting}
-              onCheckedChange={setIsTeamsMeeting}
-            />
-          </div>
-
           {/* Recurrence */}
-          {!isTeamsMeeting && (
+          {!event.source || event.source !== 'teams' ? (
             <div className="space-y-2">
               <Label htmlFor="recurrence">Recurrence (Optional)</Label>
               <div className="grid grid-cols-2 gap-4">
@@ -362,28 +357,36 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
                 )}
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2 pt-4 border-t border-border">
+        <DialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="mr-auto"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </Button>
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={creating}>
-            {creating ? (
+          <Button onClick={handleUpdate} disabled={updating}>
+            {updating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
+                Updating...
               </>
             ) : (
               <>
                 <Calendar className="mr-2 h-4 w-4" />
-                Create Event
+                Update Event
               </>
             )}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

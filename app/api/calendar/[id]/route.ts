@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nylas } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
-import { getCachedOrFetch } from '@/lib/redis/client';
 
-export async function GET(request: NextRequest) {
+/**
+ * GET /api/calendar/[id]
+ * Get single event details
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Get query parameters for date range
-    const searchParams = request.nextUrl.searchParams;
-    const start = searchParams.get('start');
-    const end = searchParams.get('end');
 
     const { data: account } = (await supabase
       .from('email_accounts')
@@ -25,59 +27,39 @@ export async function GET(request: NextRequest) {
       .single()) as { data: any };
 
     if (!account) {
-      // Return empty events array instead of error for better UX
-      return NextResponse.json({ events: [], message: 'No email account connected' });
+      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
     }
 
-    // Check if account has grant_id
-    if (!account.grant_id) {
-      console.log('No grant_id for account:', account.id);
-      return NextResponse.json({ events: [], message: 'Email account not fully configured' });
-    }
-
-    // Build query params for Nylas
-    const queryParams: any = {
-      calendarId: '*', // All calendars
-      limit: 100,
-    };
-
-    // Add date range if provided
-    if (start) {
-      queryParams.start = Math.floor(new Date(start).getTime() / 1000);
-    }
-    if (end) {
-      queryParams.end = Math.floor(new Date(end).getTime() / 1000);
-    }
-
-    // Fetch events from Nylas
-    const events = await getCachedOrFetch(
-      `events:${account.grant_id}:${start || 'all'}:${end || 'all'}`,
-      async () => {
-        try {
-          const nylasClient = nylas();
-          const response = await nylasClient.events.list({
-            identifier: account.grant_id,
-            queryParams,
-          });
-          return response.data;
-        } catch (nylasError: any) {
-          console.error('Nylas events error:', nylasError.message || nylasError);
-          return [];
-        }
+    // Fetch event from Nylas
+    const nylasClient = nylas();
+    const event = await nylasClient.events.find({
+      identifier: account.grant_id,
+      eventId: id,
+      queryParams: {
+        calendarId: 'primary',
       },
-      60 // Cache for 1 minute
-    );
+    });
 
-    return NextResponse.json({ events: events || [] });
+    return NextResponse.json({ event: event.data });
   } catch (error: any) {
-    console.error('Fetch events error:', error?.message || error);
-    // Return empty events instead of 500 error for better UX
-    return NextResponse.json({ events: [], message: 'Could not fetch calendar events' });
+    console.error('Fetch event error:', error);
+    return NextResponse.json(
+      { error: error?.message || 'Failed to fetch event' },
+      { status: 500 }
+    );
   }
 }
 
-export async function POST(request: NextRequest) {
+/**
+ * PUT /api/calendar/[id]
+ * Update existing event
+ */
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -115,7 +97,7 @@ export async function POST(request: NextRequest) {
       .single()) as { data: any };
 
     if (!account) {
-      return NextResponse.json({ error: 'No email account connected. Please connect an email account first.' }, { status: 400 });
+      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
     }
 
     // Build request body
@@ -142,10 +124,11 @@ export async function POST(request: NextRequest) {
       requestBody.recurrence = recurrence;
     }
 
-    // Create event via Nylas
+    // Update event via Nylas
     const nylasClient = nylas();
-    const event = await nylasClient.events.create({
+    const event = await nylasClient.events.update({
       identifier: account.grant_id,
+      eventId: id,
       requestBody,
       queryParams: {
         calendarId: 'primary',
@@ -155,24 +138,70 @@ export async function POST(request: NextRequest) {
     // Track usage
     await supabase.from('usage_tracking').insert({
       user_id: user.id,
-      feature: 'calendar_event',
+      feature: 'calendar_event_update',
     } as any);
 
-    return NextResponse.json({ event });
+    return NextResponse.json({ event: event.data });
   } catch (error: any) {
-    console.error('Create event error:', error);
-
-    // Provide more specific error messages
-    if (error?.message?.includes('calendar')) {
-      return NextResponse.json(
-        { error: 'Failed to create event. Please check your calendar permissions.' },
-        { status: 500 }
-      );
-    }
-
+    console.error('Update event error:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to create event' },
+      { error: error?.message || 'Failed to update event' },
       { status: 500 }
     );
   }
 }
+
+/**
+ * DELETE /api/calendar/[id]
+ * Delete event
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { data: account } = (await supabase
+      .from('email_accounts')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_primary', true)
+      .single()) as { data: any };
+
+    if (!account) {
+      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+    }
+
+    // Delete event via Nylas
+    const nylasClient = nylas();
+    await nylasClient.events.destroy({
+      identifier: account.grant_id,
+      eventId: id,
+      queryParams: {
+        calendarId: 'primary',
+      },
+    });
+
+    // Track usage
+    await supabase.from('usage_tracking').insert({
+      user_id: user.id,
+      feature: 'calendar_event_delete',
+    } as any);
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Delete event error:', error);
+    return NextResponse.json(
+      { error: error?.message || 'Failed to delete event' },
+      { status: 500 }
+    );
+  }
+}
+
