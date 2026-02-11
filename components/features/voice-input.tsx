@@ -9,9 +9,10 @@ import { toast } from 'sonner';
 interface VoiceInputProps {
   onTranscript: (text: string) => void;
   tone?: string;
+  id?: string;
 }
 
-export function VoiceInput({ onTranscript, tone = 'professional' }: VoiceInputProps) {
+export function VoiceInput({ onTranscript, tone = 'professional', id }: VoiceInputProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [micPermission, setMicPermission] = useState<'unknown' | 'requesting' | 'granted' | 'denied'>('unknown');
@@ -189,6 +190,7 @@ export function VoiceInput({ onTranscript, tone = 'professional' }: VoiceInputPr
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                id={id}
                 type="button"
                 variant="outline"
                 onClick={startRecording}

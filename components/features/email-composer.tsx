@@ -914,6 +914,7 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                 {/* Hidden VoiceInput for trigger */}
                 <div className="hidden">
                   <VoiceInput
+                    id="voice-input-trigger"
                     onTranscript={(text) => {
                       const convertToHTML = (plainText: string) => {
                         if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
