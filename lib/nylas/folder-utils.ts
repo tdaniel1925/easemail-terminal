@@ -122,7 +122,8 @@ export async function syncFoldersForAccount(
         const isSystem = isSystemFolder(folderType);
 
         // Upsert folder mapping
-        const { error: upsertError } = await supabase
+        const supabaseClient: any = supabase;
+        const { error: upsertError } = await supabaseClient
           .from('folder_mappings')
           .upsert({
             nylas_folder_id: folder.id,
