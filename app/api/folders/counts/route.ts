@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { nylas } from '@/lib/nylas/client';
+import { getFolderIdsByType } from '@/lib/nylas/folder-utils';
 import cache, { generateCacheKey } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
@@ -19,107 +19,69 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached);
     }
 
-    // Get all email accounts for the user
-    const { data: accounts } = (await supabase
-      .from('email_accounts')
-      .select('id, grant_id')
-      .eq('user_id', user.id)) as { data: any[] };
+    // Get folder IDs for each folder type using folder_mappings
+    const inboxFolderIds = await getFolderIdsByType(user.id, 'inbox');
+    const sentFolderIds = await getFolderIdsByType(user.id, 'sent');
+    const draftsFolderIds = await getFolderIdsByType(user.id, 'drafts');
+    const trashFolderIds = await getFolderIdsByType(user.id, 'trash');
+    const archiveFolderIds = await getFolderIdsByType(user.id, 'archive');
+    const starredFolderIds = await getFolderIdsByType(user.id, 'starred');
 
-    if (!accounts || accounts.length === 0) {
-      return NextResponse.json({
-        inbox: 0,
-        starred: 0,
-        sent: 0,
-        snoozed: 0,
-        archive: 0,
-        trash: 0,
-        drafts: 0,
-      });
-    }
-
-    const nylasClient = nylas();
-    const accountIds = accounts.map(a => a.id);
-
-    // Initialize counts
-    let inboxCount = 0;
-    let starredCount = 0;
-    let sentCount = 0;
-    let snoozedCount = 0;
-    let archiveCount = 0;
-    let trashCount = 0;
-
-    // Fetch messages from each account and aggregate counts
-    for (const account of accounts) {
-      try {
-        const messagesResponse = await nylasClient.messages.list({
-          identifier: account.grant_id,
-          queryParams: {
-            limit: 100,
-          },
-        });
-
-        const messages = messagesResponse.data;
-
-        // Count by folder type
-        messages.forEach((msg: any) => {
-          const folders = (msg.folders || []).map((f: string) => f.toLowerCase());
-
-          // Inbox unread
-          if (folders.includes('inbox') && msg.unread) {
-            inboxCount++;
-          }
-
-          // Starred
-          if (msg.starred) {
-            starredCount++;
-          }
-
-          // Sent
-          if (folders.includes('sent')) {
-            sentCount++;
-          }
-
-          // Archive unread
-          if (folders.includes('archive') && msg.unread) {
-            archiveCount++;
-          }
-
-          // Trash
-          if (folders.includes('trash')) {
-            trashCount++;
-          }
-        });
-      } catch (error) {
-        console.error(`Error fetching messages for account ${account.id}:`, error);
-      }
-    }
-
-    // Get snoozed count from database
-    const { count: snoozedDbCount } = await supabase
+    // Count unread messages in inbox (folder_ids array overlaps with inbox folder IDs)
+    const { count: inboxCount } = await supabase
       .from('messages')
       .select('id', { count: 'exact', head: true })
-      .in('account_id', accountIds)
-      .not('snoozed_until', 'is', null)
-      .gt('snoozed_until', new Date().toISOString());
+      .eq('user_id', user.id)
+      .eq('is_unread', true)
+      .overlaps('folder_ids', inboxFolderIds);
 
-    snoozedCount = snoozedDbCount || 0;
-
-    // Get drafts count
-    const { count: draftsDbCount } = await supabase
-      .from('drafts')
+    // Count starred messages (any folder)
+    const { count: starredCount } = await supabase
+      .from('messages')
       .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .eq('is_starred', true);
 
-    const draftsCount = draftsDbCount || 0;
+    // Count messages in sent folder
+    const { count: sentCount } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .overlaps('folder_ids', sentFolderIds);
+
+    // Count unread messages in archive
+    const { count: archiveCount } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_unread', true)
+      .overlaps('folder_ids', archiveFolderIds);
+
+    // Count messages in trash
+    const { count: trashCount } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .overlaps('folder_ids', trashFolderIds);
+
+    // Count draft messages
+    const { count: draftsCount } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_draft', true);
+
+    // Snoozed is a feature we haven't implemented yet, so return 0 for now
+    const snoozedCount = 0;
 
     const result = {
-      inbox: inboxCount,
-      starred: starredCount,
-      sent: sentCount,
+      inbox: inboxCount || 0,
+      starred: starredCount || 0,
+      sent: sentCount || 0,
       snoozed: snoozedCount,
-      archive: archiveCount,
-      trash: trashCount,
-      drafts: draftsCount,
+      archive: archiveCount || 0,
+      trash: trashCount || 0,
+      drafts: draftsCount || 0,
     };
 
     // Cache for 60 seconds
