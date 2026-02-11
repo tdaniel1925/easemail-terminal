@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       customHeaders['Return-Receipt-To'] = account.email;
     }
 
-    const requestBody = {
+    const nylasRequestBody = {
       to: toRecipients,
       ...(ccRecipients && { cc: ccRecipients }),
       ...(bccRecipients && { bcc: bccRecipients }),
@@ -152,12 +152,12 @@ export async function POST(request: NextRequest) {
       }),
     };
 
-    console.log('[SEND DEBUG] Request body:', JSON.stringify(requestBody, null, 2));
+    console.log('[SEND DEBUG] Nylas request body:', JSON.stringify(nylasRequestBody, null, 2));
 
     const { data: message, error: sendError } = await safeExternalCall(
       () => nylasClient.messages.send({
         identifier: account.grant_id,
-        requestBody,
+        requestBody: nylasRequestBody,
       }),
       'Nylas Send Email'
     );
