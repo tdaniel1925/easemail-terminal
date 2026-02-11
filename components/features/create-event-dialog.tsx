@@ -12,6 +12,7 @@ import { Calendar, Loader2, Sparkles, Video, X, Plus, AlertCircle } from 'lucide
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { extractCalendarEvent } from '@/lib/openai/client';
+import { VoiceInput } from '@/components/features/voice-input';
 
 interface CreateEventDialogProps {
   onClose: () => void;
@@ -101,6 +102,16 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
 
   const removeAttendee = (email: string) => {
     setAttendees(attendees.filter(a => a !== email));
+  };
+
+  const handleVoiceTranscript = async (text: string) => {
+    // Set the transcribed text in the description
+    setDescription(text);
+
+    // Wait a bit for state to update, then trigger AI extraction
+    setTimeout(() => {
+      handleAIExtract();
+    }, 100);
   };
 
   const handleAIExtract = async () => {
@@ -340,7 +351,7 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
           <div className="space-y-3 pb-4">
           {/* Description (AI Input) */}
           <div className="space-y-2">
-            <Label htmlFor="description">Event Description (Natural Language)</Label>
+            <Label htmlFor="description">Event Description (Natural Language or Voice)</Label>
             <Textarea
               id="description"
               placeholder="e.g., 'Meet with John next Tuesday at 2pm to discuss Q1 budget at Conference Room A'"
@@ -348,25 +359,31 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleAIExtract}
-              disabled={aiExtracting || description.length < 10}
-            >
-              {aiExtracting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Extracting...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Extract with AI
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2 flex-wrap">
+              <VoiceInput
+                onTranscript={handleVoiceTranscript}
+                tone="professional"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAIExtract}
+                disabled={aiExtracting || description.length < 10}
+              >
+                {aiExtracting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Extracting...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Extract with AI
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Title */}
