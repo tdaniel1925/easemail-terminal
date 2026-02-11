@@ -71,26 +71,75 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
       });
 
       const data = await response.json();
+      console.log('AI extracted event:', data.event);
 
       if (data.event) {
         const event = data.event;
-        if (event.title) setTitle(event.title);
-        if (event.date && event.time) {
-          const eventDate = new Date(`${event.date}T${event.time}`);
-          setStartTime(eventDate.toISOString().slice(0, 16));
+        let fieldsPopulated = 0;
 
-          // Set end time 1 hour after start
-          const endDate = new Date(eventDate.getTime() + (event.duration || 60) * 60000);
-          setEndTime(endDate.toISOString().slice(0, 16));
+        // Extract title
+        if (event.title) {
+          setTitle(event.title);
+          fieldsPopulated++;
         }
-        if (event.location) setLocation(event.location);
+
+        // Extract date and time
+        if (event.date && event.time) {
+          try {
+            // Handle various time formats (HH:MM or HH:MM:SS)
+            let timeStr = event.time;
+            if (timeStr.length === 5) {
+              timeStr = timeStr + ':00'; // Add seconds if missing
+            }
+
+            const eventDate = new Date(`${event.date}T${timeStr}`);
+
+            // Validate the date is valid
+            if (!isNaN(eventDate.getTime())) {
+              setStartTime(eventDate.toISOString().slice(0, 16));
+
+              // Set end time based on duration
+              const durationMinutes = event.duration || 60;
+              const endDate = new Date(eventDate.getTime() + durationMinutes * 60000);
+              setEndTime(endDate.toISOString().slice(0, 16));
+              fieldsPopulated++;
+            } else {
+              console.error('Invalid date created from:', event.date, event.time);
+              toast.error('Could not parse date/time from AI response');
+            }
+          } catch (dateError) {
+            console.error('Date parsing error:', dateError);
+            toast.error('Could not parse date/time format');
+          }
+        } else {
+          console.warn('AI did not return both date and time:', { date: event.date, time: event.time });
+        }
+
+        // Extract location
+        if (event.location) {
+          setLocation(event.location);
+          fieldsPopulated++;
+        }
 
         // Extract attendees if provided
         if (event.attendees && Array.isArray(event.attendees)) {
-          setAttendees(event.attendees);
+          const validEmails = event.attendees.filter((email: string) => {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return typeof email === 'string' && emailRegex.test(email);
+          });
+          if (validEmails.length > 0) {
+            setAttendees(validEmails);
+            fieldsPopulated++;
+          }
         }
 
-        toast.success('✨ Event details extracted!');
+        if (fieldsPopulated > 0) {
+          toast.success(`✨ Extracted ${fieldsPopulated} field${fieldsPopulated > 1 ? 's' : ''}!`);
+        } else {
+          toast.error('Could not extract event details. Please fill manually.');
+        }
+      } else {
+        toast.error('No event data received from AI');
       }
     } catch (error) {
       console.error('AI extract error:', error);
@@ -174,7 +223,7 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle>Create Calendar Event</DialogTitle>
         </DialogHeader>
