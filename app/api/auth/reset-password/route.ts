@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { ApiErrors } from '@/lib/api-error';
-import { sendEmail } from '@/lib/resend';
-import { getPasswordResetEmailHtml } from '@/lib/email-templates';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
 
 const resetPasswordSchema = z.object({
@@ -42,31 +40,15 @@ export async function POST(request: NextRequest) {
 
     if (userData) {
       // Generate password reset link using Supabase
-      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://easemail.app'}/auth/callback?type=recovery`,
       });
 
       if (error) {
         console.error('Password reset error:', error);
       } else {
-        // Send password reset email
-        try {
-          const userName = userData.name || email.split('@')[0];
-          const html = getPasswordResetEmailHtml({
-            userName,
-            resetLink: data?.properties?.action_link || '#',
-          });
-
-          await sendEmail({
-            to: email,
-            subject: 'Reset Your EaseMail Password',
-            html,
-          });
-
-          console.log(`Password reset email sent to: ${email}`);
-        } catch (emailError) {
-          console.error('Failed to send password reset email:', emailError);
-        }
+        // Supabase sends the password reset email automatically
+        console.log(`Password reset email will be sent by Supabase to: ${email}`);
       }
     }
 
