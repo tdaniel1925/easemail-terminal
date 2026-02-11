@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { nylas } from '@/lib/nylas/client';
 
 // GET - Fetch all drafts for the user
 export async function GET(request: NextRequest) {
@@ -51,26 +52,52 @@ export async function POST(request: NextRequest) {
       email_account_id,
     } = await request.json();
 
-    // Get user's primary email account if not specified
-    let accountId = email_account_id;
-    if (!accountId) {
-      const { data: account } = (await supabase
+    // Get user's email account (with grant_id for Nylas)
+    let account: any;
+    if (email_account_id) {
+      const { data } = await supabase
         .from('email_accounts')
-        .select('id')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('id', email_account_id)
+        .single();
+      account = data;
+    } else {
+      const { data } = await supabase
+        .from('email_accounts')
+        .select('*')
         .eq('user_id', user.id)
         .eq('is_primary', true)
-        .single()) as { data: any };
-
-      accountId = account?.id;
+        .single();
+      account = data;
     }
 
-    // Create draft
+    if (!account) {
+      return NextResponse.json({ error: 'No email account found' }, { status: 400 });
+    }
+
+    // Create draft in Nylas
+    const nylasClient = nylas();
+    const nylasDraft = await nylasClient.drafts.create({
+      identifier: account.grant_id,
+      requestBody: {
+        to: to_recipients || [],
+        cc: cc_recipients || [],
+        bcc: bcc_recipients || [],
+        subject: subject || '',
+        body: body || '',
+        reply_to_message_id: reply_to_message_id || undefined,
+      },
+    });
+
+    // Create draft in local database
     const supabaseClient: any = supabase;
     const { data: draft, error } = await supabaseClient
       .from('drafts')
       .insert({
         user_id: user.id,
-        email_account_id: accountId,
+        email_account_id: account.id,
+        nylas_draft_id: nylasDraft.data.id,
         to_recipients,
         cc_recipients,
         bcc_recipients,

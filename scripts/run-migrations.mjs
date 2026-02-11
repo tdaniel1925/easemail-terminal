@@ -43,6 +43,7 @@ async function main() {
     // Run migrations in order
     await runMigration(client, '20250211_create_messages_table.sql', 'Creating messages table');
     await runMigration(client, '20250211_create_folder_mappings_table.sql', 'Creating folder_mappings table');
+    await runMigration(client, '20250211_add_nylas_draft_id_to_drafts.sql', 'Adding nylas_draft_id to drafts table');
 
     console.log('\n✨ All migrations completed successfully!');
 

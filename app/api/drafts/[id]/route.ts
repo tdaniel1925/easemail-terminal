@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { nylas } from '@/lib/nylas/client';
 
 // GET - Fetch a single draft
 export async function GET(
@@ -51,7 +52,40 @@ export async function PATCH(
     const { id} = await params;
     const updateData: any = await request.json();
 
-    // Update draft
+    // Get existing draft with email account info
+    const { data: existingDraft } = await supabase
+      .from('drafts')
+      .select('*, email_accounts(grant_id)')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!existingDraft) {
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
+    }
+
+    // Update draft in Nylas if it has a Nylas draft ID
+    if (existingDraft.nylas_draft_id && (existingDraft as any).email_accounts?.grant_id) {
+      try {
+        const nylasClient = nylas();
+        await nylasClient.drafts.update({
+          identifier: (existingDraft as any).email_accounts.grant_id,
+          draftId: existingDraft.nylas_draft_id,
+          requestBody: {
+            to: updateData.to_recipients || [],
+            cc: updateData.cc_recipients || [],
+            bcc: updateData.bcc_recipients || [],
+            subject: updateData.subject || '',
+            body: updateData.body || '',
+          },
+        });
+      } catch (nylasError) {
+        console.error('Failed to update draft in Nylas:', nylasError);
+        // Continue with local update even if Nylas update fails
+      }
+    }
+
+    // Update draft in local database
     const supabaseClient: any = supabase;
     const { data: draft, error } = await supabaseClient
       .from('drafts')
@@ -97,6 +131,33 @@ export async function DELETE(
 
     const { id } = await params;
 
+    // Get draft with email account info before deleting
+    const { data: existingDraft } = await supabase
+      .from('drafts')
+      .select('*, email_accounts(grant_id)')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!existingDraft) {
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
+    }
+
+    // Delete draft from Nylas if it has a Nylas draft ID
+    if (existingDraft.nylas_draft_id && (existingDraft as any).email_accounts?.grant_id) {
+      try {
+        const nylasClient = nylas();
+        await nylasClient.drafts.destroy({
+          identifier: (existingDraft as any).email_accounts.grant_id,
+          draftId: existingDraft.nylas_draft_id,
+        });
+      } catch (nylasError) {
+        console.error('Failed to delete draft from Nylas:', nylasError);
+        // Continue with local delete even if Nylas delete fails
+      }
+    }
+
+    // Delete from local database
     const { error } = await supabase
       .from('drafts')
       .delete()
