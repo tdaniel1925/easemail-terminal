@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
       hasMessage: !!message,
       hasError: !!sendError,
       error: sendError,
-      messageId: message?.id
+      messageData: message ? JSON.stringify(message).substring(0, 200) : null
     });
 
     if (sendError || !message) {
