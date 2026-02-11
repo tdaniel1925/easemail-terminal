@@ -882,77 +882,73 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
             {/* Toolbar Row */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex gap-2 flex-wrap">
-                {/* AI Dictate Button - Visible */}
-                <VoiceInput
-                  onTranscript={(text) => {
-                    const convertToHTML = (plainText: string) => {
-                      if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
-                        return plainText;
-                      }
-                      return plainText
-                        .split('\n\n')
-                        .filter(para => para.trim())
-                        .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
-                        .join('');
-                    };
-                    setBody(convertToHTML(text));
-                  }}
-                  tone={tone}
-                />
+                {/* AI Dictate Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <VoiceInput
+                        onTranscript={(text) => {
+                          const convertToHTML = (plainText: string) => {
+                            if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
+                              return plainText;
+                            }
+                            return plainText
+                              .split('\n\n')
+                              .filter(para => para.trim())
+                              .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+                              .join('');
+                          };
+                          setBody(convertToHTML(text));
+                        }}
+                        tone={tone}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>Speak naturally and AI will write your email</TooltipContent>
+                </Tooltip>
 
-                {/* AI Tools Dropdown (without dictate) */}
-                <select
-                  className="text-sm border rounded px-3 py-2 bg-background cursor-pointer hover:bg-accent"
-                  value=""
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === 'remix') {
-                      handleAIRemix();
-                    } else if (value === 'canned') {
-                      fetchTemplates();
-                      setShowCannedResponses(true);
-                    } else if (value === 'emoji') {
-                      setShowEmojiPicker(true);
-                    } else if (value === 'variables') {
-                      setShowVariables(true);
-                    }
-                    e.target.value = '';
-                  }}
-                >
-                  <option value="">⚡ AI Tools</option>
-                  <option value="remix">✨ AI Remix</option>
-                  <option value="canned">⚡ Canned Responses</option>
-                  <option value="emoji">😊 Emoji</option>
-                  <option value="variables">📋 Variables</option>
-                </select>
+                {/* AI Remix Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAIRemix}
+                      disabled={remixing || !body || body.length < 10}
+                    >
+                      {remixing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Remixing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          AI Remix
+                        </>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Polish your message with AI</TooltipContent>
+                </Tooltip>
 
-                {/* Attach Files Button with dropdown */}
-                <select
-                  className="text-sm border rounded px-3 py-2 bg-background cursor-pointer hover:bg-accent"
-                  value=""
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === 'file') {
-                      document.getElementById('file-upload-trigger')?.click();
-                    } else if (value === 'voice') {
-                      document.getElementById('voice-record-trigger')?.click();
-                    }
-                    e.target.value = '';
-                  }}
-                >
-                  <option value="">📎 Attach</option>
-                  <option value="file">📁 Files</option>
-                  <option value="voice">🎵 Voice Message</option>
-                </select>
+                {/* Voice Message Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('voice-record-trigger')?.click()}
+                    >
+                      <Mic className="mr-2 h-4 w-4" />
+                      Voice Message
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Record and attach a voice message</TooltipContent>
+                </Tooltip>
 
-                {/* Hidden attachment uploaders */}
+                {/* Hidden voice recorder */}
                 <div className="hidden">
-                  <AttachmentUploader
-                    attachments={attachments}
-                    onAttachmentsChange={setAttachments}
-                    maxSize={25}
-                    maxFiles={10}
-                  />
                   <VoiceMessageRecorder
                     onRecorded={(blob, duration) => {
                       setVoiceAttachments([...voiceAttachments, { blob, duration }]);
@@ -960,17 +956,48 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                   />
                 </div>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    fetchTemplates();
-                    setShowTemplates(true);
-                  }}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  Template
-                </Button>
+                {/* Attach Files Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('file-upload-trigger')?.click()}
+                    >
+                      <Paperclip className="mr-2 h-4 w-4" />
+                      Attach Files
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Attach files to your email</TooltipContent>
+                </Tooltip>
+
+                {/* Hidden file uploader */}
+                <div className="hidden">
+                  <AttachmentUploader
+                    attachments={attachments}
+                    onAttachmentsChange={setAttachments}
+                    maxSize={25}
+                    maxFiles={10}
+                  />
+                </div>
+
+                {/* Template Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        fetchTemplates();
+                        setShowTemplates(true);
+                      }}
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      Template
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Use a saved template</TooltipContent>
+                </Tooltip>
 
                 {/* Options Dropdown */}
                 <select
