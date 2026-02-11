@@ -19,6 +19,8 @@ import {
   Loader2,
   TrendingUp,
   Trash2,
+  Edit,
+  UserPlus,
 } from 'lucide-react';
 
 interface Organization {
@@ -424,6 +426,33 @@ export default function AdminOrganizationsPage() {
                 <p className="text-xs text-muted-foreground mt-2">
                   {org.seats - org.seats_used} seat{org.seats - org.seats_used !== 1 ? 's' : ''} available
                 </p>
+              </div>
+
+              <div className="mt-4 pt-4 border-t flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/app/organization/${org.id}`);
+                  }}
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/app/organization/${org.id}?action=invite`);
+                  }}
+                >
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Add User
+                </Button>
               </div>
             </CardContent>
           </Card>

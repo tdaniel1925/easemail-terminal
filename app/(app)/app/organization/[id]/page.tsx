@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -59,7 +59,9 @@ interface Organization {
 export default function OrganizationDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const orgId = params.id as string;
+  const action = searchParams.get('action');
 
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -91,6 +93,18 @@ export default function OrganizationDetailPage() {
       setEditedOrgName(organization.name);
     }
   }, [organization]);
+
+  // Handle action query parameter
+  useEffect(() => {
+    if (action === 'invite' && organization && currentUserRole) {
+      const canInviteRole = ['OWNER', 'ADMIN'].includes(currentUserRole);
+      if (canInviteRole) {
+        setShowInviteDialog(true);
+        // Remove query parameter
+        router.replace(`/app/organization/${orgId}`);
+      }
+    }
+  }, [action, organization, currentUserRole, orgId, router]);
 
   const fetchOrganization = async () => {
     try {
