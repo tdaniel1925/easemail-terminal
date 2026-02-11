@@ -28,6 +28,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
   const [folders, setFolders] = useState<any[]>([]);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [orgAdminOfOrg, setOrgAdminOfOrg] = useState<string | null>(null);
   const [folderCounts, setFolderCounts] = useState({
     inbox: 0,
     starred: 0,
@@ -169,14 +170,27 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: userData } = await supabase
+      const { data: userData } = (await supabase
         .from('users')
         .select('is_super_admin')
         .eq('id', user.id)
-        .single() as { data: { is_super_admin: boolean } | null };
+        .single()) as { data: { is_super_admin: boolean } | null };
 
       if (userData) {
         setIsSuperAdmin(userData.is_super_admin || false);
+      }
+
+      // Check if user is an org admin (OWNER or ADMIN)
+      const { data: orgMembership } = (await supabase
+        .from('organization_members')
+        .select('organization_id, role')
+        .eq('user_id', user.id)
+        .in('role', ['OWNER', 'ADMIN'])
+        .limit(1)
+        .single()) as { data: { organization_id: string; role: string } | null };
+
+      if (orgMembership) {
+        setOrgAdminOfOrg(orgMembership.organization_id);
       }
     } catch (error) {
       console.error('Failed to fetch user role:', error);
@@ -419,11 +433,11 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               <span className="text-sm">Settings</span>
             </button>
           </Link>
-          {isSuperAdmin && (
-            <Link href="/app/admin/analytics">
+          {(isSuperAdmin || orgAdminOfOrg) && (
+            <Link href={isSuperAdmin ? "/app/admin/analytics" : `/app/organization/${orgAdminOfOrg}`}>
               <button
                 className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
-                  pathname?.startsWith('/app/admin') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+                  (pathname?.startsWith('/app/admin') || pathname?.includes('/app/organization/')) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
                 }`}
               >
                 <BarChart3 className="h-5 w-5" />

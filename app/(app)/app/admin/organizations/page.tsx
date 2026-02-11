@@ -269,10 +269,20 @@ export default function AdminOrganizationsPage() {
             </>
           )}
         </div>
-        <Button onClick={() => setShowQuickCreate(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Organization
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => router.push('/app/admin/organizations/create')}>
+            <Building2 className="mr-2 h-4 w-4" />
+            Create Organization
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/app/admin/organizations/add-user')}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add User to Org
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/app/admin/users/create-individual')}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Individual User
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
