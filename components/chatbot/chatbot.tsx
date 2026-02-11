@@ -187,7 +187,7 @@ export function Chatbot() {
             </TabsList>
 
             {/* Chat Tab */}
-            <TabsContent value="chat" className="flex-1 flex flex-col mt-0">
+            <TabsContent value="chat" className="flex-1 flex flex-col mt-0 overflow-hidden">
               {/* Messages */}
               <ScrollArea className="flex-1 p-4" ref={scrollRef}>
                 <div className="space-y-4">
@@ -228,7 +228,7 @@ export function Chatbot() {
               </ScrollArea>
 
               {/* Chat Input */}
-              <div className="p-4 border-t border-border bg-background">
+              <div className="p-4 border-t border-border bg-background shrink-0">
                 <div className="flex gap-2">
                   <Input
                     value={input}
@@ -254,69 +254,57 @@ export function Chatbot() {
             </TabsContent>
 
             {/* Email Search Tab */}
-            <TabsContent value="search" className="flex-1 flex flex-col mt-0">
+            <TabsContent value="search" className="flex-1 flex flex-col mt-0 overflow-hidden">
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-semibold mb-2">Search Your Emails</h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Use advanced operators to find exactly what you need. Results will appear in your inbox.
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Use operators to find emails quickly
                     </p>
                   </div>
 
-                  <div className="bg-accent/50 rounded-lg p-4 space-y-3">
-                    <div className="flex items-start gap-2">
-                      <HelpCircle className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                      <div className="space-y-2 text-xs">
-                        <p className="font-semibold">Advanced Search Operators:</p>
-                        <ul className="space-y-1 text-muted-foreground">
-                          <li><code className="bg-background px-1.5 py-0.5 rounded">from:john</code> - From specific sender</li>
-                          <li><code className="bg-background px-1.5 py-0.5 rounded">to:mary</code> - To specific recipient</li>
-                          <li><code className="bg-background px-1.5 py-0.5 rounded">subject:meeting</code> - Subject contains word</li>
-                          <li><code className="bg-background px-1.5 py-0.5 rounded">has:attachment</code> - Has attachments</li>
-                          <li><code className="bg-background px-1.5 py-0.5 rounded">is:unread</code> - Unread messages</li>
-                          <li><code className="bg-background px-1.5 py-0.5 rounded">is:read</code> - Read messages</li>
-                          <li><code className="bg-background px-1.5 py-0.5 rounded">is:starred</code> - Starred messages</li>
-                        </ul>
-                        <p className="text-muted-foreground italic pt-1">Combine multiple operators for powerful searches!</p>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="space-y-2">
-                    <h5 className="font-medium text-sm">Quick Examples:</h5>
+                    <p className="text-xs font-medium">Quick Examples:</p>
                     <div className="space-y-1">
                       <button
                         onClick={() => setSearchQuery('is:unread')}
                         className="w-full text-left px-3 py-2 bg-accent/30 hover:bg-accent rounded-md text-sm transition-colors"
                       >
-                        <code>is:unread</code> - All unread emails
+                        Unread emails
                       </button>
                       <button
-                        onClick={() => setSearchQuery('has:attachment is:unread')}
+                        onClick={() => setSearchQuery('has:attachment')}
                         className="w-full text-left px-3 py-2 bg-accent/30 hover:bg-accent rounded-md text-sm transition-colors"
                       >
-                        <code>has:attachment is:unread</code> - Unread with attachments
+                        With attachments
                       </button>
                       <button
-                        onClick={() => setSearchQuery('subject:urgent')}
+                        onClick={() => setSearchQuery('is:starred')}
                         className="w-full text-left px-3 py-2 bg-accent/30 hover:bg-accent rounded-md text-sm transition-colors"
                       >
-                        <code>subject:urgent</code> - Urgent in subject
+                        Starred
                       </button>
                     </div>
+                  </div>
+
+                  <div className="bg-accent/30 rounded-lg p-3 text-xs space-y-1">
+                    <p className="font-medium">Search Operators:</p>
+                    <p><code className="bg-background px-1 rounded">from:name</code> Sender</p>
+                    <p><code className="bg-background px-1 rounded">subject:word</code> Subject</p>
+                    <p><code className="bg-background px-1 rounded">has:attachment</code> Files</p>
                   </div>
                 </div>
               </ScrollArea>
 
               {/* Search Input */}
-              <div className="p-4 border-t border-border bg-background">
+              <div className="p-4 border-t border-border bg-background shrink-0">
                 <div className="flex gap-2">
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={handleSearchKeyPress}
-                    placeholder="Search emails... (e.g., from:john subject:meeting)"
+                    placeholder="Search emails..."
                     className="flex-1"
                   />
                   <Button

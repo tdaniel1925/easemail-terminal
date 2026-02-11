@@ -1324,41 +1324,6 @@ export default function InboxPage() {
         accounts={accounts}
       />
 
-      {/* Header */}
-      <header className="border-b border-border bg-card p-4 lg:block hidden">
-          <div className="flex items-center gap-4 justify-end">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => fetchMessages(true)}>
-                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Refresh messages</TooltipContent>
-            </Tooltip>
-            <Button
-              onClick={() => setComposing(true)}
-              className="ml-2"
-            >
-              <PenSquare className="mr-2 h-4 w-4" />
-              Compose
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              disabled={loggingOut}
-            >
-              {loggingOut ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </>
-              )}
-            </Button>
-          </div>
-      </header>
 
       {/* Notification Permission Banner */}
       {showNotificationBanner && (
