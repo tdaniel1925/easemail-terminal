@@ -186,7 +186,7 @@ async function handleMessageCreated(data: NylasWebhookData) {
       labels: [], // Labels not available in Nylas v3
       is_unread: msg.unread || false,
       is_starred: msg.starred || false,
-      is_draft: msg.object === 'draft',
+      is_draft: false, // Drafts are handled separately in Nylas v3
       date: new Date(msg.date * 1000).toISOString(),
       has_attachments: (msg.attachments || []).length > 0,
       attachments: msg.attachments || [],
@@ -258,7 +258,7 @@ async function handleMessageUpdated(data: NylasWebhookData) {
         labels: [], // Labels not available in Nylas v3
         is_unread: msg.unread || false,
         is_starred: msg.starred || false,
-        is_draft: msg.object === 'draft',
+        is_draft: false, // Drafts are handled separately in Nylas v3
         has_attachments: (msg.attachments || []).length > 0,
         attachments: msg.attachments || [],
         updated_at: new Date().toISOString(),
