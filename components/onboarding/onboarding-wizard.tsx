@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { WelcomeStep } from './steps/welcome';
 import { ProfilePictureStep } from './steps/profile-picture';
 import { EmailConnectionStep } from './steps/email-connection';
@@ -25,10 +25,14 @@ export type OnboardingData = {
   signatures_created?: number;
 };
 
-export function OnboardingWizard() {
+interface OnboardingWizardProps {
+  initialStep?: number;
+  emailConnected?: boolean;
+}
+
+export function OnboardingWizard({ initialStep = 0, emailConnected = false }: OnboardingWizardProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(initialStep);
   const [data, setData] = useState<OnboardingData>({
     ai_features_enabled: true,
     auto_categorize: true,
@@ -37,8 +41,7 @@ export function OnboardingWizard() {
 
   // Check if user just returned from OAuth and show success message
   useEffect(() => {
-    const emailConnected = searchParams.get('email_connected');
-    if (emailConnected === 'true') {
+    if (emailConnected) {
       toast.success('Email account connected successfully!');
 
       // Set current step to email connection step (index 2) if not already there
@@ -52,7 +55,7 @@ export function OnboardingWizard() {
       url.searchParams.delete('email_connected');
       window.history.replaceState({}, '', url);
     }
-  }, [searchParams, currentStep]);
+  }, [emailConnected, currentStep]);
 
   const steps = [
     { component: WelcomeStep, title: 'Welcome' },
