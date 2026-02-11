@@ -23,10 +23,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { UserCircle, Search, Plus, Mail, Phone, Building, MoreVertical, RefreshCw, Loader2, Edit, Trash2, MessageSquare, X, AlertTriangle } from 'lucide-react';
+import { UserCircle, Search, Plus, Mail, Phone, Building, MoreVertical, RefreshCw, Loader2, Edit, Trash2, MessageSquare, X, AlertTriangle, Globe, Linkedin } from 'lucide-react';
 import { toast } from 'sonner';
 import { BackButton } from '@/components/ui/back-button';
 import { useRouter } from 'next/navigation';
+import { formatPhoneNumber, toTitleCase, toSentenceCase, isValidEmail, isValidPhone } from '@/lib/utils/contact-formatting';
 
 export default function ContactsPage() {
   const router = useRouter();
@@ -38,6 +39,8 @@ export default function ContactsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [proceedWithoutContact, setProceedWithoutContact] = useState(false);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -47,6 +50,8 @@ export default function ContactsPage() {
     phone: '',
     companyName: '',
     notes: '',
+    website: '',
+    linkedIn: '',
   });
 
   useEffect(() => {
@@ -80,7 +85,11 @@ export default function ContactsPage() {
       phone: '',
       companyName: '',
       notes: '',
+      website: '',
+      linkedIn: '',
     });
+    setShowWarning(false);
+    setProceedWithoutContact(false);
     setShowAddDialog(true);
   };
 
@@ -103,8 +112,13 @@ export default function ContactsPage() {
   };
 
   const handleSubmitAdd = async () => {
-    if (!formData.email || !formData.email.trim()) {
-      toast.error('Email is required');
+    // Check if user has provided either email or phone
+    const hasEmail = formData.email && formData.email.trim();
+    const hasPhone = formData.phone && formData.phone.trim();
+
+    // Show warning if no contact method and user hasn't confirmed
+    if (!hasEmail && !hasPhone && !proceedWithoutContact) {
+      setShowWarning(true);
       return;
     }
 
@@ -114,12 +128,14 @@ export default function ContactsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          givenName: formData.givenName,
-          surname: formData.surname,
-          emails: [formData.email],
-          phoneNumbers: formData.phone ? [formData.phone] : [],
-          companyName: formData.companyName,
-          notes: formData.notes,
+          givenName: toTitleCase(formData.givenName),
+          surname: toTitleCase(formData.surname),
+          emails: formData.email ? [formData.email] : [],
+          phoneNumbers: formData.phone ? [formatPhoneNumber(formData.phone)] : [],
+          companyName: toTitleCase(formData.companyName),
+          notes: toSentenceCase(formData.notes),
+          webPages: formData.website ? [{ url: formData.website }] : [],
+          imAddresses: formData.linkedIn ? [{ address: formData.linkedIn }] : [],
         }),
       });
 
@@ -128,6 +144,8 @@ export default function ContactsPage() {
       if (response.ok) {
         toast.success('Contact added successfully');
         setShowAddDialog(false);
+        setShowWarning(false);
+        setProceedWithoutContact(false);
         fetchContacts();
       } else {
         toast.error(data.error || 'Failed to add contact');
@@ -407,14 +425,49 @@ export default function ContactsPage() {
 
       {/* Add Contact Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Contact</DialogTitle>
             <DialogDescription>
               Add a new contact to your address book
             </DialogDescription>
           </DialogHeader>
+
+          {/* Warning Banner */}
+          {showWarning && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-yellow-900">No contact information provided</p>
+                <p className="text-sm text-yellow-700 mt-1">
+                  You haven't entered an email address or phone number. We recommend adding at least one contact method.
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setShowWarning(false);
+                      setProceedWithoutContact(true);
+                      handleSubmitAdd();
+                    }}
+                  >
+                    Save Anyway
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowWarning(false)}
+                  >
+                    Go Back
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid gap-4 py-4">
+            {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="givenName">First Name</Label>
@@ -422,6 +475,7 @@ export default function ContactsPage() {
                   id="givenName"
                   value={formData.givenName}
                   onChange={(e) => setFormData({ ...formData, givenName: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, givenName: toTitleCase(e.target.value) })}
                   placeholder="John"
                 />
               </div>
@@ -431,16 +485,18 @@ export default function ContactsPage() {
                   id="surname"
                   value={formData.surname}
                   onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
+                  onBlur={(e) => setFormData({ ...formData, surname: toTitleCase(e.target.value) })}
                   placeholder="Doe"
                 />
               </div>
             </div>
+
+            {/* Contact Information */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="john.doe@example.com"
@@ -453,24 +509,52 @@ export default function ContactsPage() {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+1 (555) 123-4567"
+                onBlur={(e) => setFormData({ ...formData, phone: formatPhoneNumber(e.target.value) })}
+                placeholder="1-555-123-4567"
               />
             </div>
+
+            {/* Professional Information */}
             <div className="space-y-2">
               <Label htmlFor="companyName">Company</Label>
               <Input
                 id="companyName"
                 value={formData.companyName}
                 onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                onBlur={(e) => setFormData({ ...formData, companyName: toTitleCase(e.target.value) })}
                 placeholder="Acme Inc."
               />
             </div>
+
+            {/* Online Presence */}
+            <div className="space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                type="url"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                placeholder="https://example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="linkedIn">LinkedIn</Label>
+              <Input
+                id="linkedIn"
+                value={formData.linkedIn}
+                onChange={(e) => setFormData({ ...formData, linkedIn: e.target.value })}
+                placeholder="linkedin.com/in/username or just username"
+              />
+            </div>
+
+            {/* Notes */}
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                onBlur={(e) => setFormData({ ...formData, notes: toSentenceCase(e.target.value) })}
                 placeholder="Additional notes..."
                 rows={3}
               />
