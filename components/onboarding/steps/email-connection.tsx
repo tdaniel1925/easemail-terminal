@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, CheckCircle2, Loader2, ExternalLink } from 'lucide-react';
+import { Mail, CheckCircle2, Loader2, ExternalLink, Server } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
@@ -26,6 +26,7 @@ interface EmailConnectionStepProps {
 
 export function EmailConnectionStep({ data, onNext, onBack }: EmailConnectionStepProps) {
   const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState<string | null>(null);
   const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([]);
   const [connectedCount, setConnectedCount] = useState(0);
   const supabase = createClient();
@@ -60,28 +61,45 @@ export function EmailConnectionStep({ data, onNext, onBack }: EmailConnectionSte
     }
   };
 
-  const handleConnectProvider = async (provider: 'gmail' | 'outlook') => {
+  const handleConnectProvider = async (provider: 'google' | 'microsoft' | 'imap') => {
+    setConnecting(provider);
+
     try {
       // Store onboarding state to return after OAuth
       sessionStorage.setItem('onboarding_in_progress', 'true');
       sessionStorage.setItem('onboarding_return_step', 'email-connection');
 
-      // Redirect to OAuth flow
-      if (provider === 'gmail') {
-        window.location.href = '/api/oauth/gmail?onboarding=true';
-      } else if (provider === 'outlook') {
-        window.location.href = '/api/oauth/outlook?onboarding=true';
+      if (provider === 'imap') {
+        // Redirect to email accounts settings for manual IMAP setup
+        window.location.href = '/app/settings/email-accounts?setup=imap&return=onboarding';
+      } else {
+        // Call Nylas OAuth API
+        const response = await fetch('/api/nylas/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider }),
+        });
+
+        const responseData = await response.json();
+
+        if (responseData.url) {
+          // Redirect to Nylas OAuth URL
+          window.location.href = responseData.url;
+        } else {
+          throw new Error(responseData.error || 'Failed to get OAuth URL');
+        }
       }
     } catch (error) {
       console.error('Error connecting provider:', error);
-      toast.error('Failed to start connection');
+      toast.error('Failed to start connection. Please try again.');
+      setConnecting(null);
     }
   };
 
   const handleConnectAccount = async (account: EmailAccount) => {
     // Determine provider based on email_provider
-    const provider = account.email_provider === 'gmail' ? 'gmail' :
-                    account.email_provider === 'outlook' ? 'outlook' : null;
+    const provider = account.email_provider === 'gmail' ? 'google' :
+                    account.email_provider === 'outlook' ? 'microsoft' : null;
 
     if (!provider) {
       toast.error('This email provider is not yet supported for OAuth connection');
@@ -164,9 +182,16 @@ export function EmailConnectionStep({ data, onNext, onBack }: EmailConnectionSte
                   <Button
                     size="sm"
                     onClick={() => handleConnectAccount(account)}
+                    disabled={connecting !== null}
                   >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Connect Now
+                    {connecting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Connect Now
+                      </>
+                    )}
                   </Button>
                 </div>
               ))}
@@ -210,29 +235,52 @@ export function EmailConnectionStep({ data, onNext, onBack }: EmailConnectionSte
             <h3 className="text-sm font-semibold text-gray-700">
               Connect an email provider:
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Button
                 variant="outline"
                 className="h-auto py-6 flex flex-col items-center gap-2"
-                onClick={() => handleConnectProvider('gmail')}
+                onClick={() => handleConnectProvider('google')}
+                disabled={connecting !== null}
               >
                 <div className="p-3 bg-red-50 rounded-lg">
-                  <Mail className="h-6 w-6 text-red-600" />
+                  <svg className="h-6 w-6" viewBox="0 0 48 48">
+                    <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+                    <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+                    <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z"/>
+                    <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+                  </svg>
                 </div>
                 <span className="font-semibold">Gmail</span>
-                <span className="text-xs text-gray-500">Connect Google account</span>
+                <span className="text-xs text-gray-500">Google Workspace</span>
               </Button>
 
               <Button
                 variant="outline"
                 className="h-auto py-6 flex flex-col items-center gap-2"
-                onClick={() => handleConnectProvider('outlook')}
+                onClick={() => handleConnectProvider('microsoft')}
+                disabled={connecting !== null}
               >
                 <div className="p-3 bg-blue-50 rounded-lg">
-                  <Mail className="h-6 w-6 text-blue-600" />
+                  <svg className="h-6 w-6" viewBox="0 0 48 48">
+                    <path fill="#0078D4" d="M44 24c0 11.05-8.95 20-20 20S4 35.05 4 24 12.95 4 24 4s20 8.95 20 20z"/>
+                    <path fill="#FFF" d="M24 11.5c-6.9 0-12.5 5.6-12.5 12.5s5.6 12.5 12.5 12.5 12.5-5.6 12.5-12.5-5.6-12.5-12.5-12.5zm0 21.25c-4.83 0-8.75-3.92-8.75-8.75s3.92-8.75 8.75-8.75 8.75 3.92 8.75 8.75-3.92 8.75-8.75 8.75z"/>
+                  </svg>
                 </div>
                 <span className="font-semibold">Outlook</span>
-                <span className="text-xs text-gray-500">Connect Microsoft account</span>
+                <span className="text-xs text-gray-500">Office 365</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="h-auto py-6 flex flex-col items-center gap-2"
+                onClick={() => handleConnectProvider('imap')}
+                disabled={connecting !== null}
+              >
+                <div className="p-3 bg-purple-50 rounded-lg">
+                  <Server className="h-6 w-6 text-purple-600" />
+                </div>
+                <span className="font-semibold">IMAP</span>
+                <span className="text-xs text-gray-500">iCloud, Yahoo, Other</span>
               </Button>
             </div>
           </div>
@@ -252,6 +300,7 @@ export function EmailConnectionStep({ data, onNext, onBack }: EmailConnectionSte
             <Button
               variant="outline"
               onClick={onBack}
+              disabled={connecting !== null}
               className="flex-1"
             >
               Back
@@ -260,14 +309,23 @@ export function EmailConnectionStep({ data, onNext, onBack }: EmailConnectionSte
           {connectedCount > 0 ? (
             <Button
               onClick={handleContinue}
+              disabled={connecting !== null}
               className="flex-1"
             >
-              Continue ({connectedCount} connected)
+              {connecting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>Continue ({connectedCount} connected)</>
+              )}
             </Button>
           ) : (
             <Button
               variant="outline"
               onClick={handleSkip}
+              disabled={connecting !== null}
               className="flex-1"
             >
               Skip for Now

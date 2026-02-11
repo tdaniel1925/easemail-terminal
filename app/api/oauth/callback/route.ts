@@ -108,9 +108,13 @@ export async function GET(request: NextRequest) {
       provider,
     });
 
-    // Success - redirect to app
+    // Check if this is part of onboarding flow
+    // Note: We can't access sessionStorage server-side, so we'll redirect to a client page
+    // that checks sessionStorage and handles the redirect appropriately
+
+    // Success - redirect to app (client will check onboarding status)
     return NextResponse.redirect(
-      new URL('/app?connected=true', request.url)
+      new URL('/app?connected=true&check_onboarding=true', request.url)
     );
   } catch (error: any) {
     logger.error('OAuth callback error', error, {

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { OAuthReturnHandler } from '@/components/onboarding/oauth-return-handler';
 
 export default async function AppDashboard() {
   const user = await getUser();
@@ -22,6 +23,7 @@ export default async function AppDashboard() {
 
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
+      <OAuthReturnHandler />
       <div className="space-y-6">
         {/* Header */}
         <div>
