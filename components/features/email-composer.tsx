@@ -879,14 +879,16 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
               </div>
             )}
 
-            {/* Toolbar Row */}
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex gap-2 flex-wrap">
-                {/* AI Dictate Button */}
+            {/* Modern Bottom Toolbar - Single Row, Icon-Only, Sleek Design */}
+            <div className="flex items-center justify-between gap-3 px-1">
+              {/* Left: AI & Content Tools */}
+              <div className="flex items-center gap-1">
+                {/* AI Dictate - Icon Only */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div>
                       <VoiceInput
+                        iconOnly={true}
                         onTranscript={(text) => {
                           const convertToHTML = (plainText: string) => {
                             if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
@@ -904,75 +906,111 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                       />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>Speak naturally and AI will write your email</TooltipContent>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <div className="font-semibold">AI Dictate</div>
+                      <div className="text-muted-foreground">Speak and AI writes your email</div>
+                    </div>
+                  </TooltipContent>
                 </Tooltip>
 
-                {/* AI Remix Button */}
+                {/* AI Remix - Icon Only */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
                       onClick={handleAIRemix}
                       disabled={remixing || !body || body.length < 10}
                     >
                       {remixing ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Remixing...
-                        </>
+                        <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <>
-                          <Sparkles className="mr-2 h-4 w-4" />
-                          AI Remix
-                        </>
+                        <Sparkles className="h-4 w-4" />
                       )}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Polish your message with AI</TooltipContent>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <div className="font-semibold">AI Remix</div>
+                      <div className="text-muted-foreground">Polish your message with AI</div>
+                    </div>
+                  </TooltipContent>
                 </Tooltip>
 
-                {/* Voice Message Button */}
+                <div className="w-px h-6 bg-border mx-1" />
+
+                {/* Voice Message - Icon Only */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
                       onClick={() => document.getElementById('voice-record-trigger')?.click()}
                     >
-                      <Mic className="mr-2 h-4 w-4" />
-                      Voice Message
+                      <Mic className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Record and attach a voice message</TooltipContent>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <div className="font-semibold">Voice Message</div>
+                      <div className="text-muted-foreground">Record and attach audio</div>
+                    </div>
+                  </TooltipContent>
                 </Tooltip>
 
-                {/* Hidden voice recorder */}
+                {/* Attach Files - Icon Only */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => document.getElementById('file-upload-trigger')?.click()}
+                    >
+                      <Paperclip className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <div className="font-semibold">Attach Files</div>
+                      <div className="text-muted-foreground">Add files to your email</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* Template - Icon Only */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => {
+                        fetchTemplates();
+                        setShowTemplates(true);
+                      }}
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <div className="font-semibold">Template</div>
+                      <div className="text-muted-foreground">Use a saved template</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* Hidden uploaders */}
                 <div className="hidden">
                   <VoiceMessageRecorder
                     onRecorded={(blob, duration) => {
                       setVoiceAttachments([...voiceAttachments, { blob, duration }]);
                     }}
                   />
-                </div>
-
-                {/* Attach Files Button */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => document.getElementById('file-upload-trigger')?.click()}
-                    >
-                      <Paperclip className="mr-2 h-4 w-4" />
-                      Attach Files
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Attach files to your email</TooltipContent>
-                </Tooltip>
-
-                {/* Hidden file uploader */}
-                <div className="hidden">
                   <AttachmentUploader
                     attachments={attachments}
                     onAttachmentsChange={setAttachments}
@@ -980,135 +1018,92 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                     maxFiles={10}
                   />
                 </div>
+              </div>
 
-                {/* Template Button */}
+              {/* Right: Action Buttons */}
+              <div className="flex items-center gap-1">
+                {/* Schedule - Icon Only */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        fetchTemplates();
-                        setShowTemplates(true);
-                      }}
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => setShowSchedule(true)}
                     >
-                      <FileText className="mr-2 h-4 w-4" />
-                      Template
+                      <Clock className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Use a saved template</TooltipContent>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <div className="font-semibold">Schedule Send</div>
+                      <div className="text-muted-foreground">Send later</div>
+                    </div>
+                  </TooltipContent>
                 </Tooltip>
 
-                {/* Options Dropdown */}
-                <select
-                  className="text-sm border rounded px-3 py-2 bg-background cursor-pointer hover:bg-accent"
-                  value=""
-                  onChange={(e) => {
-                    e.target.value = '';
-                  }}
-                  onClick={(e) => {
-                    // Show a popover or modal instead
-                    const target = e.target as HTMLSelectElement;
-                    if (target.value === '') {
-                      // We'll handle this inline for now
-                    }
-                  }}
-                >
-                  <option value="">⚙️ Options</option>
-                  <option value="" disabled>
-                    Signature: {signatures.find(s => s.id === selectedSignature)?.name || 'None'}
-                  </option>
-                  <option value="" disabled>
-                    Priority: {priority}
-                  </option>
-                  <option value="" disabled>
-                    Tone: {tone}
-                  </option>
-                  <option value="" disabled>
-                    Read Receipt: {requestReadReceipt ? 'Yes' : 'No'}
-                  </option>
-                </select>
-              </div>
-            </div>
+                {/* Delete/Discard - Icon Only */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={onClose}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="text-xs">
+                      <div className="font-semibold">Discard</div>
+                      <div className="text-muted-foreground">Close without sending</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
 
-            {/* Footer Row - Action Buttons */}
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => saveDraft(true)}
-                  disabled={saving || (!to && !subject && !body)}
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Draft
-                    </>
-                  )}
-                </Button>
+                <div className="w-px h-6 bg-border mx-1" />
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPreview(true)}
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  Preview
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowSchedule(true)}
-                >
-                  <Clock className="mr-2 h-4 w-4" />
-                  Schedule
-                </Button>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClose}
-                >
-                  Cancel
-                </Button>
-
+                {/* Send Button - Primary Action */}
                 {undoSendCountdown !== null ? (
-                  <>
-                    <Button variant="outline" size="sm" disabled>
+                  <div className="flex gap-1">
+                    <Button variant="outline" size="sm" disabled className="h-9">
                       <Undo2 className="mr-2 h-4 w-4" />
                       Undo ({undoSendCountdown}s)
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={cancelUndoSend}>
+                    <Button variant="destructive" size="sm" onClick={cancelUndoSend} className="h-9">
                       Cancel Send
                     </Button>
-                  </>
+                  </div>
                 ) : (
-                  <Button
-                    size="sm"
-                    onClick={handleSend}
-                    disabled={sending}
-                  >
-                    {sending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending
-                      </>
-                    ) : (
-                      <>
-                        <Send className="mr-2 h-4 w-4" />
-                        Send
-                      </>
-                    )}
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        onClick={handleSend}
+                        disabled={sending}
+                        className="h-9 px-4"
+                      >
+                        {sending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending
+                          </>
+                        ) : (
+                          <>
+                            <Send className="mr-2 h-4 w-4" />
+                            Send
+                          </>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-xs">
+                        <div className="font-semibold">Send Email</div>
+                        <div className="text-muted-foreground">Ctrl+Enter</div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             </div>

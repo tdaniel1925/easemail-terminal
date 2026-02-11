@@ -10,9 +10,10 @@ interface VoiceInputProps {
   onTranscript: (text: string) => void;
   tone?: string;
   id?: string;
+  iconOnly?: boolean;
 }
 
-export function VoiceInput({ onTranscript, tone = 'professional', id }: VoiceInputProps) {
+export function VoiceInput({ onTranscript, tone = 'professional', id, iconOnly = false }: VoiceInputProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [micPermission, setMicPermission] = useState<'unknown' | 'requesting' | 'granted' | 'denied'>('unknown');
@@ -187,25 +188,38 @@ export function VoiceInput({ onTranscript, tone = 'professional', id }: VoiceInp
         )}
 
         {!isRecording && !isProcessing && micPermission !== 'requesting' && micPermission !== 'denied' && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                id={id}
-                type="button"
-                variant="outline"
-                onClick={startRecording}
-              >
-                <Mic className="mr-2 h-4 w-4" />
-                AI Dictate
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {hasRequestedBefore
-                ? "Speak naturally and AI will write a perfect email"
-                : "Speak naturally and AI will write a perfect email (mic access required once)"
-              }
-            </TooltipContent>
-          </Tooltip>
+          iconOnly ? (
+            <Button
+              id={id}
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              onClick={startRecording}
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  id={id}
+                  type="button"
+                  variant="outline"
+                  onClick={startRecording}
+                >
+                  <Mic className="mr-2 h-4 w-4" />
+                  AI Dictate
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {hasRequestedBefore
+                  ? "Speak naturally and AI will write a perfect email"
+                  : "Speak naturally and AI will write a perfect email (mic access required once)"
+                }
+              </TooltipContent>
+            </Tooltip>
+          )
         )}
 
         {isRecording && (
