@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Loader2, Sparkles, Video, X, Plus } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { extractCalendarEvent } from '@/lib/openai/client';
 
@@ -173,12 +174,13 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle>Create Calendar Event</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <ScrollArea className="flex-1 px-6 overflow-y-auto">
+          <div className="space-y-3 pb-4">
           {/* Description (AI Input) */}
           <div className="space-y-2">
             <Label htmlFor="description">Event Description (Natural Language)</Label>
@@ -363,10 +365,11 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
               </div>
             </div>
           )}
-        </div>
+          </div>
+        </ScrollArea>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2 pt-4 border-t border-border">
+        <div className="flex justify-end gap-2 p-6 pt-4 border-t border-border shrink-0">
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>

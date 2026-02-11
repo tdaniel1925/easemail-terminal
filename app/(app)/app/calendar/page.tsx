@@ -1077,8 +1077,8 @@ export default function CalendarPage() {
 
         return (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedEvent(null)}>
-            <Card className="w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-              <CardHeader>
+            <Card className="w-full max-w-lg max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <CardHeader className="shrink-0">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -1109,7 +1109,8 @@ export default function CalendarPage() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <ScrollArea className="flex-1 overflow-y-auto">
+                <CardContent className="space-y-4">
                 {/* Starting Soon Banner */}
                 {(isStartingSoon || isHappening) && selectedEvent.joinUrl && (
                   <div className={`p-3 rounded-lg ${isHappening ? 'bg-green-100 dark:bg-green-900' : 'bg-blue-100 dark:bg-blue-900'}`}>
@@ -1265,7 +1266,8 @@ export default function CalendarPage() {
                     </Button>
                   </div>
                 )}
-              </CardContent>
+                </CardContent>
+              </ScrollArea>
             </Card>
           </div>
         );
