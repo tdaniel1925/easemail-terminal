@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Loader2, Sparkles, Video, X, Plus } from 'lucide-react';
+import { Calendar, Loader2, Sparkles, Video, X, Plus, AlertCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { extractCalendarEvent } from '@/lib/openai/client';
@@ -16,9 +16,10 @@ import { extractCalendarEvent } from '@/lib/openai/client';
 interface CreateEventDialogProps {
   onClose: () => void;
   onCreated: () => void;
+  existingEvents?: any[];
 }
 
-export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps) {
+export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: CreateEventDialogProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -31,6 +32,31 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [creating, setCreating] = useState(false);
   const [aiExtracting, setAiExtracting] = useState(false);
+
+  // Check for conflicts with existing events
+  const checkConflicts = () => {
+    if (!startTime || !endTime || existingEvents.length === 0) {
+      return [];
+    }
+
+    const proposedStart = new Date(startTime).getTime() / 1000; // Convert to unix timestamp
+    const proposedEnd = new Date(endTime).getTime() / 1000;
+
+    const conflicts = existingEvents.filter(event => {
+      if (!event.when?.start_time || !event.when?.end_time) return false;
+
+      const eventStart = event.when.start_time;
+      const eventEnd = event.when.end_time;
+
+      // Check for overlap
+      return (proposedStart < eventEnd && proposedEnd > eventStart);
+    });
+
+    return conflicts;
+  };
+
+  const conflicts = checkConflicts();
+  const hasConflicts = conflicts.length > 0;
 
   const addAttendee = () => {
     if (!attendeeInput.trim()) return;
@@ -336,6 +362,41 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
             </div>
           </div>
 
+          {/* Conflict Warning */}
+          {hasConflicts && startTime && endTime && (
+            <div className="flex items-start gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-orange-500 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-sm text-orange-900 dark:text-orange-100">
+                  ⚠️ Schedule Conflict Detected
+                </p>
+                <p className="text-xs text-orange-700 dark:text-orange-200 mt-1">
+                  This event overlaps with {conflicts.length} existing event{conflicts.length > 1 ? 's' : ''}:
+                </p>
+                <ul className="text-xs text-orange-700 dark:text-orange-200 mt-2 space-y-1 ml-4 list-disc">
+                  {conflicts.slice(0, 3).map((conflict, idx) => (
+                    <li key={idx}>
+                      <span className="font-medium">{conflict.title || '(No title)'}</span>
+                      {conflict.when?.start_time && (
+                        <span className="ml-1">
+                          at {new Date(conflict.when.start_time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                  {conflicts.length > 3 && (
+                    <li className="text-orange-600 dark:text-orange-300 font-medium">
+                      ...and {conflicts.length - 3} more
+                    </li>
+                  )}
+                </ul>
+                <p className="text-xs text-orange-600 dark:text-orange-300 mt-2 font-medium">
+                  You can still create this event, but consider adjusting the time.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Location */}
           <div className="space-y-2">
             <Label htmlFor="location">Location</Label>
@@ -399,12 +460,12 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
           </div>
 
           {/* Teams Meeting Toggle */}
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <Video className="h-4 w-4 text-purple-600" />
+          <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-950 border-2 border-purple-200 dark:border-purple-800 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Video className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               <div>
-                <Label htmlFor="teams-toggle" className="cursor-pointer">Make this a Teams meeting</Label>
-                <p className="text-xs text-muted-foreground">Generates join link automatically</p>
+                <Label htmlFor="teams-toggle" className="cursor-pointer font-medium text-purple-900 dark:text-purple-100">Make this a Teams meeting</Label>
+                <p className="text-xs text-purple-700 dark:text-purple-300">Generates join link automatically</p>
               </div>
             </div>
             <Switch

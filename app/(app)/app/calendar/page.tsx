@@ -1046,6 +1046,7 @@ export default function CalendarPage() {
             setCreating(false);
             fetchEvents();
           }}
+          existingEvents={events}
         />
       )}
 
