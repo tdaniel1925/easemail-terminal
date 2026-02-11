@@ -170,12 +170,12 @@ export async function getFolderIdsByType(
 ): Promise<string[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  const { data, error } = (await supabase
     .from('folder_mappings')
     .select('nylas_folder_id')
     .eq('user_id', userId)
     .eq('folder_type', folderType)
-    .eq('is_active', true);
+    .eq('is_active', true)) as { data: any[] | null; error: any };
 
   if (error || !data) {
     console.error('Error fetching folder IDs:', error);
@@ -194,14 +194,14 @@ export async function getFolderIdForAccount(
 ): Promise<string | null> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  const { data, error } = (await supabase
     .from('folder_mappings')
     .select('nylas_folder_id')
     .eq('email_account_id', emailAccountId)
     .eq('folder_type', folderType)
     .eq('is_active', true)
     .limit(1)
-    .single();
+    .single()) as { data: any | null; error: any };
 
   if (error || !data) {
     return null;
