@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, startTime, endTime, description, location, attendees, recurrence } = await request.json();
+    const { title, startTime, endTime, description, location, attendees, recurrence, isAllDay } = await request.json();
 
     // Validation
     if (!title || title.trim() === '') {
@@ -94,17 +94,6 @@ export async function POST(request: NextRequest) {
 
     if (!startTime || !endTime) {
       return NextResponse.json({ error: 'Start time and end time are required' }, { status: 400 });
-    }
-
-    const startDate = new Date(startTime);
-    const endDate = new Date(endTime);
-
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      return NextResponse.json({ error: 'Invalid date format' }, { status: 400 });
-    }
-
-    if (endDate <= startDate) {
-      return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 });
     }
 
     const { data: account } = (await supabase
@@ -118,16 +107,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No email account connected. Please connect an email account first.' }, { status: 400 });
     }
 
-    // Build request body
+    // Build request body with different 'when' format for all-day events
     const requestBody: any = {
       title: title.trim(),
-      when: {
-        startTime: Math.floor(startDate.getTime() / 1000),
-        endTime: Math.floor(endDate.getTime() / 1000),
-      },
       description: description || '',
       location: location || '',
     };
+
+    if (isAllDay) {
+      // All-day event: Use date format (YYYY-MM-DD)
+      // If same day: { date: "2026-02-18" }
+      // If multi-day: { start_date: "2026-02-18", end_date: "2026-02-20" }
+      if (startTime === endTime) {
+        requestBody.when = {
+          date: startTime, // "2026-02-18"
+        };
+      } else {
+        requestBody.when = {
+          start_date: startTime, // "2026-02-18"
+          end_date: endTime,     // "2026-02-20"
+        };
+      }
+    } else {
+      // Timed event: Use unix timestamps
+      const startDate = new Date(startTime);
+      const endDate = new Date(endTime);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return NextResponse.json({ error: 'Invalid date format' }, { status: 400 });
+      }
+
+      if (endDate <= startDate) {
+        return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 });
+      }
+
+      requestBody.when = {
+        startTime: Math.floor(startDate.getTime() / 1000),
+        endTime: Math.floor(endDate.getTime() / 1000),
+      };
+    }
 
     // Add participants if provided
     if (attendees && attendees.length > 0) {

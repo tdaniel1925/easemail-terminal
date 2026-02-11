@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,10 +28,31 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
   const [attendees, setAttendees] = useState<string[]>([]);
   const [attendeeInput, setAttendeeInput] = useState('');
   const [isTeamsMeeting, setIsTeamsMeeting] = useState(false);
+  const [isAllDay, setIsAllDay] = useState(false);
   const [recurrenceType, setRecurrenceType] = useState<string>('none');
   const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [creating, setCreating] = useState(false);
   const [aiExtracting, setAiExtracting] = useState(false);
+  const [teamsConnected, setTeamsConnected] = useState<boolean | null>(null);
+  const [checkingTeams, setCheckingTeams] = useState(true);
+
+  // Check Teams connection status on mount
+  useEffect(() => {
+    async function checkTeamsConnection() {
+      try {
+        const response = await fetch('/api/teams/status');
+        const data = await response.json();
+        setTeamsConnected(data.connected && !data.isExpired);
+      } catch (error) {
+        console.error('Failed to check Teams status:', error);
+        setTeamsConnected(false);
+      } finally {
+        setCheckingTeams(false);
+      }
+    }
+
+    checkTeamsConnection();
+  }, []);
 
   // Check for conflicts with existing events
   const checkConflicts = () => {
@@ -233,13 +254,24 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
 
       // If Teams meeting, create via Teams API
       if (isTeamsMeeting) {
+        // CRITICAL: Convert datetime-local to ISO UTC for Teams API
+        // datetime-local gives "2026-02-18T15:00" in local time
+        // Teams API expects ISO UTC: "2026-02-18T21:00:00.000Z"
+        const startUTC = new Date(startTime).toISOString();
+        const endUTC = new Date(endTime).toISOString();
+
+        console.log('Creating Teams meeting:', {
+          local: { start: startTime, end: endTime },
+          utc: { start: startUTC, end: endUTC }
+        });
+
         const response = await fetch('/api/teams/meetings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             subject: title,
-            startDateTime: startTime,
-            endDateTime: endTime,
+            startDateTime: startUTC,
+            endDateTime: endUTC,
             content: description,
             attendees: attendees,
           }),
@@ -251,7 +283,17 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
           toast.success('📅 Teams meeting created successfully!');
           onCreated();
         } else {
-          toast.error(data.error || 'Failed to create Teams meeting');
+          if (data.needsAuth) {
+            toast.error('Please connect Microsoft Teams first', {
+              duration: 5000,
+              action: {
+                label: 'Connect',
+                onClick: () => window.location.href = '/api/teams/auth'
+              }
+            });
+          } else {
+            toast.error(data.error || 'Failed to create Teams meeting');
+          }
         }
       } else {
         // Regular calendar event
@@ -266,6 +308,7 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
             location,
             attendees: attendees.length > 0 ? attendees : undefined,
             recurrence,
+            isAllDay, // Pass all-day flag to API
           }),
         });
 
@@ -338,29 +381,76 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
             />
           </div>
 
-          {/* Times */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startTime">Start Time *</Label>
-              <Input
-                id="startTime"
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endTime">End Time *</Label>
-              <Input
-                id="endTime"
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                required
-              />
-            </div>
+          {/* All-Day Event Toggle */}
+          <div className="flex items-center gap-2">
+            <Switch
+              id="all-day"
+              checked={isAllDay}
+              onCheckedChange={(checked) => {
+                setIsAllDay(checked);
+                // Clear times when switching to all-day
+                if (checked) {
+                  setStartTime('');
+                  setEndTime('');
+                }
+              }}
+            />
+            <Label htmlFor="all-day" className="cursor-pointer">All-day event</Label>
           </div>
+
+          {/* Times */}
+          {isAllDay ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start Date *</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End Date *</Label>
+                <Input
+                  id="endDate"
+                  type="date"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startTime">Start Time *</Label>
+                  <Input
+                    id="startTime"
+                    type="datetime-local"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endTime">End Time *</Label>
+                  <Input
+                    id="endTime"
+                    type="datetime-local"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+              </p>
+            </div>
+          )}
 
           {/* Conflict Warning */}
           {hasConflicts && startTime && endTime && (
@@ -460,20 +550,46 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
           </div>
 
           {/* Teams Meeting Toggle */}
-          <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-950 border-2 border-purple-200 dark:border-purple-800 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Video className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-              <div>
-                <Label htmlFor="teams-toggle" className="cursor-pointer font-medium text-purple-900 dark:text-purple-100">Make this a Teams meeting</Label>
-                <p className="text-xs text-purple-700 dark:text-purple-300">Generates join link automatically</p>
-              </div>
+          {checkingTeams ? (
+            <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Checking Teams connection...</p>
             </div>
-            <Switch
-              id="teams-toggle"
-              checked={isTeamsMeeting}
-              onCheckedChange={setIsTeamsMeeting}
-            />
-          </div>
+          ) : teamsConnected ? (
+            <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-950 border-2 border-purple-200 dark:border-purple-800 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Video className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div>
+                  <Label htmlFor="teams-toggle" className="cursor-pointer font-medium text-purple-900 dark:text-purple-100">Make this a Teams meeting</Label>
+                  <p className="text-xs text-purple-700 dark:text-purple-300">Generates join link automatically</p>
+                </div>
+              </div>
+              <Switch
+                id="teams-toggle"
+                checked={isTeamsMeeting}
+                onCheckedChange={setIsTeamsMeeting}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-950 border-2 border-purple-200 dark:border-purple-800 rounded-lg">
+              <div className="flex items-center gap-3 flex-1">
+                <Video className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div className="flex-1">
+                  <p className="font-medium text-purple-900 dark:text-purple-100 text-sm">Microsoft Teams Not Connected</p>
+                  <p className="text-xs text-purple-700 dark:text-purple-300">Connect Teams to create online meetings</p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="default"
+                className="bg-purple-600 hover:bg-purple-700"
+                onClick={() => window.location.href = '/api/teams/auth'}
+              >
+                Connect Teams
+              </Button>
+            </div>
+          )}
 
           {/* Recurrence */}
           {!isTeamsMeeting && (
