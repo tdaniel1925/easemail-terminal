@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Camera, Upload, User, Loader2, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
@@ -82,7 +82,9 @@ async function getCroppedImg(
 
 export function ProfilePictureStep({ data, onNext, onBack }: ProfilePictureStepProps) {
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -90,6 +92,36 @@ export function ProfilePictureStep({ data, onNext, onBack }: ProfilePictureStepP
   const [showEditor, setShowEditor] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
+
+  // Load existing profile picture on mount
+  useEffect(() => {
+    const loadExistingPhoto = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        // Get user profile from database
+        const { data: userData } = await supabase
+          .from('users')
+          .select('profile_picture_url')
+          .eq('id', user.id)
+          .single();
+
+        if (userData?.profile_picture_url) {
+          setExistingPhotoUrl(userData.profile_picture_url);
+        }
+      } catch (error) {
+        console.error('Error loading profile picture:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadExistingPhoto();
+  }, [supabase]);
 
   const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: CropArea) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -128,6 +160,12 @@ export function ProfilePictureStep({ data, onNext, onBack }: ProfilePictureStepP
   };
 
   const handleUpload = async () => {
+    // If user has existing photo and hasn't selected a new one, just continue
+    if (!imageSrc && existingPhotoUrl) {
+      onNext({ profile_picture_uploaded: true, profile_picture_url: existingPhotoUrl });
+      return;
+    }
+
     if (!imageSrc || !croppedAreaPixels) {
       // Skip this step
       onNext({ profile_picture_uploaded: false });
@@ -199,13 +237,27 @@ export function ProfilePictureStep({ data, onNext, onBack }: ProfilePictureStepP
     }
   };
 
+  if (loading) {
+    return (
+      <Card className="border-0 shadow-2xl">
+        <CardContent className="p-8 flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-0 shadow-2xl">
       <CardContent className="p-8 space-y-6">
         <div className="space-y-3">
-          <h1 className="text-3xl font-bold">Add a Profile Picture</h1>
+          <h1 className="text-3xl font-bold">
+            {existingPhotoUrl ? 'Update Your Profile Picture' : 'Add a Profile Picture'}
+          </h1>
           <p className="text-muted-foreground">
-            Help your team recognize you by adding a profile picture
+            {existingPhotoUrl
+              ? 'You already have a profile picture. Upload a new one or continue.'
+              : 'Help your team recognize you by adding a profile picture'}
           </p>
         </div>
 
@@ -214,9 +266,17 @@ export function ProfilePictureStep({ data, onNext, onBack }: ProfilePictureStepP
           <div className="flex flex-col items-center space-y-6">
             <div className="relative">
               <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border-4 border-white dark:border-gray-700 shadow-lg">
-                <div className="w-full h-full flex items-center justify-center">
-                  <User className="h-16 w-16 text-gray-400" />
-                </div>
+                {existingPhotoUrl ? (
+                  <img
+                    src={existingPhotoUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User className="h-16 w-16 text-gray-400" />
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => fileInputRef.current?.click()}
@@ -344,6 +404,8 @@ export function ProfilePictureStep({ data, onNext, onBack }: ProfilePictureStepP
               </>
             ) : imageSrc ? (
               'Upload & Continue'
+            ) : existingPhotoUrl ? (
+              'Continue'
             ) : (
               'Skip for Now'
             )}
