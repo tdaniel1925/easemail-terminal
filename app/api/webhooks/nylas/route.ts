@@ -183,7 +183,7 @@ async function handleMessageCreated(data: NylasWebhookData) {
       body: msg.body || msg.snippet || '',
       snippet: msg.snippet || '',
       folder_ids: folderIds,
-      labels: msg.labels || [],
+      labels: [], // Labels not available in Nylas v3
       is_unread: msg.unread || false,
       is_starred: msg.starred || false,
       is_draft: msg.object === 'draft',
@@ -255,7 +255,7 @@ async function handleMessageUpdated(data: NylasWebhookData) {
         body: msg.body || msg.snippet || '',
         snippet: msg.snippet || '',
         folder_ids: folderIds,
-        labels: msg.labels || [],
+        labels: [], // Labels not available in Nylas v3
         is_unread: msg.unread || false,
         is_starred: msg.starred || false,
         is_draft: msg.object === 'draft',
