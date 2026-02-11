@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -1242,6 +1242,9 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
           <DialogContent className="max-w-md px-8 py-6">
             <DialogHeader>
               <DialogTitle>Email Settings</DialogTitle>
+              <DialogDescription>
+                Configure priority, signature, and other email options
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-6 mt-4">
               {/* Priority */}
@@ -1278,12 +1281,15 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
               {/* Signature */}
               <div className="space-y-2">
                 <Label htmlFor="signature">Email Signature</Label>
-                <Select value={selectedSignature} onValueChange={setSelectedSignature}>
+                <Select
+                  value={selectedSignature || "none"}
+                  onValueChange={(val) => setSelectedSignature(val === "none" ? "" : val)}
+                >
                   <SelectTrigger id="signature">
                     <SelectValue placeholder="No signature" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {signatures.map((sig) => (
                       <SelectItem key={sig.id} value={sig.id}>
                         {sig.name}
