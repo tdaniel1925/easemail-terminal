@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import {
-  PenSquare, Inbox, Send, Star, Trash2, Archive, Clock, Menu,
+  PenSquare, Inbox, Send, Star, Trash2, Archive, Clock,
   Tag, Settings, BarChart3, HelpCircle
 } from 'lucide-react';
 import Link from 'next/link';
@@ -155,9 +155,6 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
           </h1>
           <div className="flex items-center gap-1">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggle}>
-              <Menu className="h-4 w-4" />
-            </Button>
           </div>
         </div>
         <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-sm" onClick={onCompose}>
