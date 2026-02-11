@@ -104,11 +104,11 @@ export function ProfilePictureStep({ data, onNext, onBack }: ProfilePictureStepP
         }
 
         // Get user profile from database
-        const { data: userData } = await supabase
+        const { data: userData } = (await supabase
           .from('users')
           .select('profile_picture_url')
           .eq('id', user.id)
-          .single();
+          .single()) as { data: { profile_picture_url: string | null } | null };
 
         if (userData?.profile_picture_url) {
           setExistingPhotoUrl(userData.profile_picture_url);
