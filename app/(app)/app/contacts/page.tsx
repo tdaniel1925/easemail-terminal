@@ -37,6 +37,7 @@ export default function ContactsPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [selectedContact, setSelectedContact] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
@@ -118,6 +119,11 @@ export default function ContactsPage() {
     setShowDeleteDialog(true);
   };
 
+  const handleViewContact = (contact: any) => {
+    setSelectedContact(contact);
+    setShowDetailDialog(true);
+  };
+
   const handleSubmitAdd = async () => {
     // Check if user has provided either email or phone
     const hasEmail = formData.email && formData.email.trim();
@@ -141,8 +147,6 @@ export default function ContactsPage() {
           phoneNumbers: formData.phone ? [formatPhoneNumber(formData.phone)] : [],
           companyName: toTitleCase(formData.companyName),
           notes: toSentenceCase(formData.notes),
-          webPages: formData.website ? [{ url: formData.website }] : [],
-          imAddresses: formData.linkedIn ? [{ address: formData.linkedIn }] : [],
         }),
       });
 
@@ -333,7 +337,11 @@ export default function ContactsPage() {
                 const phone = getContactPhone(contact);
 
                 return (
-                  <Card key={contact.id} className="hover:shadow-lg transition-all duration-200 hover:border-primary/50">
+                  <Card
+                    key={contact.id}
+                    className="hover:shadow-lg transition-all duration-200 hover:border-primary/50 cursor-pointer"
+                    onClick={() => handleViewContact(contact)}
+                  >
                     <CardHeader className="pb-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
@@ -357,7 +365,12 @@ export default function ContactsPage() {
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -403,7 +416,10 @@ export default function ContactsPage() {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={() => email && handleEmailContact(email)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            email && handleEmailContact(email);
+                          }}
                           disabled={!email}
                         >
                           <Mail className="mr-1 h-3 w-3" />
@@ -413,7 +429,10 @@ export default function ContactsPage() {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={() => handleEditContact(contact)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditContact(contact);
+                          }}
                         >
                           <Edit className="mr-1 h-3 w-3" />
                           Edit
@@ -517,27 +536,6 @@ export default function ContactsPage() {
                 onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                 onBlur={(e) => setFormData({ ...formData, companyName: toTitleCase(e.target.value) })}
                 placeholder="Acme Inc."
-              />
-            </div>
-
-            {/* Online Presence */}
-            <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input
-                id="website"
-                type="url"
-                value={formData.website}
-                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                placeholder="https://example.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="linkedIn">LinkedIn</Label>
-              <Input
-                id="linkedIn"
-                value={formData.linkedIn}
-                onChange={(e) => setFormData({ ...formData, linkedIn: e.target.value })}
-                placeholder="linkedin.com/in/username or just username"
               />
             </div>
 
@@ -784,6 +782,159 @@ export default function ContactsPage() {
                   Delete Contact
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Detail View Dialog */}
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Contact Details</DialogTitle>
+            <DialogDescription>
+              View complete contact information
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedContact && (
+            <div className="space-y-6 py-4">
+              {/* Profile Section */}
+              <div className="flex items-center gap-4 pb-4 border-b">
+                <Avatar className="h-20 w-20 ring-2 ring-border">
+                  <AvatarImage src={selectedContact.pictureUrl || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-primary-foreground text-xl font-bold">
+                    {getInitials(getContactName(selectedContact))}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold">{getContactName(selectedContact)}</h3>
+                  {selectedContact.companyName && (
+                    <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                      <Building className="h-4 w-4" />
+                      {selectedContact.companyName}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-4">
+                {getContactEmail(selectedContact) && (
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">Email</Label>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-primary flex-shrink-0" />
+                      <a
+                        href={`mailto:${getContactEmail(selectedContact)}`}
+                        className="text-primary hover:underline font-medium"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {getContactEmail(selectedContact)}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {getContactPhone(selectedContact) && (
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">Phone</Label>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-primary flex-shrink-0" />
+                      <a
+                        href={`tel:${getContactPhone(selectedContact)}`}
+                        className="hover:underline font-medium"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {getContactPhone(selectedContact)}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {selectedContact.webPages && selectedContact.webPages.length > 0 && (
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">Website</Label>
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-primary flex-shrink-0" />
+                      <a
+                        href={selectedContact.webPages[0].url || selectedContact.webPages[0]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-medium"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {selectedContact.webPages[0].url || selectedContact.webPages[0]}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {selectedContact.imAddresses && selectedContact.imAddresses.length > 0 && (
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">LinkedIn</Label>
+                    <div className="flex items-center gap-2">
+                      <Linkedin className="h-4 w-4 text-primary flex-shrink-0" />
+                      <a
+                        href={selectedContact.imAddresses[0].address || selectedContact.imAddresses[0]}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-medium"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {selectedContact.imAddresses[0].address || selectedContact.imAddresses[0]}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {selectedContact.notes && (
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground uppercase tracking-wider">Notes</Label>
+                    <div className="bg-muted/50 rounded-lg p-3">
+                      <p className="text-sm whitespace-pre-wrap">{selectedContact.notes}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const email = getContactEmail(selectedContact);
+                    if (email) {
+                      handleEmailContact(email);
+                      setShowDetailDialog(false);
+                    }
+                  }}
+                  disabled={!getContactEmail(selectedContact)}
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  Send Email
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDetailDialog(false);
+                    handleEditContact(selectedContact);
+                  }}
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Contact
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
