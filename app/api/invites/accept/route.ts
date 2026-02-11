@@ -56,8 +56,9 @@ export async function POST(request: NextRequest) {
     const orgId = invite.organization_id;
     const org = invite.organizations;
 
-    // Check if organization has available seats
-    if (org.seats_used >= org.seats) {
+    // Check if organization has available seats (only for MEMBER role)
+    // ADMIN and OWNER roles don't occupy seats
+    if (invite.role === 'MEMBER' && org.seats_used >= org.seats) {
       return NextResponse.json({ error: 'No available seats in this organization' }, { status: 400 });
     }
 
@@ -98,11 +99,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to join organization' }, { status: 500 });
     }
 
-    // Increment seats_used
-    await supabase
-      .from('organizations')
-      .update({ seats_used: org.seats_used + 1 } as any)
-      .eq('id', orgId);
+    // Only increment seats_used if role is MEMBER (ADMIN and OWNER don't occupy seats)
+    if (invite.role === 'MEMBER') {
+      await supabase
+        .from('organizations')
+        .update({ seats_used: org.seats_used + 1 } as any)
+        .eq('id', orgId);
+    }
 
     // Mark invite as accepted
     await supabase
@@ -132,7 +135,8 @@ export async function POST(request: NextRequest) {
       let html: string;
       let subject: string;
 
-      if (invite.role === 'ADMIN') {
+      if (invite.role === 'OWNER' || invite.role === 'ADMIN') {
+        // OWNER and ADMIN get admin welcome email
         html = getOrgAdminWelcomeEmailHtml({
           userName,
           userEmail: userData.email,
@@ -140,9 +144,11 @@ export async function POST(request: NextRequest) {
           organizationId: orgId,
           inviterName,
         });
-        subject = `You're Now an Admin of ${org.name}`;
+        subject = invite.role === 'OWNER'
+          ? `You're Now the Owner of ${org.name}`
+          : `You're Now an Admin of ${org.name}`;
       } else {
-        // MEMBER role
+        // MEMBER role gets member welcome email
         html = getOrgMemberWelcomeEmailHtml({
           userName,
           userEmail: userData.email,

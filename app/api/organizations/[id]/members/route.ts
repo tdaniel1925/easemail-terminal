@@ -36,7 +36,7 @@ export async function POST(
       return NextResponse.json({ error: 'Email and role are required' }, { status: 400 });
     }
 
-    // Check if organization has available seats
+    // Check if organization has available seats (only for MEMBER role)
     const { data: org } = (await supabase
       .from('organizations')
       .select('name, seats, seats_used')
@@ -47,7 +47,8 @@ export async function POST(
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
 
-    if (org.seats_used >= org.seats) {
+    // Only check seats for MEMBER role (ADMIN and OWNER don't occupy seats)
+    if (role === 'MEMBER' && org.seats_used >= org.seats) {
       return NextResponse.json({ error: 'No available seats' }, { status: 400 });
     }
 
@@ -186,6 +187,14 @@ export async function DELETE(
       }
     }
 
+    // Get member role before deletion to check if we need to decrement seats
+    const { data: memberToRemove } = (await supabase
+      .from('organization_members')
+      .select('role')
+      .eq('organization_id', orgId)
+      .eq('user_id', memberUserId)
+      .single()) as { data: any };
+
     // Remove member
     const { error } = await supabase
       .from('organization_members')
@@ -197,11 +206,21 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    // Decrement seats_used
-    await (supabase as any)
-      .from('organizations')
-      .update({ seats_used: (supabase as any).rpc('decrement_seats', { org_id: orgId }) })
-      .eq('id', orgId);
+    // Only decrement seats_used if removed member was a MEMBER role
+    if (memberToRemove?.role === 'MEMBER') {
+      const { data: currentOrg } = (await supabase
+        .from('organizations')
+        .select('seats_used')
+        .eq('id', orgId)
+        .single()) as { data: any };
+
+      if (currentOrg && currentOrg.seats_used > 0) {
+        await (supabase as any)
+          .from('organizations')
+          .update({ seats_used: currentOrg.seats_used - 1 })
+          .eq('id', orgId);
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
