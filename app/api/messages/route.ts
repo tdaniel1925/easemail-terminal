@@ -59,35 +59,38 @@ export async function GET(request: NextRequest) {
       queryParams.page_token = pageToken;
     }
 
+    // Default to inbox if no folder specified
+    const folderFilter = folderId || 'inbox';
+
     // Resolve folder filter to actual Nylas folder IDs
-    if (folderId) {
-      console.log('Filtering messages by folder/filter:', folderId);
+    if (folderFilter) {
+      console.log('Filtering messages by folder/filter:', folderFilter);
 
       try {
         // Try to resolve the filter to actual folder IDs
-        const resolvedFolderIds = await resolveFolderFilter(user.id, folderId);
+        const resolvedFolderIds = await resolveFolderFilter(user.id, folderFilter);
 
         if (resolvedFolderIds.length > 0) {
           console.log('Resolved to Nylas folder IDs:', resolvedFolderIds);
           queryParams.in = resolvedFolderIds;
         } else {
           // Fallback: try to get folder ID for this specific account
-          const accountFolderId = await getFolderIdForAccount(account.id, folderId as any);
+          const accountFolderId = await getFolderIdForAccount(account.id, folderFilter as any);
           if (accountFolderId) {
             console.log('Found account-specific folder ID:', accountFolderId);
             queryParams.in = [accountFolderId];
           } else {
             // Last resort: check if it's a direct Nylas folder ID
-            if (folderId.length > 20 || folderId.includes('-')) {
-              console.log('Using folder filter as direct Nylas ID:', folderId);
-              queryParams.in = [folderId];
+            if (folderFilter.length > 20 || folderFilter.includes('-')) {
+              console.log('Using folder filter as direct Nylas ID:', folderFilter);
+              queryParams.in = [folderFilter];
             } else {
               // Folder not found - return empty results instead of all messages
-              console.warn(`Folder '${folderId}' not found in database. Folders may need syncing.`);
+              console.warn(`Folder '${folderFilter}' not found in database. Folders may need syncing.`);
               return NextResponse.json({
                 messages: [],
                 nextCursor: null,
-                warning: `Folder '${folderId}' not found. Try refreshing or syncing folders.`
+                warning: `Folder '${folderFilter}' not found. Try refreshing or syncing folders.`
               });
             }
           }
