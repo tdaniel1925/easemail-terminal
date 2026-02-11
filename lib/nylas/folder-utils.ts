@@ -16,10 +16,10 @@ export interface NylasFolder {
   id: string;
   name: string;
   attributes?: string[];
-  parent_id?: string;
-  child_count?: number;
-  unread_count?: number;
-  total_count?: number;
+  parentId?: string;
+  childCount?: number;
+  unreadCount?: number;
+  totalCount?: number;
 }
 
 export interface FolderMapping {
@@ -132,11 +132,11 @@ export async function syncFoldersForAccount(
             email_account_id: emailAccountId,
             folder_name: folder.name || 'Unnamed',
             folder_type: folderType,
-            parent_id: folder.parent_id || null,
+            parent_id: folder.parentId || null,
             attributes: folder.attributes || [],
-            unread_count: folder.unread_count || 0,
-            total_count: folder.total_count || 0,
-            child_count: folder.child_count || 0,
+            unread_count: folder.unreadCount || 0,
+            total_count: folder.totalCount || 0,
+            child_count: folder.childCount || 0,
             is_system_folder: isSystem,
             is_active: true,
             last_synced_at: new Date().toISOString(),
