@@ -124,6 +124,13 @@ export async function POST(request: NextRequest) {
     // Send email via Nylas with error handling
     const nylasClient = nylas();
 
+    console.log('[SEND DEBUG] Account details:', {
+      accountId: account.id,
+      grantId: account.grant_id,
+      email: account.email,
+      hasGrantId: !!account.grant_id
+    });
+
     // Prepare custom headers for read receipt if requested
     const customHeaders: any = {};
     if (readReceipt) {
@@ -131,25 +138,36 @@ export async function POST(request: NextRequest) {
       customHeaders['Return-Receipt-To'] = account.email;
     }
 
+    const requestBody = {
+      to: toRecipients,
+      ...(ccRecipients && { cc: ccRecipients }),
+      ...(bccRecipients && { bcc: bccRecipients }),
+      subject,
+      body: emailBody,
+      ...(attachmentData && isArray(attachmentData) && attachmentData.length > 0 && {
+        attachments: attachmentData
+      }),
+      ...(readReceipt && Object.keys(customHeaders).length > 0 && {
+        custom_headers: customHeaders
+      }),
+    };
+
+    console.log('[SEND DEBUG] Request body:', JSON.stringify(requestBody, null, 2));
+
     const { data: message, error: sendError } = await safeExternalCall(
       () => nylasClient.messages.send({
         identifier: account.grant_id,
-        requestBody: {
-          to: toRecipients,
-          ...(ccRecipients && { cc: ccRecipients }),
-          ...(bccRecipients && { bcc: bccRecipients }),
-          subject,
-          body: emailBody,
-          ...(attachmentData && isArray(attachmentData) && attachmentData.length > 0 && {
-            attachments: attachmentData
-          }),
-          ...(readReceipt && Object.keys(customHeaders).length > 0 && {
-            custom_headers: customHeaders
-          }),
-        },
+        requestBody,
       }),
       'Nylas Send Email'
     );
+
+    console.log('[SEND DEBUG] Nylas response:', {
+      hasMessage: !!message,
+      hasError: !!sendError,
+      error: sendError,
+      messageId: message?.id
+    });
 
     if (sendError || !message) {
       logger.error('Failed to send email via Nylas', undefined, {

@@ -659,21 +659,33 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
       // Use reply endpoint if this is a reply, otherwise use send endpoint
       const endpoint = replyTo?.messageId ? '/api/messages/reply' : '/api/messages/send';
 
+      const requestData = {
+        to: toArray.length === 1 ? toArray[0] : toArray,
+        ...(ccArray.length > 0 && { cc: ccArray }),
+        ...(bccArray.length > 0 && { bcc: bccArray }),
+        subject: processedSubject,
+        body: processedBody,
+        ...(processedAttachments.length > 0 && { attachments: processedAttachments }),
+        ...(replyTo?.messageId && { messageId: replyTo.messageId, replyAll: replyTo.replyAll }),
+        ...(requestReadReceipt && { readReceipt: true }),
+        ...(accountId && { accountId }),
+      };
+
+      console.log('[COMPOSER DEBUG] Sending email:', {
+        endpoint,
+        hasAccountId: !!accountId,
+        accountId,
+        to: requestData.to,
+        subject: requestData.subject
+      });
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: toArray.length === 1 ? toArray[0] : toArray,
-          ...(ccArray.length > 0 && { cc: ccArray }),
-          ...(bccArray.length > 0 && { bcc: bccArray }),
-          subject: processedSubject,
-          body: processedBody,
-          ...(processedAttachments.length > 0 && { attachments: processedAttachments }),
-          ...(replyTo?.messageId && { messageId: replyTo.messageId, replyAll: replyTo.replyAll }),
-          ...(requestReadReceipt && { readReceipt: true }),
-          ...(accountId && { accountId }),
-        }),
+        body: JSON.stringify(requestData),
       });
+
+      console.log('[COMPOSER DEBUG] Response status:', response.status, response.ok);
 
       const data = await response.json();
 
@@ -701,23 +713,9 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
       return;
     }
 
-    // Start undo countdown
+    // Send immediately without countdown
     setSending(true);
-    setUndoSendCountdown(5);
-
-    let countdown = 5;
-    undoSendTimerRef.current = setInterval(() => {
-      countdown -= 1;
-      setUndoSendCountdown(countdown);
-
-      if (countdown <= 0) {
-        if (undoSendTimerRef.current) {
-          clearInterval(undoSendTimerRef.current);
-          undoSendTimerRef.current = null;
-        }
-        actualSend();
-      }
-    }, 1000);
+    actualSend();
   };
 
   return (
