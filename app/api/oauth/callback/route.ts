@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nylas, getNylasOAuthConfig } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { safeExternalCall } from '@/lib/api-helpers';
 import { isString } from '@/lib/guards';
@@ -84,17 +85,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Save to database with proper typing
-    const supabase = await createClient();
+    // Save to database using service role to bypass RLS
+    // OAuth callbacks happen server-side and session cookies may not be reliable
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    const { error: dbError } = (await (supabase
+    console.log('Saving email account:', {
+      userId: state,
+      grantId: grantId?.substring(0, 10) + '...',
+      email,
+      provider: (provider || 'GOOGLE').toUpperCase(),
+    });
+
+    // Use upsert to handle duplicate grant_ids (user reconnecting same account)
+    const { error: dbError } = (await (serviceClient
       .from('email_accounts') as any)
-      .insert({
+      .upsert({
         user_id: state,
         grant_id: grantId,
         email: email || 'unknown@example.com',
         provider: (provider || 'GOOGLE').toUpperCase(),
         is_primary: true,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'grant_id',
       })) as { error: any };
 
     if (dbError) {
@@ -102,7 +118,12 @@ export async function GET(request: NextRequest) {
         userId: state,
         grantId,
         email,
+        errorMessage: dbError?.message,
+        errorDetails: dbError?.details,
+        errorHint: dbError?.hint,
+        errorCode: dbError?.code,
       });
+      console.error('Full database error:', JSON.stringify(dbError, null, 2));
       return NextResponse.redirect(
         new URL('/onboarding?error=database_error', request.url)
       );
