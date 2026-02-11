@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { nylas } from '@/lib/nylas/client';
 import crypto from 'crypto';
 
 interface NylasWebhookData {
@@ -133,10 +134,10 @@ async function handleMessageCreated(data: NylasWebhookData) {
   try {
     const supabase = await createClient();
 
-    // Find user by grant_id
+    // Find account by grant_id
     const { data: account } = (await supabase
       .from('email_accounts')
-      .select('user_id')
+      .select('*')
       .eq('grant_id', grant_id)
       .single()) as { data: any };
 
@@ -145,14 +146,50 @@ async function handleMessageCreated(data: NylasWebhookData) {
       return;
     }
 
-    // Store webhook event for processing
-    await supabase.from('webhook_events').insert({
+    // Fetch full message data from Nylas
+    const nylasClient = nylas();
+    const message = await nylasClient.messages.find({
+      identifier: grant_id,
+      messageId: id,
+    });
+
+    if (!message || !message.data) {
+      console.log(`Could not fetch message ${id} from Nylas`);
+      return;
+    }
+
+    const msg = message.data;
+
+    // Extract folder IDs (Nylas stores these in the folders array)
+    const folderIds = msg.folders || [];
+
+    // Prepare from email
+    const fromEmail = Array.isArray(msg.from) && msg.from.length > 0
+      ? msg.from[0].email
+      : '';
+
+    // Store message in database
+    await supabase.from('messages').insert({
+      nylas_message_id: msg.id,
+      nylas_thread_id: msg.thread_id,
+      nylas_grant_id: grant_id,
       user_id: account.user_id,
-      event_type: 'message.created',
-      grant_id,
-      object_id: id,
-      payload: data,
-      processed: false,
+      email_account_id: account.id,
+      subject: msg.subject || '(No Subject)',
+      from_email: fromEmail,
+      to_recipients: msg.to || [],
+      cc_recipients: msg.cc || [],
+      bcc_recipients: msg.bcc || [],
+      body: msg.body || msg.snippet || '',
+      snippet: msg.snippet || '',
+      folder_ids: folderIds,
+      labels: msg.labels || [],
+      is_unread: msg.unread || false,
+      is_starred: msg.starred || false,
+      is_draft: msg.object === 'draft',
+      date: new Date(msg.date * 1000).toISOString(),
+      has_attachments: (msg.attachments || []).length > 0,
+      attachments: msg.attachments || [],
     } as any);
 
     // Track new email notification
@@ -161,7 +198,7 @@ async function handleMessageCreated(data: NylasWebhookData) {
       feature: 'email_received',
     } as any);
 
-    console.log(`Message created webhook processed for user: ${account.user_id}`);
+    console.log(`Message ${id} stored in database for user: ${account.user_id}`);
   } catch (error) {
     console.error('Error handling message.created:', error);
   }
@@ -178,22 +215,57 @@ async function handleMessageUpdated(data: NylasWebhookData) {
 
     const { data: account } = (await supabase
       .from('email_accounts')
-      .select('user_id')
+      .select('*')
       .eq('grant_id', grant_id)
       .single()) as { data: any };
 
     if (!account) return;
 
-    await supabase.from('webhook_events').insert({
-      user_id: account.user_id,
-      event_type: 'message.updated',
-      grant_id,
-      object_id: id,
-      payload: data,
-      processed: false,
-    } as any);
+    // Fetch updated message data from Nylas
+    const nylasClient = nylas();
+    const message = await nylasClient.messages.find({
+      identifier: grant_id,
+      messageId: id,
+    });
 
-    console.log(`Message updated webhook processed for user: ${account.user_id}`);
+    if (!message || !message.data) {
+      console.log(`Could not fetch updated message ${id} from Nylas`);
+      return;
+    }
+
+    const msg = message.data;
+
+    // Extract folder IDs
+    const folderIds = msg.folders || [];
+
+    // Prepare from email
+    const fromEmail = Array.isArray(msg.from) && msg.from.length > 0
+      ? msg.from[0].email
+      : '';
+
+    // Update message in database
+    await supabase
+      .from('messages')
+      .update({
+        subject: msg.subject || '(No Subject)',
+        from_email: fromEmail,
+        to_recipients: msg.to || [],
+        cc_recipients: msg.cc || [],
+        bcc_recipients: msg.bcc || [],
+        body: msg.body || msg.snippet || '',
+        snippet: msg.snippet || '',
+        folder_ids: folderIds,
+        labels: msg.labels || [],
+        is_unread: msg.unread || false,
+        is_starred: msg.starred || false,
+        is_draft: msg.object === 'draft',
+        has_attachments: (msg.attachments || []).length > 0,
+        attachments: msg.attachments || [],
+        updated_at: new Date().toISOString(),
+      } as any)
+      .eq('nylas_message_id', msg.id);
+
+    console.log(`Message ${id} updated in database for user: ${account.user_id}`);
   } catch (error) {
     console.error('Error handling message.updated:', error);
   }
@@ -210,22 +282,19 @@ async function handleMessageDeleted(data: NylasWebhookData) {
 
     const { data: account } = (await supabase
       .from('email_accounts')
-      .select('user_id')
+      .select('*')
       .eq('grant_id', grant_id)
       .single()) as { data: any };
 
     if (!account) return;
 
-    await supabase.from('webhook_events').insert({
-      user_id: account.user_id,
-      event_type: 'message.deleted',
-      grant_id,
-      object_id: id,
-      payload: data,
-      processed: false,
-    } as any);
+    // Delete message from database
+    await supabase
+      .from('messages')
+      .delete()
+      .eq('nylas_message_id', id);
 
-    console.log(`Message deleted webhook processed for user: ${account.user_id}`);
+    console.log(`Message ${id} deleted from database for user: ${account.user_id}`);
   } catch (error) {
     console.error('Error handling message.deleted:', error);
   }
