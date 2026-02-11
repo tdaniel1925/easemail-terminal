@@ -169,7 +169,8 @@ async function handleMessageCreated(data: NylasWebhookData) {
       : '';
 
     // Store message in database
-    await supabase.from('messages').insert({
+    const supabaseClient: any = supabase;
+    await supabaseClient.from('messages').insert({
       nylas_message_id: msg.id,
       nylas_thread_id: msg.threadId,
       nylas_grant_id: grant_id,
@@ -190,13 +191,13 @@ async function handleMessageCreated(data: NylasWebhookData) {
       date: new Date(msg.date * 1000).toISOString(),
       has_attachments: (msg.attachments || []).length > 0,
       attachments: msg.attachments || [],
-    } as any);
+    });
 
     // Track new email notification
-    await supabase.from('usage_tracking').insert({
+    await supabaseClient.from('usage_tracking').insert({
       user_id: account.user_id,
       feature: 'email_received',
-    } as any);
+    });
 
     console.log(`Message ${id} stored in database for user: ${account.user_id}`);
   } catch (error) {
@@ -244,7 +245,8 @@ async function handleMessageUpdated(data: NylasWebhookData) {
       : '';
 
     // Update message in database
-    await supabase
+    const supabaseClient: any = supabase;
+    await supabaseClient
       .from('messages')
       .update({
         subject: msg.subject || '(No Subject)',
@@ -262,7 +264,7 @@ async function handleMessageUpdated(data: NylasWebhookData) {
         has_attachments: (msg.attachments || []).length > 0,
         attachments: msg.attachments || [],
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('nylas_message_id', msg.id);
 
     console.log(`Message ${id} updated in database for user: ${account.user_id}`);
@@ -317,14 +319,15 @@ async function handleThreadUpdated(data: NylasWebhookData) {
 
     if (!account) return;
 
-    await supabase.from('webhook_events').insert({
+    const supabaseClient: any = supabase;
+    await supabaseClient.from('webhook_events').insert({
       user_id: account.user_id,
       event_type: 'thread.updated',
       grant_id,
       object_id: id,
       payload: data,
       processed: false,
-    } as any);
+    });
 
     console.log(`Thread updated webhook processed for user: ${account.user_id}`);
   } catch (error) {
@@ -349,14 +352,15 @@ async function handleCalendarEvent(type: string, data: NylasWebhookData) {
 
     if (!account) return;
 
-    await supabase.from('webhook_events').insert({
+    const supabaseClient: any = supabase;
+    await supabaseClient.from('webhook_events').insert({
       user_id: account.user_id,
       event_type: type,
       grant_id,
       object_id: id,
       payload: data,
       processed: false,
-    } as any);
+    });
 
     console.log(`Calendar event ${type} webhook processed for user: ${account.user_id}`);
   } catch (error) {
@@ -381,14 +385,15 @@ async function handleEventChange(type: string, data: NylasWebhookData) {
 
     if (!account) return;
 
-    await supabase.from('webhook_events').insert({
+    const supabaseClient: any = supabase;
+    await supabaseClient.from('webhook_events').insert({
       user_id: account.user_id,
       event_type: type,
       grant_id,
       object_id: id,
       payload: data,
       processed: false,
-    } as any);
+    });
 
     console.log(`Event ${type} webhook processed for user: ${account.user_id}`);
   } catch (error) {
