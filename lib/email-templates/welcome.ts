@@ -1,9 +1,11 @@
 export function getWelcomeEmailHtml({
   userName,
   userEmail,
+  initialPassword,
 }: {
   userName: string;
   userEmail: string;
+  initialPassword?: string;
 }) {
   return `
 <!DOCTYPE html>
@@ -44,8 +46,46 @@ export function getWelcomeEmailHtml({
                 Thanks for joining EaseMail! We're excited to help you transform your email workflow with AI-powered features and intelligent organization.
               </p>
 
+              ${initialPassword ? `
+              <!-- Login Credentials Box -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td style="padding: 24px; background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%); border-radius: 12px; border: 2px solid #8b5cf6;">
+                    <h3 style="color: #5b21b6; font-size: 18px; font-weight: 700; margin: 0 0 16px 0; text-align: center;">🔐 Your Login Credentials</h3>
+
+                    <div style="background-color: #ffffff; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                      <p style="color: #6b7280; font-size: 13px; margin: 0 0 4px 0; font-weight: 600;">Email:</p>
+                      <p style="color: #111827; font-size: 16px; margin: 0; font-family: 'Courier New', monospace;">${userEmail}</p>
+                    </div>
+
+                    <div style="background-color: #ffffff; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                      <p style="color: #6b7280; font-size: 13px; margin: 0 0 4px 0; font-weight: 600;">Temporary Password:</p>
+                      <p style="color: #5b21b6; font-size: 18px; font-weight: 700; margin: 0; font-family: 'Courier New', monospace; letter-spacing: 1px;">${initialPassword}</p>
+                    </div>
+
+                    <div style="background-color: #fef3c7; padding: 12px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                      <p style="color: #92400e; font-size: 13px; line-height: 1.5; margin: 0;">
+                        <strong>⚠️ Important:</strong> Please change this password immediately after your first login for security.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Login CTA -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="https://easemail.app/login" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);">
+                      Log In Now
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+
               <p style="color: #111827; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-                Here's what you can do next:
+                ${initialPassword ? 'Once logged in, here\'s what you can do:' : 'Here\'s what you can do next:'}
               </p>
 
               <!-- Feature Cards -->
@@ -82,6 +122,7 @@ export function getWelcomeEmailHtml({
                 </tr>
               </table>
 
+              ${!initialPassword ? `
               <!-- CTA Button -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                 <tr>
@@ -92,6 +133,18 @@ export function getWelcomeEmailHtml({
                   </td>
                 </tr>
               </table>
+              ` : `
+              <!-- Change Password CTA -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="https://easemail.app/app/settings" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 600;">
+                      Change Your Password
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              `}
 
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
                 Need help getting started? Just reply to this email or visit our <a href="https://easemail.app/contact" style="color: #3b82f6; text-decoration: none;">help center</a>.

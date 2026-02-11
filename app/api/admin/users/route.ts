@@ -163,12 +163,13 @@ export async function POST(request: NextRequest) {
       console.error('Failed to create user record:', insertError);
     }
 
-    // Send welcome email to new user
+    // Send welcome email to new user with login credentials
     try {
       const userName = name || email.split('@')[0];
       const html = getWelcomeEmailHtml({
         userName,
         userEmail: email,
+        initialPassword: password, // Include password in welcome email
       });
 
       await sendEmail({
@@ -177,7 +178,7 @@ export async function POST(request: NextRequest) {
         html,
       });
 
-      console.log(`Welcome email sent to: ${email}`);
+      console.log(`Welcome email with credentials sent to: ${email}`);
     } catch (emailError) {
       console.error('Failed to send welcome email to', email, emailError);
       // Don't fail the request if email fails
