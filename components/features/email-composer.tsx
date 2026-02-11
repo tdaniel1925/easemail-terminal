@@ -882,15 +882,31 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
             {/* Toolbar Row */}
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex gap-2 flex-wrap">
-                {/* AI Tools Dropdown */}
+                {/* AI Dictate Button - Visible */}
+                <VoiceInput
+                  onTranscript={(text) => {
+                    const convertToHTML = (plainText: string) => {
+                      if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
+                        return plainText;
+                      }
+                      return plainText
+                        .split('\n\n')
+                        .filter(para => para.trim())
+                        .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+                        .join('');
+                    };
+                    setBody(convertToHTML(text));
+                  }}
+                  tone={tone}
+                />
+
+                {/* AI Tools Dropdown (without dictate) */}
                 <select
                   className="text-sm border rounded px-3 py-2 bg-background cursor-pointer hover:bg-accent"
                   value=""
                   onChange={(e) => {
                     const value = e.target.value;
-                    if (value === 'dictate') {
-                      document.getElementById('voice-input-trigger')?.click();
-                    } else if (value === 'remix') {
+                    if (value === 'remix') {
                       handleAIRemix();
                     } else if (value === 'canned') {
                       fetchTemplates();
@@ -904,33 +920,11 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
                   }}
                 >
                   <option value="">⚡ AI Tools</option>
-                  <option value="dictate">🎤 AI Dictate</option>
                   <option value="remix">✨ AI Remix</option>
                   <option value="canned">⚡ Canned Responses</option>
                   <option value="emoji">😊 Emoji</option>
                   <option value="variables">📋 Variables</option>
                 </select>
-
-                {/* Hidden VoiceInput for trigger */}
-                <div className="hidden">
-                  <VoiceInput
-                    id="voice-input-trigger"
-                    onTranscript={(text) => {
-                      const convertToHTML = (plainText: string) => {
-                        if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
-                          return plainText;
-                        }
-                        return plainText
-                          .split('\n\n')
-                          .filter(para => para.trim())
-                          .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
-                          .join('');
-                      };
-                      setBody(convertToHTML(text));
-                    }}
-                    tone={tone}
-                  />
-                </div>
 
                 {/* Attach Files Button with dropdown */}
                 <select
