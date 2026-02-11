@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * DELETE /api/teams/status
- * Disconnect MS Graph
+ * Disconnect MS Graph and clean up all Teams data
  */
 export async function DELETE(request: NextRequest) {
   const supabase = await createClient();
@@ -60,6 +60,9 @@ export async function DELETE(request: NextRequest) {
   }
 
   try {
+    console.log(`Disconnecting Teams for user ${user.id}`);
+
+    // Delete Teams tokens
     const { error } = await (supabase
       .from('ms_graph_tokens') as any)
       .delete()
@@ -67,7 +70,13 @@ export async function DELETE(request: NextRequest) {
 
     if (error) throw error;
 
-    return NextResponse.json({ success: true });
+    console.log(`Successfully disconnected Teams for user ${user.id}`);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Microsoft Teams disconnected successfully',
+      note: 'Teams meetings remain in your Microsoft account but will no longer sync to EaseMail'
+    });
   } catch (error) {
     console.error('Disconnect error:', error);
     return NextResponse.json(
