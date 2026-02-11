@@ -16,8 +16,12 @@ export function VoiceInput({ onTranscript, tone = 'professional' }: VoiceInputPr
   const [isProcessing, setIsProcessing] = useState(false);
   const [micPermission, setMicPermission] = useState<'unknown' | 'requesting' | 'granted' | 'denied'>('unknown');
   const [hasRequestedBefore, setHasRequestedBefore] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   // Check if permission was granted before
   useEffect(() => {
@@ -36,7 +40,34 @@ export function VoiceInput({ onTranscript, tone = 'professional' }: VoiceInputPr
       }
     };
     checkPermission();
+
+    // Cleanup on unmount
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
   }, []);
+
+  // Analyze audio levels
+  const analyzeAudio = () => {
+    if (!analyserRef.current) return;
+
+    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+    analyserRef.current.getByteFrequencyData(dataArray);
+
+    // Calculate average volume
+    const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+    const normalizedLevel = Math.min(100, (average / 128) * 100);
+
+    setAudioLevel(normalizedLevel);
+
+    // Continue animation
+    animationFrameRef.current = requestAnimationFrame(analyzeAudio);
+  };
 
   const startRecording = async () => {
     try {
@@ -46,6 +77,16 @@ export function VoiceInput({ onTranscript, tone = 'professional' }: VoiceInputPr
       // Permission granted
       setMicPermission('granted');
       setHasRequestedBefore(true);
+
+      // Setup audio analysis
+      audioContextRef.current = new AudioContext();
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      const source = audioContextRef.current.createMediaStreamSource(stream);
+      source.connect(analyserRef.current);
+      analyserRef.current.fftSize = 256;
+
+      // Start analyzing
+      analyzeAudio();
 
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -59,6 +100,15 @@ export function VoiceInput({ onTranscript, tone = 'professional' }: VoiceInputPr
 
       mediaRecorder.onstop = async () => {
         setIsProcessing(true);
+
+        // Stop audio analysis
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+        }
+        setAudioLevel(0);
 
         try {
           const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
@@ -157,15 +207,40 @@ export function VoiceInput({ onTranscript, tone = 'professional' }: VoiceInputPr
         )}
 
         {isRecording && (
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={stopRecording}
-            className="animate-pulse"
-          >
-            <Square className="mr-2 h-4 w-4" />
-            Stop Recording
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={stopRecording}
+              className="animate-pulse"
+            >
+              <Square className="mr-2 h-4 w-4" />
+              Stop Recording
+            </Button>
+
+            {/* Audio Level Meter */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-lg border border-border">
+              <Mic className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-1">
+                {[...Array(10)].map((_, i) => {
+                  const threshold = (i + 1) * 10;
+                  const isActive = audioLevel >= threshold;
+                  const color = i < 6 ? 'bg-green-500' : i < 8 ? 'bg-yellow-500' : 'bg-red-500';
+                  return (
+                    <div
+                      key={i}
+                      className={`w-1 h-4 rounded-full transition-all duration-75 ${
+                        isActive ? color : 'bg-gray-300 dark:bg-gray-700'
+                      }`}
+                      style={{
+                        height: isActive ? `${12 + (i * 2)}px` : '8px',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         )}
 
         {isProcessing && (
