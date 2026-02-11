@@ -1099,11 +1099,11 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
                 {/* Send Button - Primary Action */}
                 {undoSendCountdown !== null ? (
                   <div className="flex gap-1">
-                    <Button variant="outline" size="sm" disabled className="h-9">
+                    <Button type="button" variant="outline" size="sm" disabled className="h-9">
                       <Undo2 className="mr-2 h-4 w-4" />
                       Undo ({undoSendCountdown}s)
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={cancelUndoSend} className="h-9">
+                    <Button type="button" variant="destructive" size="sm" onClick={cancelUndoSend} className="h-9">
                       Cancel Send
                     </Button>
                   </div>
@@ -1111,6 +1111,7 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
+                        type="button"
                         size="sm"
                         onClick={handleSend}
                         disabled={sending}
@@ -1230,10 +1231,10 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
                 />
               </div>
               <div className="flex justify-end gap-2 pt-4">
-                <Button variant="ghost" onClick={() => setShowSaveTemplate(false)}>
+                <Button type="button" variant="ghost" onClick={() => setShowSaveTemplate(false)}>
                   Cancel
                 </Button>
-                <Button onClick={saveAsTemplate}>
+                <Button type="button" onClick={saveAsTemplate}>
                   <BookmarkPlus className="mr-2 h-4 w-4" />
                   Save Template
                 </Button>
@@ -1322,7 +1323,7 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-6">
-              <Button onClick={() => setShowSettings(false)}>
+              <Button type="button" onClick={() => setShowSettings(false)}>
                 Done
               </Button>
             </div>
@@ -1368,10 +1369,10 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
                 </div>
               )}
               <div className="flex justify-end gap-2 pt-4">
-                <Button variant="ghost" onClick={() => setShowSchedule(false)}>
+                <Button type="button" variant="ghost" onClick={() => setShowSchedule(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleScheduleSend} disabled={scheduling}>
+                <Button type="button" onClick={handleScheduleSend} disabled={scheduling}>
                   {scheduling ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1414,10 +1415,10 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
                 Would you like to replace your current subject with the AI-suggested one?
               </p>
               <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => applyAISubject(false)}>
+                <Button type="button" variant="outline" onClick={() => applyAISubject(false)}>
                   Keep Mine
                 </Button>
-                <Button onClick={() => applyAISubject(true)}>
+                <Button type="button" onClick={() => applyAISubject(true)}>
                   <Sparkles className="mr-2 h-4 w-4" />
                   Use AI Subject
                 </Button>
@@ -1548,10 +1549,10 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
               </div>
             </ScrollArea>
             <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button variant="outline" onClick={() => setShowPreview(false)}>
+              <Button type="button" variant="outline" onClick={() => setShowPreview(false)}>
                 Edit
               </Button>
-              <Button onClick={() => {
+              <Button type="button" onClick={() => {
                 setShowPreview(false);
                 handleSend();
               }}>
@@ -1771,10 +1772,10 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
               </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t">
-                <Button variant="ghost" onClick={() => setShowRemixModal(false)}>
+                <Button type="button" variant="ghost" onClick={() => setShowRemixModal(false)}>
                   Cancel
                 </Button>
-                <Button onClick={performRemix} disabled={remixing}>
+                <Button type="button" onClick={performRemix} disabled={remixing}>
                   {remixing ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
