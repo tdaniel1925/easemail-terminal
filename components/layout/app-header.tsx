@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Mail, UserCircle, Calendar, Video, Menu, MessageSquare, RefreshCw, PenSquare, LogOut, Loader2 } from 'lucide-react';
+import { Mail, UserCircle, Calendar, Video, Menu, RefreshCw, PenSquare, LogOut, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -27,7 +27,6 @@ export function AppHeader({ sidebarOpen, onToggleSidebar, onCompose, onRefresh }
     { icon: UserCircle, label: 'Contacts', href: '/app/contacts' },
     { icon: Calendar, label: 'Calendar', href: '/app/calendar' },
     { icon: Video, label: 'MS Teams', href: '/app/teams' },
-    { icon: MessageSquare, label: 'AI Chat & Search', href: '/app/ai-chat' },
   ];
 
   const isActive = (href: string) => pathname === href;

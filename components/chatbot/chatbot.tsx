@@ -254,16 +254,9 @@ export function Chatbot() {
             </TabsContent>
 
             {/* Email Search Tab */}
-            <TabsContent value="search" className="flex-1 flex flex-col mt-0 overflow-hidden">
-              <ScrollArea className="flex-1 p-4">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold mb-2">Search Your Emails</h4>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Use operators to find emails quickly
-                    </p>
-                  </div>
-
+            <TabsContent value="search" className="flex-1 flex flex-col mt-0 overflow-hidden p-4">
+              <ScrollArea className="flex-1">
+                <div className="space-y-3">
                   <div className="space-y-2">
                     <p className="text-xs font-medium">Quick Examples:</p>
                     <div className="space-y-1">
@@ -298,7 +291,7 @@ export function Chatbot() {
               </ScrollArea>
 
               {/* Search Input */}
-              <div className="p-4 border-t border-border bg-background shrink-0">
+              <div className="pt-4 shrink-0">
                 <div className="flex gap-2">
                   <Input
                     value={searchQuery}
