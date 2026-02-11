@@ -295,7 +295,7 @@ export default function ContactsPage() {
             <p className="text-muted-foreground mt-1">Manage your contacts and connections ({contacts.length})</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchContacts} disabled={loading}>
+            <Button variant="outline" onClick={() => fetchContacts(true)} disabled={loading}>
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
