@@ -188,10 +188,6 @@ export default function InboxPage() {
         setMessages(prevMessages => [...prevMessages, ...data.messages]);
         setNextCursor(data.nextCursor || null);
         setHasMore(!!data.nextCursor);
-
-        if (data.messages.length > 0) {
-          toast.success(`Loaded ${data.messages.length} more message(s)`);
-        }
       }
     } catch (error) {
       console.error('Failed to load more messages:', error);
