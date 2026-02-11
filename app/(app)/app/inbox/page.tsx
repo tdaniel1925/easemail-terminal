@@ -642,6 +642,11 @@ export default function InboxPage() {
     }
   }, [composeParam]);
 
+  // Clear search when account or folder changes
+  useEffect(() => {
+    clearSearch();
+  }, [accountIdParam, activeFolderFilter]);
+
   useEffect(() => {
     // Refetch messages when account or folder changes
     fetchMessages(true);
@@ -669,7 +674,7 @@ export default function InboxPage() {
         observer.unobserve(currentRef);
       }
     };
-  }, [hasMore, loadingMore, loading, loadMoreMessages]);
+  }, [hasMore, loadingMore, loading]); // Removed loadMoreMessages from deps to prevent infinite loop
 
   const handleSnooze = async (messageId: string) => {
     setSnoozeMessageId(messageId);
@@ -1334,6 +1339,10 @@ export default function InboxPage() {
                       clearSearch();
                     }
                   }}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                 />
                 {searchQuery && (
                   <button
