@@ -9,46 +9,74 @@ export async function GET(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
+      console.error('Contacts API: No authenticated user');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { data: account } = (await supabase
+    console.log('Fetching contacts for user:', user.id);
+
+    const { data: account, error: accountError } = (await supabase
       .from('email_accounts')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_primary', true)
-      .single()) as { data: any };
+      .single()) as { data: any; error: any };
 
-    if (!account) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+    if (accountError || !account) {
+      console.error('Contacts API: No email account found', accountError);
+      // Return empty contacts instead of error to prevent UI break
+      return NextResponse.json({
+        contacts: [],
+        message: 'No email account connected. Please connect an email account first.'
+      });
     }
 
-    // Fetch contacts from Nylas
-    const contacts = await getCachedOrFetch(
-      `contacts:${account.grant_id}`,
-      async () => {
-        const nylasClient = nylas();
-        const response = await nylasClient.contacts.list({
-          identifier: account.grant_id,
-          queryParams: {
-            limit: 500,
-          },
-        });
-        return response.data;
-      },
-      120 // Cache for 2 minutes
-    );
+    console.log('Fetching contacts for grant_id:', account.grant_id?.substring(0, 10) + '...');
 
-    return NextResponse.json({ contacts: contacts || [] });
-  } catch (error) {
-    console.error('Fetch contacts error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch contacts',
-        contacts: []
-      },
-      { status: 500 }
-    );
+    // Fetch contacts from Nylas
+    try {
+      const contacts = await getCachedOrFetch(
+        `contacts:${account.grant_id}`,
+        async () => {
+          const nylasClient = nylas();
+          console.log('Calling Nylas contacts API...');
+          const response = await nylasClient.contacts.list({
+            identifier: account.grant_id,
+            queryParams: {
+              limit: 500,
+            },
+          });
+          console.log('Nylas contacts response:', response.data?.length || 0, 'contacts');
+          return response.data;
+        },
+        120 // Cache for 2 minutes
+      );
+
+      return NextResponse.json({ contacts: contacts || [] });
+    } catch (nylasError: any) {
+      console.error('Nylas contacts API error:', {
+        message: nylasError?.message,
+        statusCode: nylasError?.statusCode,
+        error: nylasError?.error,
+      });
+
+      // Return empty contacts instead of error to prevent UI break
+      return NextResponse.json({
+        contacts: [],
+        warning: 'Could not fetch contacts from email provider'
+      });
+    }
+  } catch (error: any) {
+    console.error('Fetch contacts error:', {
+      message: error?.message,
+      stack: error?.stack,
+    });
+
+    // Return empty contacts instead of error to prevent UI break
+    return NextResponse.json({
+      contacts: [],
+      error: 'Failed to fetch contacts'
+    });
   }
 }
 
