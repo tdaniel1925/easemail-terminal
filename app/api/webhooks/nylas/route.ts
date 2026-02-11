@@ -171,7 +171,7 @@ async function handleMessageCreated(data: NylasWebhookData) {
     // Store message in database
     await supabase.from('messages').insert({
       nylas_message_id: msg.id,
-      nylas_thread_id: msg.thread_id,
+      nylas_thread_id: msg.threadId,
       nylas_grant_id: grant_id,
       user_id: account.user_id,
       email_account_id: account.id,
