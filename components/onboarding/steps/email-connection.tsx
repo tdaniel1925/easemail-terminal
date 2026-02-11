@@ -80,12 +80,22 @@ export function EmailConnectionStep({ data, onNext, onBack }: EmailConnectionSte
           body: JSON.stringify({ provider }),
         });
 
+        // Check if the response is OK
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('OAuth API error:', response.status, errorText);
+          throw new Error(`OAuth API returned ${response.status}: ${errorText}`);
+        }
+
         const responseData = await response.json();
+        console.log('OAuth response:', responseData);
 
         if (responseData.url) {
+          console.log('Redirecting to OAuth URL:', responseData.url);
           // Redirect to Nylas OAuth URL
           window.location.href = responseData.url;
         } else {
+          console.error('No URL in response:', responseData);
           throw new Error(responseData.error || 'Failed to get OAuth URL');
         }
       }

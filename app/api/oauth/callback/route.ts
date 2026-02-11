@@ -17,11 +17,18 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get('state'); // user ID
   const error = searchParams.get('error');
 
+  console.log('OAuth callback received:', {
+    hasCode: !!code,
+    hasState: !!state,
+    hasError: !!error,
+    url: request.url,
+  });
+
   // Handle OAuth error from provider
   if (error) {
     logger.warn('OAuth error from provider', { error });
     return NextResponse.redirect(
-      new URL(`/app/connect?error=${encodeURIComponent(error)}`, request.url)
+      new URL(`/onboarding?error=${encodeURIComponent(error)}`, request.url)
     );
   }
 
@@ -29,14 +36,14 @@ export async function GET(request: NextRequest) {
   if (!code || !isString(code)) {
     logger.warn('OAuth callback missing code parameter');
     return NextResponse.redirect(
-      new URL('/app/connect?error=missing_code', request.url)
+      new URL('/onboarding?error=missing_code', request.url)
     );
   }
 
   if (!state || !isString(state)) {
     logger.warn('OAuth callback missing state parameter (user ID)');
     return NextResponse.redirect(
-      new URL('/app/connect?error=missing_state', request.url)
+      new URL('/onboarding?error=missing_state', request.url)
     );
   }
 
@@ -60,7 +67,7 @@ export async function GET(request: NextRequest) {
         error: exchangeError,
       });
       return NextResponse.redirect(
-        new URL('/app/connect?error=oauth_exchange_failed', request.url)
+        new URL('/onboarding?error=oauth_exchange_failed', request.url)
       );
     }
 
@@ -73,7 +80,7 @@ export async function GET(request: NextRequest) {
         grantId,
       });
       return NextResponse.redirect(
-        new URL('/app/connect?error=invalid_grant', request.url)
+        new URL('/onboarding?error=invalid_grant', request.url)
       );
     }
 
@@ -97,7 +104,7 @@ export async function GET(request: NextRequest) {
         email,
       });
       return NextResponse.redirect(
-        new URL('/app/connect?error=database_error', request.url)
+        new URL('/onboarding?error=database_error', request.url)
       );
     }
 
@@ -111,7 +118,7 @@ export async function GET(request: NextRequest) {
     // Redirect directly to onboarding with success flag
     // The onboarding wrapper will detect email_connected=true and show success message
     return NextResponse.redirect(
-      new URL('/app/onboarding?email_connected=true', request.url)
+      new URL('/onboarding?email_connected=true', request.url)
     );
   } catch (error: any) {
     logger.error('OAuth callback error', error, {
@@ -119,7 +126,7 @@ export async function GET(request: NextRequest) {
       component: 'api/oauth/callback',
     });
     return NextResponse.redirect(
-      new URL('/app/connect?error=oauth_failed', request.url)
+      new URL('/onboarding?error=oauth_failed', request.url)
     );
   }
 }

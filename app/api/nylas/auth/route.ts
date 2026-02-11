@@ -6,10 +6,12 @@ export async function POST(request: NextRequest) {
   try {
     const user = await getUser();
     if (!user) {
+      console.error('Nylas auth: User not authenticated');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { provider } = await request.json();
+    console.log('Nylas auth request:', { userId: user.id, provider });
 
     // Map provider to Nylas provider name
     const providerMap: { [key: string]: string } = {
@@ -33,6 +35,14 @@ export async function POST(request: NextRequest) {
     // Build Nylas OAuth URL
     const nylasClient = nylas();
     const oauthConfig = getNylasOAuthConfig();
+
+    console.log('Nylas OAuth config:', {
+      clientId: oauthConfig.clientId?.substring(0, 10) + '...',
+      redirectUri: oauthConfig.redirectUri,
+      provider: nylasProvider,
+      scopes,
+    });
+
     const authUrl = nylasClient.auth.urlForOAuth2({
       clientId: oauthConfig.clientId,
       redirectUri: oauthConfig.redirectUri,
@@ -41,11 +51,16 @@ export async function POST(request: NextRequest) {
       state: user.id, // Pass user ID in state for callback
     });
 
+    console.log('Generated OAuth URL:', authUrl);
     return NextResponse.json({ url: authUrl });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Nylas auth error:', error);
+    console.error('Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+    });
     return NextResponse.json(
-      { error: 'Failed to generate auth URL' },
+      { error: 'Failed to generate auth URL', details: error?.message },
       { status: 500 }
     );
   }
