@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         bcc: bcc_recipients || [],
         subject: subject || '',
         body: body || '',
-        reply_to_message_id: reply_to_message_id || undefined,
+        replyToMessageId: reply_to_message_id || undefined,
       },
     });
 
