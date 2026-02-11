@@ -91,8 +91,8 @@ export async function extractCalendarEvent(text: string) {
         content: `Extract calendar event details from the text. Return as JSON with these exact fields:
 - title: string (event title/subject)
 - date: string in YYYY-MM-DD format (e.g., "2026-02-15")
-- time: string in HH:MM format 24-hour (e.g., "14:30" for 2:30 PM)
-- duration: number (duration in minutes, default 60 if not specified)
+- time: string in HH:MM format 24-hour (e.g., "14:30" for 2:30 PM, "15:00" for 3 PM)
+- duration: number (duration in minutes) - ONLY if explicitly mentioned, otherwise use null
 - attendees: array of email strings (e.g., ["john@example.com"])
 - location: string (meeting location)
 
@@ -100,7 +100,8 @@ IMPORTANT:
 - Always return date and time, even if you need to infer them from context (like "tomorrow", "next Tuesday", etc.)
 - If no specific time mentioned, use 09:00 (9 AM) as default
 - If no date mentioned, use today's date
-- Use null only if truly impossible to determine
+- For duration: ONLY provide if explicitly stated (e.g., "1 hour", "30 minutes"). Otherwise use null so user can specify
+- Use 24-hour format: 3 PM = "15:00", 9 AM = "09:00", 2:30 PM = "14:30"
 
 Current date/time context: ${new Date().toISOString()}`,
       },

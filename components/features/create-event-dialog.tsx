@@ -92,27 +92,49 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
               timeStr = timeStr + ':00'; // Add seconds if missing
             }
 
-            const eventDate = new Date(`${event.date}T${timeStr}`);
+            // CRITICAL FIX: Build datetime string in LOCAL time format
+            // Do NOT use .toISOString() as it converts to UTC and causes timezone offset bugs
+            // For datetime-local inputs, we need "YYYY-MM-DDTHH:MM" in local time
+            const datetimeLocal = `${event.date}T${timeStr.slice(0, 5)}`; // HH:MM format
 
-            // Validate the date is valid
-            if (!isNaN(eventDate.getTime())) {
-              setStartTime(eventDate.toISOString().slice(0, 16));
+            // Validate by creating a date object
+            const testDate = new Date(datetimeLocal);
+            if (!isNaN(testDate.getTime())) {
+              // Use the local datetime string directly (NO timezone conversion)
+              setStartTime(datetimeLocal);
+              console.log('✅ Set start time (local):', datetimeLocal);
 
-              // Set end time based on duration
-              const durationMinutes = event.duration || 60;
-              const endDate = new Date(eventDate.getTime() + durationMinutes * 60000);
-              setEndTime(endDate.toISOString().slice(0, 16));
+              // Calculate end time
+              const durationMinutes = event.duration;
+
+              if (durationMinutes && durationMinutes > 0) {
+                // If duration provided, calculate end time
+                const endMs = new Date(datetimeLocal).getTime() + durationMinutes * 60000;
+                const endDate = new Date(endMs);
+                const endYear = endDate.getFullYear();
+                const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+                const endDay = String(endDate.getDate()).padStart(2, '0');
+                const endHour = String(endDate.getHours()).padStart(2, '0');
+                const endMinute = String(endDate.getMinutes()).padStart(2, '0');
+                const endLocal = `${endYear}-${endMonth}-${endDay}T${endHour}:${endMinute}`;
+                setEndTime(endLocal);
+                console.log('✅ Set end time (local):', endLocal, `(${durationMinutes} minutes)`);
+              } else {
+                // No duration - leave end time empty, user will be prompted
+                setEndTime('');
+                console.log('⚠️ No duration provided - end time left empty for user input');
+              }
               fieldsPopulated++;
             } else {
-              console.error('Invalid date created from:', event.date, event.time);
+              console.error('❌ Invalid date created from:', event.date, event.time);
               toast.error('Could not parse date/time from AI response');
             }
           } catch (dateError) {
-            console.error('Date parsing error:', dateError);
+            console.error('❌ Date parsing error:', dateError);
             toast.error('Could not parse date/time format');
           }
         } else {
-          console.warn('AI did not return both date and time:', { date: event.date, time: event.time });
+          console.warn('⚠️ AI did not return both date and time:', { date: event.date, time: event.time });
         }
 
         // Extract location
@@ -134,7 +156,17 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
         }
 
         if (fieldsPopulated > 0) {
-          toast.success(`✨ Extracted ${fieldsPopulated} field${fieldsPopulated > 1 ? 's' : ''}!`);
+          // Check if any required fields are still missing
+          const stillMissing = [];
+          if (!title) stillMissing.push('title');
+          if (!startTime) stillMissing.push('start time');
+          if (!endTime) stillMissing.push('end time');
+
+          if (stillMissing.length > 0) {
+            toast.success(`✨ Extracted ${fieldsPopulated} field${fieldsPopulated > 1 ? 's' : ''}! Please also add: ${stillMissing.join(', ')}`);
+          } else {
+            toast.success(`✨ Extracted ${fieldsPopulated} field${fieldsPopulated > 1 ? 's' : ''}! Ready to create.`);
+          }
         } else {
           toast.error('Could not extract event details. Please fill manually.');
         }
@@ -150,8 +182,15 @@ export function CreateEventDialog({ onClose, onCreated }: CreateEventDialogProps
   };
 
   const handleCreate = async () => {
-    if (!title || !startTime || !endTime) {
-      toast.error('Please fill in required fields');
+    // Validate required fields and give helpful messages
+    const missingFields = [];
+    if (!title || title.trim() === '') missingFields.push('title');
+    if (!startTime) missingFields.push('start time');
+    if (!endTime) missingFields.push('end time');
+
+    if (missingFields.length > 0) {
+      const fieldsText = missingFields.join(', ');
+      toast.error(`Please provide: ${fieldsText}`);
       return;
     }
 
