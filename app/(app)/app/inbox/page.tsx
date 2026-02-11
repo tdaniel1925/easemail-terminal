@@ -41,7 +41,11 @@ type EmailCategory = 'people' | 'newsletters' | 'notifications';
 export default function InboxPage() {
   const searchParams = useSearchParams();
   const folderParam = searchParams.get('folder');
+  const filterParam = searchParams.get('filter'); // Support both filter and folder params
   const composeParam = searchParams.get('compose');
+
+  // Use filter or folder param (filter takes priority for backward compatibility)
+  const activeFolderFilter = filterParam || folderParam;
 
   const [messages, setMessages] = useState<any[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
@@ -128,10 +132,10 @@ export default function InboxPage() {
         endpoint = `/api/messages?accountId=${selectedAccount}`;
       }
 
-      // Add folder filtering
-      if (folderParam) {
-        console.log('Filtering by folder:', folderParam);
-        endpoint += `${endpoint.includes('?') ? '&' : '?'}folder=${encodeURIComponent(folderParam)}`;
+      // Add folder filtering (supports both filter and folder params)
+      if (activeFolderFilter) {
+        console.log('Filtering by folder/filter:', activeFolderFilter);
+        endpoint += `${endpoint.includes('?') ? '&' : '?'}folder=${encodeURIComponent(activeFolderFilter)}`;
       }
 
       console.log('Fetching messages from:', endpoint);
@@ -148,7 +152,7 @@ export default function InboxPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedAccount, folderParam]);
+  }, [selectedAccount, activeFolderFilter]);
 
   const loadMoreMessages = async () => {
     if (!nextCursor || loadingMore) return;
@@ -165,8 +169,8 @@ export default function InboxPage() {
       }
 
       // Add folder parameter
-      if (folderParam) {
-        endpoint += `&folder=${encodeURIComponent(folderParam)}`;
+      if (activeFolderFilter) {
+        endpoint += `&folder=${encodeURIComponent(activeFolderFilter)}`;
       }
 
       const response = await fetch(endpoint);
@@ -634,7 +638,7 @@ export default function InboxPage() {
   useEffect(() => {
     // Refetch messages when account or folder changes
     fetchMessages(true);
-  }, [selectedAccount, folderParam, fetchMessages]);
+  }, [selectedAccount, activeFolderFilter, fetchMessages]);
 
   // Infinite scroll with IntersectionObserver
   useEffect(() => {
