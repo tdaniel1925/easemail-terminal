@@ -715,15 +715,15 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] sm:w-full flex flex-col px-6 py-4 sm:px-8 sm:py-6">
-        <DialogHeader className="pb-4 sm:pb-6">
+      <DialogContent className="max-w-4xl h-[90vh] w-[95vw] sm:w-full flex flex-col px-6 py-4 sm:px-8 sm:py-6 overflow-hidden">
+        <DialogHeader className="shrink-0 pb-3">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl sm:text-3xl">New Message</DialogTitle>
+            <DialogTitle className="text-xl sm:text-2xl">New Message</DialogTitle>
             {/* Auto-save indicator */}
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               {saving ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" />
                   Saving...
                 </span>
               ) : lastSaved ? (
@@ -734,435 +734,377 @@ export function EmailComposer({ onClose, replyTo }: EmailComposerProps) {
         </DialogHeader>
 
         <TooltipProvider>
-          <div className="flex-1 overflow-y-auto space-y-6">
-          {/* To */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="to">To</Label>
-              <div className="flex gap-2">
-                {!showCc && (
+          <div className="flex-1 flex flex-col space-y-3 min-h-0">
+          {/* Recipient Fields - Fixed height, no flex grow */}
+          <div className="shrink-0 space-y-3">
+            {/* To */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="to">To</Label>
+                {!showCc && !showBcc && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setShowCc(true)}
-                    className="h-6 text-xs"
+                    onClick={() => {
+                      setShowCc(true);
+                      setShowBcc(true);
+                    }}
+                    className="h-7 text-xs"
                   >
-                    Cc
+                    + Cc/Bcc
                   </Button>
                 )}
-                {!showBcc && (
+              </div>
+              <RecipientInput
+                id="to"
+                placeholder="recipient@example.com"
+                value={to}
+                onChange={setTo}
+              />
+            </div>
+
+            {/* CC */}
+            {showCc && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="cc">Cc</Label>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setShowBcc(true)}
+                    onClick={() => {
+                      setShowCc(false);
+                      setCc('');
+                    }}
                     className="h-6 text-xs"
                   >
-                    Bcc
+                    <X className="h-3 w-3" />
                   </Button>
-                )}
-              </div>
-            </div>
-            <RecipientInput
-              id="to"
-              placeholder="recipient@example.com (separate multiple with commas)"
-              value={to}
-              onChange={setTo}
-            />
-          </div>
-
-          {/* CC */}
-          {showCc && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="cc">Cc</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowCc(false);
-                    setCc('');
-                  }}
-                  className="h-6 text-xs"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-              <RecipientInput
-                id="cc"
-                placeholder="cc@example.com (separate multiple with commas)"
-                value={cc}
-                onChange={setCc}
-              />
-            </div>
-          )}
-
-          {/* BCC */}
-          {showBcc && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="bcc">Bcc</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowBcc(false);
-                    setBcc('');
-                  }}
-                  className="h-6 text-xs"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-              <RecipientInput
-                id="bcc"
-                placeholder="bcc@example.com (separate multiple with commas)"
-                value={bcc}
-                onChange={setBcc}
-              />
-            </div>
-          )}
-
-          {/* Subject */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="subject">Subject</Label>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Priority:</span>
-                  <select
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value as any)}
-                    className="text-xs border rounded px-2 py-1"
-                  >
-                    <option value="normal">Normal</option>
-                    <option value="high">High</option>
-                    <option value="low">Low</option>
-                  </select>
-                  {priority === 'high' && <Flag className="h-4 w-4 text-red-500" />}
                 </div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={requestReadReceipt}
-                    onChange={(e) => setRequestReadReceipt(e.target.checked)}
-                    className="rounded border-input"
-                  />
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <MailCheck className="h-3 w-3" />
-                    Read Receipt
-                  </span>
-                </label>
+                <RecipientInput
+                  id="cc"
+                  placeholder="cc@example.com"
+                  value={cc}
+                  onChange={setCc}
+                />
               </div>
+            )}
+
+            {/* BCC */}
+            {showBcc && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="bcc">Bcc</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowBcc(false);
+                      setBcc('');
+                    }}
+                    className="h-6 text-xs"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+                <RecipientInput
+                  id="bcc"
+                  placeholder="bcc@example.com"
+                  value={bcc}
+                  onChange={setBcc}
+                />
+              </div>
+            )}
+
+            {/* Subject */}
+            <div className="space-y-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Input
+                id="subject"
+                placeholder="Email subject"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+              />
             </div>
-            <Input
-              id="subject"
-              placeholder="Email subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-            />
           </div>
 
           {/* Body */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="body">Message</Label>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    >
-                      <Smile className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Add emoji (Ctrl/Cmd+E)</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() => {
-                        fetchTemplates();
-                        setShowCannedResponses(!showCannedResponses);
-                      }}
-                    >
-                      <Zap className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Insert canned response (Ctrl/Cmd+/)</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() => setShowVariables(!showVariables)}
-                    >
-                      <Braces className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Insert template variable</TooltipContent>
-                </Tooltip>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Tone:</span>
-                  <select
-                    value={tone}
-                    onChange={(e) => setTone(e.target.value as any)}
-                    className="text-xs border rounded px-2 py-1"
-                  >
-                    <option value="professional">Professional</option>
-                    <option value="friendly">Friendly</option>
-                    <option value="brief">Brief</option>
-                    <option value="detailed">Detailed</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Signature:</span>
-                  <select
-                    value={selectedSignature}
-                    onChange={(e) => handleSignatureChange(e.target.value)}
-                    className="text-xs border rounded px-2 py-1"
-                  >
-                    <option value="">None</option>
-                    {signatures.map((sig) => (
-                      <option key={sig.id} value={sig.id}>
-                        {sig.name} {sig.is_default ? '(Default)' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            {showEmojiPicker && (
-              <div className="relative">
-                <div className="absolute z-50 top-0 left-0 shadow-lg">
-                  <EmojiPicker
-                    onEmojiClick={(emojiData) => {
-                      setBody(body + emojiData.emoji);
-                      setShowEmojiPicker(false);
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-            <TiptapEditor
-              content={body}
-              onChange={setBody}
-              placeholder="Write your message here... You can use messy text - we'll polish it with AI!"
-              minHeight="400px"
-            />
-          </div>
-
-          {/* Voice Message Recorder */}
-          <VoiceMessageRecorder
-            onRecorded={(blob, duration) => {
-              setVoiceAttachments([...voiceAttachments, { blob, duration }]);
-            }}
-          />
-
-          {/* File Attachments */}
-          <AttachmentUploader
-            attachments={attachments}
-            onAttachmentsChange={setAttachments}
-            maxSize={25}
-            maxFiles={10}
-          />
-
-          {/* AI Remix Hint */}
-          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="font-semibold text-sm text-blue-900 dark:text-blue-100 mb-1">
-                  ✨ AI Features Available
-                </h4>
-                <p className="text-xs text-blue-700 dark:text-blue-300">
-                  • <strong>AI Remix:</strong> Polish your text instantly<br />
-                  • <strong>AI Dictate:</strong> Speak and get a perfect email<br />
-                  • <strong>Voice Message:</strong> Add personality with audio
-                </p>
-              </div>
+          <div className="space-y-2 flex-1 flex flex-col min-h-0">
+            <Label htmlFor="body">Message</Label>
+            <div className="flex-1 min-h-0">
+              <TiptapEditor
+                content={body}
+                onChange={setBody}
+                placeholder="Write your message here... You can use messy text - we'll polish it with AI!"
+                minHeight="calc(60vh - 280px)"
+              />
             </div>
           </div>
+
           </div>
         </TooltipProvider>
 
-        {/* Actions */}
+        {/* Toolbar - Always visible, no scrolling */}
         <TooltipProvider>
-          <div className="flex items-center justify-between pt-4 border-t border-border">
-            <div className="flex gap-2 flex-wrap">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
+          <div className="shrink-0 space-y-3 pt-3 border-t border-border">
+            {/* Attachments display */}
+            {(attachments.length > 0 || voiceAttachments.length > 0) && (
+              <div className="flex flex-wrap gap-2">
+                {attachments.map((attachment) => (
+                  <Badge key={attachment.id} variant="secondary" className="gap-1">
+                    <Paperclip className="h-3 w-3" />
+                    {attachment.name}
+                    <button
+                      onClick={() => setAttachments(attachments.filter(a => a.id !== attachment.id))}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+                {voiceAttachments.map((_, index) => (
+                  <Badge key={`voice-${index}`} variant="secondary" className="gap-1">
+                    <Mic className="h-3 w-3" />
+                    Voice Message {index + 1}
+                    <button
+                      onClick={() => setVoiceAttachments(voiceAttachments.filter((_, i) => i !== index))}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Toolbar Row */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex gap-2 flex-wrap">
+                {/* AI Tools Dropdown */}
+                <select
+                  className="text-sm border rounded px-3 py-2 bg-background cursor-pointer hover:bg-accent"
+                  value=""
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === 'dictate') {
+                      document.getElementById('voice-input-trigger')?.click();
+                    } else if (value === 'remix') {
+                      handleAIRemix();
+                    } else if (value === 'canned') {
                       fetchTemplates();
-                      setShowTemplates(true);
-                    }}
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Use Template
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Load a saved email template</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowSaveTemplate(true)}
-                    disabled={!body}
-                  >
-                    <BookmarkPlus className="mr-2 h-4 w-4" />
-                    Save as Template
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Save this email as a reusable template</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={handleAIRemix}
-                    disabled={remixing || body.length < 10}
-                  >
-                    {remixing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Remixing...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        AI Remix
-                      </>
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Polish your email with AI and get a subject suggestion</TooltipContent>
-              </Tooltip>
-
-              <VoiceInput
-                onTranscript={(text) => {
-                  // Convert plain text to HTML paragraphs for TiptapEditor
-                  const convertToHTML = (plainText: string) => {
-                    if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
-                      return plainText;
+                      setShowCannedResponses(true);
+                    } else if (value === 'emoji') {
+                      setShowEmojiPicker(true);
+                    } else if (value === 'variables') {
+                      setShowVariables(true);
                     }
-                    return plainText
-                      .split('\n\n')
-                      .filter(para => para.trim())
-                      .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
-                      .join('');
-                  };
-                  setBody(convertToHTML(text));
-                }}
-                tone={tone}
-              />
+                    e.target.value = '';
+                  }}
+                >
+                  <option value="">⚡ AI Tools</option>
+                  <option value="dictate">🎤 AI Dictate</option>
+                  <option value="remix">✨ AI Remix</option>
+                  <option value="canned">⚡ Canned Responses</option>
+                  <option value="emoji">😊 Emoji</option>
+                  <option value="variables">📋 Variables</option>
+                </select>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    onClick={() => saveDraft(true)}
-                    disabled={saving || (!to && !subject && !body)}
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Draft
-                      </>
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Save as draft (auto-saves every 30s)</TooltipContent>
-              </Tooltip>
+                {/* Hidden VoiceInput for trigger */}
+                <div className="hidden">
+                  <VoiceInput
+                    onTranscript={(text) => {
+                      const convertToHTML = (plainText: string) => {
+                        if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
+                          return plainText;
+                        }
+                        return plainText
+                          .split('\n\n')
+                          .filter(para => para.trim())
+                          .map(para => `<p>${para.replace(/\n/g, '<br>')}</p>`)
+                          .join('');
+                      };
+                      setBody(convertToHTML(text));
+                    }}
+                    tone={tone}
+                  />
+                </div>
+
+                {/* Attach Files Button with dropdown */}
+                <select
+                  className="text-sm border rounded px-3 py-2 bg-background cursor-pointer hover:bg-accent"
+                  value=""
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === 'file') {
+                      document.getElementById('file-upload-trigger')?.click();
+                    } else if (value === 'voice') {
+                      document.getElementById('voice-record-trigger')?.click();
+                    }
+                    e.target.value = '';
+                  }}
+                >
+                  <option value="">📎 Attach</option>
+                  <option value="file">📁 Files</option>
+                  <option value="voice">🎵 Voice Message</option>
+                </select>
+
+                {/* Hidden attachment uploaders */}
+                <div className="hidden">
+                  <AttachmentUploader
+                    attachments={attachments}
+                    onAttachmentsChange={setAttachments}
+                    maxSize={25}
+                    maxFiles={10}
+                  />
+                  <VoiceMessageRecorder
+                    onRecorded={(blob, duration) => {
+                      setVoiceAttachments([...voiceAttachments, { blob, duration }]);
+                    }}
+                  />
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    fetchTemplates();
+                    setShowTemplates(true);
+                  }}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Template
+                </Button>
+
+                {/* Options Dropdown */}
+                <select
+                  className="text-sm border rounded px-3 py-2 bg-background cursor-pointer hover:bg-accent"
+                  value=""
+                  onChange={(e) => {
+                    e.target.value = '';
+                  }}
+                  onClick={(e) => {
+                    // Show a popover or modal instead
+                    const target = e.target as HTMLSelectElement;
+                    if (target.value === '') {
+                      // We'll handle this inline for now
+                    }
+                  }}
+                >
+                  <option value="">⚙️ Options</option>
+                  <option value="" disabled>
+                    Signature: {signatures.find(s => s.id === selectedSignature)?.name || 'None'}
+                  </option>
+                  <option value="" disabled>
+                    Priority: {priority}
+                  </option>
+                  <option value="" disabled>
+                    Tone: {tone}
+                  </option>
+                  <option value="" disabled>
+                    Read Receipt: {requestReadReceipt ? 'Yes' : 'No'}
+                  </option>
+                </select>
+              </div>
             </div>
 
-            <div className="flex gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" onClick={onClose}>
-                    Cancel
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Close without sending</TooltipContent>
-              </Tooltip>
+            {/* Footer Row - Action Buttons */}
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => saveDraft(true)}
+                  disabled={saving || (!to && !subject && !body)}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Draft
+                    </>
+                  )}
+                </Button>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" onClick={() => setShowPreview(true)}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Preview
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Preview email before sending</TooltipContent>
-              </Tooltip>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreview(true)}
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Preview
+                </Button>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" onClick={() => setShowSchedule(true)}>
-                    <Clock className="mr-2 h-4 w-4" />
-                    Schedule
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Schedule this email to send later (Ctrl/Cmd+Shift+S)</TooltipContent>
-              </Tooltip>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSchedule(true)}
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Schedule
+                </Button>
+              </div>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button onClick={handleSend} disabled={sending || undoSendCountdown !== null}>
-                    {undoSendCountdown !== null ? (
-                      <>
-                        <Undo2 className="mr-2 h-4 w-4" />
-                        Undo ({undoSendCountdown}s)
-                      </>
-                    ) : sending ? (
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClose}
+                >
+                  Cancel
+                </Button>
+
+                {undoSendCountdown !== null ? (
+                  <>
+                    <Button variant="outline" size="sm" disabled>
+                      <Undo2 className="mr-2 h-4 w-4" />
+                      Undo ({undoSendCountdown}s)
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={cancelUndoSend}>
+                      Cancel Send
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={handleSend}
+                    disabled={sending}
+                  >
+                    {sending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending...
+                        Sending
                       </>
                     ) : (
                       <>
                         <Send className="mr-2 h-4 w-4" />
-                        Send Now
+                        Send
                       </>
                     )}
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>Send email immediately (Ctrl/Cmd+Enter)</TooltipContent>
-              </Tooltip>
-
-              {undoSendCountdown !== null && (
-                <Button variant="destructive" onClick={cancelUndoSend}>
-                  <X className="mr-2 h-4 w-4" />
-                  Cancel
-                </Button>
-              )}
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Emoji Picker Overlay */}
+          {showEmojiPicker && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowEmojiPicker(false)}>
+              <div onClick={(e) => e.stopPropagation()}>
+                <EmojiPicker
+                  onEmojiClick={(emojiData) => {
+                    setBody(body + emojiData.emoji);
+                    setShowEmojiPicker(false);
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </TooltipProvider>
       </DialogContent>
 
