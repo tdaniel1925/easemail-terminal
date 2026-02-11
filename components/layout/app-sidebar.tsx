@@ -42,6 +42,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
     fetchAccounts();
     fetchLabels();
     fetchUserRole();
+    syncFoldersIfNeeded();
 
     // Refresh counts every 60 seconds
     const interval = setInterval(fetchFolderCounts, 60000);
@@ -166,6 +167,26 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
       }
     } catch (error) {
       console.error('Failed to fetch user role:', error);
+    }
+  };
+
+  const syncFoldersIfNeeded = async () => {
+    try {
+      // Check sync status first
+      const statusResponse = await fetch('/api/folders/sync');
+      const statusData = await statusResponse.json();
+
+      // If any account needs sync, trigger sync
+      if (statusData.accounts && statusData.accounts.some((a: any) => a.needsSync)) {
+        console.log('Folders need sync, triggering sync...');
+        await fetch('/api/folders/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        console.log('Folder sync completed');
+      }
+    } catch (error) {
+      console.error('Failed to sync folders:', error);
     }
   };
 

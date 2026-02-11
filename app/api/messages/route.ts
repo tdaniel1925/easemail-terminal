@@ -77,15 +77,28 @@ export async function GET(request: NextRequest) {
             console.log('Found account-specific folder ID:', accountFolderId);
             queryParams.in = [accountFolderId];
           } else {
-            // Last resort: pass the filter as-is (might be a direct Nylas folder ID)
-            console.log('Using folder filter as-is:', folderId);
-            queryParams.in = [folderId];
+            // Last resort: check if it's a direct Nylas folder ID
+            if (folderId.length > 20 || folderId.includes('-')) {
+              console.log('Using folder filter as direct Nylas ID:', folderId);
+              queryParams.in = [folderId];
+            } else {
+              // Folder not found - return empty results instead of all messages
+              console.warn(`Folder '${folderId}' not found in database. Folders may need syncing.`);
+              return NextResponse.json({
+                messages: [],
+                nextCursor: null,
+                warning: `Folder '${folderId}' not found. Try refreshing or syncing folders.`
+              });
+            }
           }
         }
       } catch (error) {
         console.error('Error resolving folder filter:', error);
-        // Fallback to original behavior
-        queryParams.in = [folderId];
+        return NextResponse.json({
+          messages: [],
+          nextCursor: null,
+          error: 'Failed to resolve folder filter'
+        }, { status: 500 });
       }
     }
 
