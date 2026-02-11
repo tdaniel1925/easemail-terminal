@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { givenName, surname, emails, phoneNumbers, companyName, notes } = await request.json();
+    const { givenName, surname, emails, phoneNumbers, companyName, notes, webPages, imAddresses } = await request.json();
 
     const { data: account } = (await supabase
       .from('email_accounts')
@@ -102,18 +102,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
     }
 
+    // Build request body with optional fields
+    const requestBody: any = {
+      givenName,
+      surname,
+      emails: emails?.length ? emails.map((email: string) => ({ email, type: 'work' })) : [],
+      phoneNumbers: phoneNumbers?.map((phone: string) => ({ number: phone, type: 'mobile' })) || [],
+      companyName,
+      notes,
+    };
+
+    // Add optional fields if provided
+    if (webPages && webPages.length > 0) {
+      requestBody.webPages = webPages;
+    }
+
+    if (imAddresses && imAddresses.length > 0) {
+      requestBody.imAddresses = imAddresses;
+    }
+
     // Create contact via Nylas
     const nylasClient = nylas();
     const contact = await nylasClient.contacts.create({
       identifier: account.grant_id,
-      requestBody: {
-        givenName,
-        surname,
-        emails: emails.map((email: string) => ({ email, type: 'work' })),
-        phoneNumbers: phoneNumbers?.map((phone: string) => ({ number: phone, type: 'mobile' })) || [],
-        companyName,
-        notes,
-      },
+      requestBody,
     });
 
     // Track usage
