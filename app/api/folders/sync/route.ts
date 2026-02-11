@@ -105,10 +105,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Get sync status for all accounts
-    const { data: accounts } = await supabase
+    const { data: accounts } = (await supabase
       .from('email_accounts')
       .select('*')
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)) as { data: any[] };
 
     if (!accounts || accounts.length === 0) {
       return NextResponse.json({ accounts: [] });
