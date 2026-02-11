@@ -4,6 +4,33 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { ApiErrors } from '@/lib/api-error';
 import { sendEmail } from '@/lib/resend';
 import { getWelcomeEmailHtml } from '@/lib/email-templates';
+import crypto from 'crypto';
+
+/**
+ * Generate a secure random password
+ * Format: 3 words + 3 numbers (e.g., "Cloud-Sky-Moon-837")
+ */
+function generateSecurePassword(): string {
+  const words = [
+    'Cloud', 'Sky', 'Moon', 'Star', 'Ocean', 'River', 'Mountain', 'Forest',
+    'Tiger', 'Eagle', 'Dolphin', 'Phoenix', 'Dragon', 'Thunder', 'Lightning',
+    'Crystal', 'Diamond', 'Emerald', 'Sapphire', 'Ruby', 'Pearl', 'Coral',
+    'Sunrise', 'Sunset', 'Aurora', 'Galaxy', 'Comet', 'Nebula', 'Cosmos'
+  ];
+
+  // Select 3 random words
+  const selectedWords = [];
+  for (let i = 0; i < 3; i++) {
+    const randomIndex = crypto.randomInt(0, words.length);
+    selectedWords.push(words[randomIndex]);
+  }
+
+  // Generate 3 random digits
+  const randomDigits = crypto.randomInt(100, 999).toString();
+
+  // Combine: Word-Word-Word-###
+  return `${selectedWords.join('-')}-${randomDigits}`;
+}
 
 export async function POST(
   request: NextRequest,
@@ -47,12 +74,34 @@ export async function POST(
       return ApiErrors.notFound('User not found');
     }
 
-    // Send welcome email
+    // Generate new temporary password
+    const temporaryPassword = generateSecurePassword();
+
+    // Update user's password using Supabase Admin API
+    try {
+      const { error: updateError } = await serviceClient.auth.admin.updateUserById(
+        userId,
+        { password: temporaryPassword }
+      );
+
+      if (updateError) {
+        console.error('Failed to update password:', updateError);
+        return ApiErrors.internalError('Failed to update password');
+      }
+
+      console.log(`Password reset for user when resending welcome: ${targetUser.email}`);
+    } catch (passwordError) {
+      console.error('Password update error:', passwordError);
+      return ApiErrors.internalError('Failed to update password');
+    }
+
+    // Send welcome email with new password
     try {
       const userName = targetUser.name || targetUser.email.split('@')[0];
       const html = getWelcomeEmailHtml({
         userName,
         userEmail: targetUser.email,
+        initialPassword: temporaryPassword, // Include new password in welcome email
       });
 
       await sendEmail({
@@ -61,15 +110,20 @@ export async function POST(
         html,
       });
 
-      console.log(`Welcome email resent to: ${targetUser.email}`);
+      console.log(`Welcome email with new credentials resent to: ${targetUser.email}`);
 
       return NextResponse.json({
         success: true,
-        message: 'Welcome email sent successfully',
+        message: 'Welcome email sent with new login credentials',
       });
     } catch (emailError) {
       console.error('Failed to send welcome email to', targetUser.email, emailError);
-      return ApiErrors.internalError('Failed to send email');
+      // Password was changed but email failed
+      return NextResponse.json({
+        success: true,
+        message: 'Password reset successfully but email failed to send',
+        warning: 'Email notification was not sent',
+      });
     }
   } catch (error) {
     console.error('Resend welcome email error:', error);
