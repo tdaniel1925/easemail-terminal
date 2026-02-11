@@ -58,15 +58,18 @@ export default function ContactsPage() {
     fetchContacts();
   }, []);
 
-  const fetchContacts = async () => {
+  const fetchContacts = async (bustCache = false) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/contacts');
+      // Add cache-busting parameter to force fresh data after mutations
+      const url = bustCache ? `/api/contacts?t=${Date.now()}` : '/api/contacts';
+      const response = await fetch(url);
       const data = await response.json();
 
       if (response.ok && data.contacts) {
         setContacts(data.contacts);
       } else {
+        console.error('Fetch contacts error:', data);
         toast.error(data.error || 'Failed to load contacts');
       }
     } catch (error) {
@@ -150,8 +153,10 @@ export default function ContactsPage() {
         setShowAddDialog(false);
         setShowWarning(false);
         setProceedWithoutContact(false);
-        fetchContacts();
+        // Bust cache to show new contact immediately
+        fetchContacts(true);
       } else {
+        console.error('Add contact API error:', data);
         toast.error(data.error || 'Failed to add contact');
       }
     } catch (error) {
@@ -199,8 +204,10 @@ export default function ContactsPage() {
         setShowEditDialog(false);
         setShowWarning(false);
         setProceedWithoutContact(false);
-        fetchContacts();
+        // Bust cache to show updated contact immediately
+        fetchContacts(true);
       } else {
+        console.error('Update contact API error:', data);
         toast.error(data.error || 'Failed to update contact');
       }
     } catch (error) {
@@ -223,9 +230,11 @@ export default function ContactsPage() {
       if (response.ok) {
         toast.success('Contact deleted successfully');
         setShowDeleteDialog(false);
-        fetchContacts();
+        // Bust cache to remove deleted contact immediately
+        fetchContacts(true);
       } else {
         const data = await response.json();
+        console.error('Delete contact API error:', data);
         toast.error(data.error || 'Failed to delete contact');
       }
     } catch (error) {
@@ -451,39 +460,6 @@ export default function ContactsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          {/* Warning Banner */}
-          {showWarning && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-yellow-900">No contact information provided</p>
-                <p className="text-sm text-yellow-700 mt-1">
-                  You haven't entered an email address or phone number. We recommend adding at least one contact method.
-                </p>
-                <div className="flex gap-2 mt-3">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setShowWarning(false);
-                      setProceedWithoutContact(true);
-                      handleSubmitAdd();
-                    }}
-                  >
-                    Save Anyway
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowWarning(false)}
-                  >
-                    Go Back
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="grid gap-4 py-4">
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
@@ -578,6 +554,32 @@ export default function ContactsPage() {
               />
             </div>
           </div>
+
+          {/* Inline Warning - appears just above buttons */}
+          {showWarning && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-yellow-900">No email or phone number</p>
+                <p className="text-xs text-yellow-700 mt-0.5">
+                  Add at least one contact method or click "Save Anyway" to proceed.
+                </p>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 mt-2 text-xs text-yellow-800 hover:text-yellow-900 hover:bg-yellow-100"
+                  onClick={() => {
+                    setShowWarning(false);
+                    setProceedWithoutContact(true);
+                    handleSubmitAdd();
+                  }}
+                >
+                  Save Anyway
+                </Button>
+              </div>
+            </div>
+          )}
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)} disabled={submitting}>
               Cancel
@@ -608,39 +610,6 @@ export default function ContactsPage() {
               Update contact information
             </DialogDescription>
           </DialogHeader>
-
-          {/* Warning Banner */}
-          {showWarning && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-yellow-900">No contact information provided</p>
-                <p className="text-sm text-yellow-700 mt-1">
-                  You haven't entered an email address or phone number. We recommend adding at least one contact method.
-                </p>
-                <div className="flex gap-2 mt-3">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setShowWarning(false);
-                      setProceedWithoutContact(true);
-                      handleSubmitEdit();
-                    }}
-                  >
-                    Save Anyway
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setShowWarning(false)}
-                  >
-                    Go Back
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className="grid gap-4 py-4">
             {/* Name Fields */}
@@ -736,6 +705,32 @@ export default function ContactsPage() {
               />
             </div>
           </div>
+
+          {/* Inline Warning - appears just above buttons */}
+          {showWarning && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-xs font-semibold text-yellow-900">No email or phone number</p>
+                <p className="text-xs text-yellow-700 mt-0.5">
+                  Add at least one contact method or click "Save Anyway" to proceed.
+                </p>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 mt-2 text-xs text-yellow-800 hover:text-yellow-900 hover:bg-yellow-100"
+                  onClick={() => {
+                    setShowWarning(false);
+                    setProceedWithoutContact(true);
+                    handleSubmitEdit();
+                  }}
+                >
+                  Save Anyway
+                </Button>
+              </div>
+            </div>
+          )}
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)} disabled={submitting}>
               Cancel
