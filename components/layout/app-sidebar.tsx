@@ -70,14 +70,27 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
           const stored = localStorage.getItem('selectedAccountId');
           const storedAccount = stored ? data.accounts.find((a: any) => a.id === stored) : null;
 
+          let accountToSelect: string | null = null;
+
           if (storedAccount) {
+            accountToSelect = stored;
             setSelectedAccount(stored);
           } else {
             // Default to primary account
             const primary = data.accounts.find((a: any) => a.is_primary);
             if (primary) {
+              accountToSelect = primary.id;
               setSelectedAccount(primary.id);
               localStorage.setItem('selectedAccountId', primary.id);
+            }
+          }
+
+          // If on inbox page without accountId, add it to URL
+          if (accountToSelect && pathname === '/app/inbox') {
+            const currentParams = new URLSearchParams(window.location.search);
+            if (!currentParams.get('accountId')) {
+              currentParams.set('accountId', accountToSelect);
+              router.push(`${pathname}?${currentParams.toString()}`);
             }
           }
         }

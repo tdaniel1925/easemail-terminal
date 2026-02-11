@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -40,6 +40,8 @@ type EmailCategory = 'people' | 'newsletters' | 'notifications';
 
 export default function InboxPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const folderParam = searchParams.get('folder');
   const filterParam = searchParams.get('filter'); // Support both filter and folder params
   const composeParam = searchParams.get('compose');
@@ -111,11 +113,21 @@ export default function InboxPage() {
 
       if (data.accounts) {
         setAccounts(data.accounts);
+
+        // If no accountId in URL, add the primary account
+        if (!accountIdParam && data.accounts.length > 0) {
+          const primary = data.accounts.find((a: any) => a.is_primary);
+          if (primary) {
+            const currentParams = new URLSearchParams(searchParams.toString());
+            currentParams.set('accountId', primary.id);
+            router.replace(`${pathname}?${currentParams.toString()}`);
+          }
+        }
       }
     } catch (error) {
       console.error('Failed to fetch accounts:', error);
     }
-  }, []);
+  }, [accountIdParam, searchParams, pathname, router]);
 
   const fetchMessages = useCallback(async (reset: boolean = true) => {
     try {
