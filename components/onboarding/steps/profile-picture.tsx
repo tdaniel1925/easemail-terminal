@@ -31,9 +31,9 @@ export function ProfilePictureStep({ data, onNext, onBack }: ProfilePictureStepP
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be less than 10MB');
       return;
     }
 
@@ -171,7 +171,7 @@ export function ProfilePictureStep({ data, onNext, onBack }: ProfilePictureStepP
           <p className="text-xs text-gray-500 text-center max-w-xs">
             Recommended: Square image, at least 400x400px
             <br />
-            Max file size: 5MB
+            Max file size: 10MB
           </p>
         </div>
 
