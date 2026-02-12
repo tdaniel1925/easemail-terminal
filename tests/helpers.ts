@@ -8,10 +8,16 @@ export async function createTestUserViaAPI() {
   const testPassword = 'TestPassword123!';
   const testName = 'Test User';
 
+  // Use BASE_URL from environment or fallback to localhost
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+
   try {
-    const response = await fetch('http://localhost:3000/api/test/create-user', {
+    const response = await fetch(`${baseUrl}/api/test/create-user`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-test-token': process.env.TEST_ENDPOINT_TOKEN || 'test-token-for-e2e'
+      },
       body: JSON.stringify({
         email: testEmail,
         password: testPassword,

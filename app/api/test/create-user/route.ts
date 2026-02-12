@@ -65,10 +65,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark onboarding as complete
+    // Use update instead of upsert to ensure we override the trigger's default value
     const { error: prefsError } = await supabaseAdmin
       .from('user_preferences')
-      .upsert({
-        user_id: authData.user.id,
+      .update({
         use_case: 'work',
         ai_features_enabled: true,
         auto_categorize: true,
@@ -76,10 +76,28 @@ export async function POST(request: NextRequest) {
         onboarding_completed: true,
         onboarding_completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      });
+      })
+      .eq('user_id', authData.user.id);
 
     if (prefsError) {
-      console.error('Preferences error:', prefsError);
+      console.error('Preferences update error:', prefsError);
+      // If update failed, try insert
+      const { error: insertError } = await supabaseAdmin
+        .from('user_preferences')
+        .insert({
+          user_id: authData.user.id,
+          use_case: 'work',
+          ai_features_enabled: true,
+          auto_categorize: true,
+          notification_schedule: {},
+          onboarding_completed: true,
+          onboarding_completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+      if (insertError) {
+        console.error('Preferences insert error:', insertError);
+      }
     }
 
     return NextResponse.json({
