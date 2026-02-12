@@ -72,13 +72,15 @@ const CustomImage = Node.create({
 
   addCommands() {
     return {
-      setImage: (options: { src: string; alt?: string; title?: string }) => ({ commands }) => {
-        return commands.insertContent({
-          type: this.name,
-          attrs: options,
-        });
-      },
-    };
+      setImage:
+        (options: { src: string; alt?: string; title?: string }) =>
+        ({ commands }: any) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: options,
+          });
+        },
+    } as any;
   },
 });
 import { Button } from '@/components/ui/button';
