@@ -44,6 +44,7 @@ const gradientBackgrounds = [
 export default function HomePage() {
   const router = useRouter();
   const [userName, setUserName] = useState('');
+  const [organizationName, setOrganizationName] = useState('');
   const [stats, setStats] = useState<Stats>({
     unread: 0,
     today: 0,
@@ -61,6 +62,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchUserData();
+    fetchOrganization();
     fetchStats();
     fetchTodayEvents();
     fetchFocusTime();
@@ -99,6 +101,18 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error('Failed to fetch user data:', error);
+    }
+  };
+
+  const fetchOrganization = async () => {
+    try {
+      const response = await fetch('/api/user/organization');
+      const data = await response.json();
+      if (data.organization) {
+        setOrganizationName(data.organization.name);
+      }
+    } catch (error) {
+      console.error('Failed to fetch organization:', error);
     }
   };
 
@@ -157,6 +171,16 @@ export default function HomePage() {
     return 'Good evening';
   };
 
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    return now.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   const quickActions = [
     {
       title: 'Inbox',
@@ -200,7 +224,7 @@ export default function HomePage() {
               {getGreeting()}{userName ? `, ${userName}` : ''}
             </h1>
             <p className="text-2xl md:text-3xl opacity-95 drop-shadow-xl font-medium">
-              {formatDate(new Date())}
+              {organizationName || getCurrentDateTime()}
             </p>
           </div>
         </div>
