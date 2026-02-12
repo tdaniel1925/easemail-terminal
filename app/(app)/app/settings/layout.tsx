@@ -73,14 +73,16 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: userData } = await supabase
-        .from('users')
+      // Get user's organization role from organization_members table
+      const { data: orgMembership } = await supabase
+        .from('organization_members')
         .select('role')
-        .eq('id', user.id)
-        .single() as { data: { role: string } | null };
+        .eq('user_id', user.id)
+        .eq('status', 'ACTIVE')
+        .maybeSingle() as { data: { role: string } | null };
 
-      if (userData) {
-        setUserRole(userData.role);
+      if (orgMembership) {
+        setUserRole(orgMembership.role);
       }
     } catch (error) {
       console.error('Failed to fetch user role:', error);

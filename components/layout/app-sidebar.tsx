@@ -187,7 +187,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
         .eq('user_id', user.id)
         .in('role', ['OWNER', 'ADMIN'])
         .limit(1)
-        .single()) as { data: { organization_id: string; role: string } | null };
+        .maybeSingle()) as { data: { organization_id: string; role: string } | null };
 
       if (orgMembership) {
         setOrgAdminOfOrg(orgMembership.organization_id);
