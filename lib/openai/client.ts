@@ -32,24 +32,27 @@ export async function aiRemix(text: string, tone: AITone = 'professional'): Prom
         role: 'system',
         content: `${toneInstructions[tone]}
 
-Format the email with proper structure:
-1. Add an appropriate greeting (e.g., "Hi," or "Hello," for friendly/casual, "Dear [Name]," for formal)
-2. Add ONE blank line after greeting
-3. Write the email body
-4. Add ONE blank line after body
-5. Add an appropriate closing salutation based on tone:
+CRITICAL FORMATTING REQUIREMENTS - YOU MUST FOLLOW EXACTLY:
+
+1. Start with an appropriate greeting on its own line
+2. Add EXACTLY TWO newlines (\\n\\n) after the greeting to create a blank line
+3. Write the email body content
+4. Add EXACTLY TWO newlines (\\n\\n) after the body to create a blank line
+5. Add a closing salutation based on tone:
    - Professional: "Best regards," or "Kind regards,"
    - Friendly: "Thanks," or "Cheers,"
    - Brief: "Thanks," or "Best,"
    - Detailed: "Sincerely," or "Best regards,"
+6. Do NOT include a signature (name/contact info) - that will be added separately
 
-Do NOT include a signature (name/contact info) - that will be added separately.
+Example format:
+Hi John,\\n\\nBody content goes here...\\n\\nBest regards,
 
 Return a JSON object with two fields:
-- "body": The formatted email with greeting, blank lines, body content, blank line, and salutation
+- "body": The formatted email text following the structure above
 - "suggestedSubject": A concise subject line (max 60 characters)
 
-IMPORTANT: Use \\n\\n for blank lines in the body field.`,
+REMINDER: The blank lines are CRITICAL - use \\n\\n (two newlines) after greeting and after body content.`,
       },
       {
         role: 'user',
@@ -62,8 +65,34 @@ IMPORTANT: Use \\n\\n for blank lines in the body field.`,
   });
 
   const result = JSON.parse(completion.choices[0].message.content || '{"body":"","suggestedSubject":""}');
+
+  // Post-process to ensure proper line breaks before signature
+  let body = result.body || text;
+
+  // Ensure there's a blank line before the closing salutation
+  // Common salutations to check for
+  const salutations = [
+    'Best regards,', 'Kind regards,', 'Sincerely,', 'Best,', 'Thanks,',
+    'Cheers,', 'Warm regards,', 'Thank you,'
+  ];
+
+  for (const salutation of salutations) {
+    // If salutation exists but doesn't have double newline before it, add it
+    const salutationIndex = body.lastIndexOf(salutation);
+    if (salutationIndex > 0) {
+      const beforeSalutation = body.substring(0, salutationIndex);
+      // Check if there's already a double newline before salutation
+      if (!beforeSalutation.endsWith('\n\n') && !beforeSalutation.endsWith('\r\n\r\n')) {
+        // Remove any single newlines before salutation and add double newline
+        const trimmed = beforeSalutation.replace(/\n+$/, '');
+        body = trimmed + '\n\n' + body.substring(salutationIndex);
+      }
+      break;
+    }
+  }
+
   return {
-    body: result.body || text,
+    body,
     suggestedSubject: result.suggestedSubject || '',
   };
 }
