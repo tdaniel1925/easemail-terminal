@@ -147,7 +147,7 @@ test.describe('Full System Integration', () => {
     const roleSelect = page.locator('select, [role="combobox"]').filter({ hasText: /role/i }).first();
     if (await roleSelect.isVisible()) {
       await roleSelect.click();
-      await page.click('text=Member, text=MEMBER').first();
+      await page.locator('text=Member, text=MEMBER').first().click();
     }
 
     await page.click('button:has-text("Send Invite")');
@@ -160,7 +160,7 @@ test.describe('Full System Integration', () => {
 
     if (await roleSelect.isVisible()) {
       await roleSelect.click();
-      await page.click('text=Member, text=MEMBER').first();
+      await page.locator('text=Member, text=MEMBER').first().click();
     }
 
     await page.click('button:has-text("Send Invite")');

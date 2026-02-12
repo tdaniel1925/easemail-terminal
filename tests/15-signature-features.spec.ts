@@ -243,7 +243,7 @@ test.describe('Signature Features E2E Tests', () => {
     const signatureSelect = page.locator('select').filter({ hasText: /Signature/ });
     if (await signatureSelect.count() > 0) {
       // Select different signature
-      await signatureSelect.selectOption({ label: /Signature B/ });
+      await signatureSelect.selectOption({ label: 'Signature B' });
 
       // Verify signature changed
       const composerBody = page.locator('.tiptap.ProseMirror').last();
@@ -375,7 +375,7 @@ test.describe('Signature Onboarding E2E Tests', () => {
         const firstEditor = editors.first();
         const content = await firstEditor.textContent();
         expect(content).toBeTruthy();
-        expect(content.length).toBeGreaterThan(0);
+        expect(content!.length).toBeGreaterThan(0);
       }
     }
 

@@ -182,7 +182,7 @@ test.describe('TDaniel BundleFly Workflow', () => {
         console.log('✓ Onboarding flow completed');
         await page.waitForTimeout(1000);
       } catch (e) {
-        console.log('Error during onboarding:', e.message);
+        console.log('Error during onboarding:', (e as Error).message);
       }
     }
 
@@ -267,7 +267,7 @@ test.describe('TDaniel BundleFly Workflow', () => {
         console.log('  ✗ Organization creation failed:', responseBody.error);
       }
     } catch (error) {
-      console.log('  ⚠ Could not capture API response:', error.message);
+      console.log('  ⚠ Could not capture API response:', (error as Error).message);
     }
 
     // Wait for success and modal to close

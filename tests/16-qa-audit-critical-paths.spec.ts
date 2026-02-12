@@ -268,7 +268,7 @@ test.describe('QA Audit Critical Paths - Phase 1: API RLS Permission Fixes', () 
       });
 
       if (!authUser.user) {
-        test.skip('Could not create test user');
+        test.skip(true, 'Could not create test user');
         return;
       }
 
@@ -443,7 +443,7 @@ test.describe('QA Audit Critical Paths - Phase 3: Database Security Fixes', () =
       });
 
       if (!authUser.user) {
-        test.skip('Could not create test user');
+        test.skip(true, 'Could not create test user');
         return;
       }
 
@@ -559,7 +559,7 @@ test.describe('QA Audit Critical Paths - Phase 3: Database Security Fixes', () =
       });
 
       if (!authUser.user) {
-        test.skip('Could not create test user');
+        test.skip(true, 'Could not create test user');
         return;
       }
 
@@ -628,7 +628,7 @@ test.describe('QA Audit Critical Paths - Phase 3: Database Security Fixes', () =
       });
 
       if (!adminAuth.user || !memberAuth.user) {
-        test.skip('Could not create test users');
+        test.skip(true, 'Could not create test users');
         return;
       }
 
@@ -724,7 +724,7 @@ test.describe('QA Audit Critical Paths - Phase 3: Database Security Fixes', () =
       });
 
       if (!memberAuth.user) {
-        test.skip('Could not create test user');
+        test.skip(true, 'Could not create test user');
         return;
       }
 
@@ -814,7 +814,7 @@ test.describe('QA Audit Critical Paths - Phase 3: Database Security Fixes', () =
       });
 
       if (!regularAuth.user) {
-        test.skip('Could not create test user');
+        test.skip(true, 'Could not create test user');
         return;
       }
 

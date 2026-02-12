@@ -29,7 +29,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
         .single();
 
       if (!superAdmin) {
-        test.skip('No super admin user found');
+        test.skip(true, 'No super admin user found');
         return;
       }
 
@@ -64,7 +64,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
         .single();
 
       if (!superAdmin) {
-        test.skip('No super admin user found');
+        test.skip(true, 'No super admin user found');
         return;
       }
 
@@ -106,7 +106,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
         .single();
 
       if (!superAdmin) {
-        test.skip('No super admin user found');
+        test.skip(true, 'No super admin user found');
         return;
       }
 
@@ -144,7 +144,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
 
       if (authError || !authUser.user) {
         console.error('Failed to create test user:', authError);
-        test.skip('Could not create test user');
+        test.skip(true, 'Could not create test user');
         return;
       }
 
@@ -167,7 +167,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
       if (!org) {
         // Cleanup
         await supabase.auth.admin.deleteUser(authUser.user.id);
-        test.skip('Could not create test organization');
+        test.skip(true, 'Could not create test organization');
         return;
       }
 
@@ -221,7 +221,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
         .single();
 
       if (!superAdmin) {
-        test.skip('No super admin user found');
+        test.skip(true, 'No super admin user found');
         return;
       }
 
@@ -255,7 +255,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
         .single();
 
       if (!superAdmin) {
-        test.skip('No super admin user found');
+        test.skip(true, 'No super admin user found');
         return;
       }
 
@@ -291,7 +291,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
         .single();
 
       if (!superAdmin) {
-        test.skip('No super admin user found');
+        test.skip(true, 'No super admin user found');
         return;
       }
 
@@ -333,7 +333,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
         .single();
 
       if (!superAdmin) {
-        test.skip('No super admin user found');
+        test.skip(true, 'No super admin user found');
         return;
       }
 
@@ -346,7 +346,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
         .single();
 
       if (!targetUser) {
-        test.skip('No regular user found to impersonate');
+        test.skip(true, 'No regular user found to impersonate');
         return;
       }
 
@@ -411,7 +411,7 @@ test.describe('Admin Notifications and Impersonation Features', () => {
       });
 
       if (!authUser.user) {
-        test.skip('Could not create test user');
+        test.skip(true, 'Could not create test user');
         return;
       }
 
