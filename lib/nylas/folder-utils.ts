@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import Nylas from 'nylas';
 
 export type FolderType =
@@ -168,9 +169,13 @@ export async function getFolderIdsByType(
   userId: string,
   folderType: FolderType
 ): Promise<string[]> {
-  const supabase = await createClient();
+  // Use service client to bypass RLS for internal server functions
+  const supabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  const { data, error } = (await supabase
+  const { data, error} = (await supabase
     .from('folder_mappings')
     .select('nylas_folder_id')
     .eq('user_id', userId)
@@ -192,7 +197,11 @@ export async function getFolderIdForAccount(
   emailAccountId: string,
   folderType: FolderType
 ): Promise<string | null> {
-  const supabase = await createClient();
+  // Use service client to bypass RLS for internal server functions
+  const supabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   const { data, error } = (await supabase
     .from('folder_mappings')
@@ -201,7 +210,7 @@ export async function getFolderIdForAccount(
     .eq('folder_type', folderType)
     .eq('is_active', true)
     .limit(1)
-    .single()) as { data: any | null; error: any };
+    .maybeSingle()) as { data: any | null; error: any };
 
   if (error || !data) {
     return null;
@@ -232,7 +241,11 @@ export async function resolveFolderFilter(
  * Gets all folder mappings for a user
  */
 export async function getFolderMappingsForUser(userId: string): Promise<FolderMapping[]> {
-  const supabase = await createClient();
+  // Use service client to bypass RLS for internal server functions
+  const supabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   const { data, error } = await supabase
     .from('folder_mappings')
