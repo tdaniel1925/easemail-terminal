@@ -41,11 +41,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all users
-    const { data: allUsers, error: usersError } = await supabase
+    const { data: allUsers, error: usersError } = (await supabase
       .from('users')
-      .select('id, email, name, created_at, is_super_admin');
+      .select('id, email, name, created_at, is_super_admin')) as {
+      data: Array<{ id: string; email: string; name: string; created_at: string; is_super_admin: boolean }> | null;
+      error: any;
+    };
 
-    if (usersError) {
+    if (usersError || !allUsers) {
       console.error('Error fetching users:', usersError);
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
     }
