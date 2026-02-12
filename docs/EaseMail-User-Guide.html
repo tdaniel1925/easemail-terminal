@@ -1,0 +1,2925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EaseMail Complete User Guide</title>
+    <style>
+        @page {
+            size: 8.5in 11in;
+            margin: 0.75in;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a202c;
+            background: #f7fafc;
+        }
+
+        /* Cover Page */
+        .cover {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: #3b82f6;
+            color: white;
+            page-break-after: always;
+            padding: 2in;
+        }
+
+        .cover .logo {
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            margin: 0 auto 40px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 72px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .cover h1 {
+            font-size: 64px;
+            font-weight: 700;
+            margin: 0 0 20px 0;
+            letter-spacing: -2px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        .cover .tagline {
+            font-size: 28px;
+            font-weight: 300;
+            margin: 0 0 60px 0;
+            opacity: 0.95;
+            max-width: 700px;
+            line-height: 1.4;
+        }
+
+        .cover .subtitle {
+            font-size: 20px;
+            font-weight: 400;
+            margin: 60px 0 20px 0;
+            opacity: 0.9;
+        }
+
+        .cover .version {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-top: 40px;
+        }
+
+        /* Content Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 42px;
+            color: #3b82f6;
+            margin: 40px 0 20px 0;
+            font-weight: 700;
+            border-bottom: 4px solid #3b82f6;
+            padding-bottom: 12px;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            font-size: 32px;
+            color: #2d3748;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 24px;
+            color: #4a5568;
+            margin: 30px 0 15px 0;
+            font-weight: 600;
+            page-break-after: avoid;
+        }
+
+        h4 {
+            font-size: 20px;
+            color: #718096;
+            margin: 20px 0 10px 0;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 0 0 16px 0;
+            color: #2d3748;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin: 0 0 20px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        /* Code */
+        code {
+            background: #edf2f7;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #e53e3e;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            page-break-inside: avoid;
+        }
+
+        th {
+            background: #3b82f6;
+            color: white;
+            padding: 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        tr:hover {
+            background: #edf2f7;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: #f7fafc;
+            padding: 40px;
+            border-radius: 12px;
+            margin: 40px 0;
+            border: 2px solid #e2e8f0;
+            page-break-after: always;
+        }
+
+        .toc h2 {
+            margin-top: 0;
+            color: #3b82f6;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 15px;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 30px;
+        }
+
+        .toc li {
+            padding: 12px 0;
+            border-bottom: 1px solid #cbd5e0;
+            font-size: 16px;
+        }
+
+        .toc li:last-child {
+            border-bottom: none;
+        }
+
+        .toc li a {
+            color: #2d3748;
+            text-decoration: none;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+        }
+
+        .toc li a:hover {
+            color: #2563eb;
+        }
+
+        /* Callout Boxes */
+        .callout {
+            padding: 20px 24px;
+            margin: 25px 0;
+            border-radius: 10px;
+            border-left: 5px solid;
+            page-break-inside: avoid;
+        }
+
+        .callout.info {
+            background: #ebf8ff;
+            border-color: #3b82f6;
+        }
+
+        .callout.warning {
+            background: #fffaf0;
+            border-color: #ed8936;
+        }
+
+        .callout.success {
+            background: #f0fff4;
+            border-color: #38a169;
+        }
+
+        .callout.danger {
+            background: #fff5f5;
+            border-color: #e53e3e;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Feature Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            page-break-inside: avoid;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+
+        .card h4 {
+            margin-top: 0;
+            color: #3b82f6;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        /* Steps */
+        .steps {
+            counter-reset: step;
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+        }
+
+        .steps li {
+            counter-increment: step;
+            position: relative;
+            padding-left: 70px;
+            margin-bottom: 35px;
+            page-break-inside: avoid;
+        }
+
+        .steps li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 45px;
+            height: 45px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .steps h4 {
+            margin: 0 0 10px 0;
+            color: #2d3748;
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding-left: 35px;
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .checklist li::before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+            font-size: 22px;
+            color: #3b82f6;
+        }
+
+        /* Highlight Box */
+        .highlight-box {
+            background: #3b82f6;
+            color: white;
+            padding: 35px;
+            border-radius: 15px;
+            margin: 35px 0;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            page-break-inside: avoid;
+        }
+
+        .highlight-box h3 {
+            color: white;
+            margin-top: 0;
+            font-size: 26px;
+        }
+
+        .highlight-box ul {
+            margin-bottom: 0;
+        }
+
+        .highlight-box li {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Quick Reference */
+        .quick-ref {
+            background: #fffbeb;
+            border: 3px solid #fbbf24;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 35px 0;
+            page-break-inside: avoid;
+        }
+
+        .quick-ref h3 {
+            color: #92400e;
+            margin-top: 0;
+        }
+
+        /* Troubleshooting Section */
+        .trouble-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            page-break-inside: avoid;
+        }
+
+        .trouble-item h4 {
+            color: #e53e3e;
+            margin-top: 0;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trouble-item h4::before {
+            content: "⚠️";
+            font-size: 24px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 80px;
+            padding: 40px 0;
+            border-top: 3px solid #e2e8f0;
+            text-align: center;
+            color: #718096;
+        }
+
+        .footer p {
+            margin-bottom: 10px;
+        }
+
+        /* Links */
+        a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        /* Print Styles */
+        @media print {
+            @page {
+                margin: 0.75in 0.75in 1in 0.75in;
+                @bottom-right {
+                    content: "Page " counter(page) " of " counter(pages);
+                    font-size: 10pt;
+                    color: #718096;
+                }
+                @bottom-left {
+                    content: "EaseMail User Guide";
+                    font-size: 10pt;
+                    color: #718096;
+                }
+            }
+
+            body {
+                background: white;
+                counter-reset: page;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 40px;
+                max-width: 100%;
+            }
+
+            .cover {
+                page-break-after: always;
+            }
+
+            .toc {
+                page-break-after: always;
+            }
+
+            .toc li a::after {
+                content: leader('.') target-counter(attr(href), page);
+                float: right;
+            }
+
+            h1 {
+                page-break-before: always;
+                page-break-after: avoid;
+                margin-top: 0;
+                padding-top: 20px;
+            }
+
+            h1:first-of-type {
+                page-break-before: auto;
+            }
+
+            h2, h3, h4 {
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+
+            .card-grid {
+                page-break-inside: avoid;
+            }
+
+            .callout, .trouble-item, .highlight-box, .quick-ref {
+                page-break-inside: avoid;
+            }
+
+            .steps li {
+                page-break-inside: avoid;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+
+            /* Page numbers in content */
+            .page-number {
+                position: running(pageNumber);
+            }
+
+            /* Section headers in running header */
+            h1::before {
+                content: "Section " counter(section) " - ";
+                counter-increment: section;
+            }
+        }
+
+        /* Icons */
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        /* Keyboard Shortcuts */
+        kbd {
+            background: #2d3748;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 1px solid #1a202c;
+        }
+
+        /* Section Markers */
+        section {
+            page-break-before: always;
+            padding-top: 20px;
+        }
+
+        section:first-of-type {
+            page-break-before: auto;
+        }
+
+        /* Comparison Table */
+        .comparison-table td:first-child {
+            font-weight: 600;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        /* Feature List */
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 15px 20px;
+            margin-bottom: 12px;
+            background: #f7fafc;
+            border-left: 4px solid #3b82f6;
+            border-radius: 6px;
+        }
+
+        .feature-list li strong {
+            color: #3b82f6;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Cover Page -->
+<div class="cover">
+    <div class="logo">📧</div>
+    <h1>EaseMail</h1>
+    <div class="tagline">Smart Email for Modern Teams<br>Your Complete User & Troubleshooting Guide</div>
+
+    <div class="subtitle">
+        Master email with AI superpowers, streamline your inbox,<br>
+        and collaborate seamlessly with your team
+    </div>
+
+    <div class="version">
+        <strong>Version 1.0 | February 2026</strong><br>
+        Complete User Documentation & Troubleshooting Guide
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+
+<!-- Table of Contents -->
+<div class="toc">
+    <h2>📚 Table of Contents</h2>
+    <ul>
+        <li><a href="#getting-started"><strong>1. Getting Started</strong> <span>Quick setup and first steps</span></a></li>
+        <li><a href="#email-basics"><strong>2. Email Basics</strong> <span>Reading, composing, organizing</span></a></li>
+        <li><a href="#ai-features"><strong>3. AI Features</strong> <span>AI Compose, Remix, Dictate</span></a></li>
+        <li><a href="#calendar"><strong>4. Calendar & Meetings</strong> <span>Schedule and manage events</span></a></li>
+        <li><a href="#contacts"><strong>5. Contacts Management</strong> <span>Organize your network</span></a></li>
+        <li><a href="#organization"><strong>6. Working with Organizations</strong> <span>Team collaboration</span></a></li>
+        <li><a href="#settings"><strong>7. Settings & Preferences</strong> <span>Customize your experience</span></a></li>
+        <li><a href="#shortcuts"><strong>8. Keyboard Shortcuts</strong> <span>Work faster</span></a></li>
+        <li><a href="#troubleshooting"><strong>9. Troubleshooting Guide</strong> <span>Fix common issues</span></a></li>
+        <li><a href="#faq"><strong>10. FAQ</strong> <span>Frequently asked questions</span></a></li>
+    </ul>
+</div>
+
+<section id="getting-started">
+<h1>1. Getting Started</h1>
+
+<div class="highlight-box">
+    <h3>🚀 Welcome to EaseMail!</h3>
+    <p>In just 5 minutes, you'll be up and running with your new email experience. This guide will walk you through everything you need to know.</p>
+</div>
+
+<h2>Creating Your Account</h2>
+
+<ol class="steps">
+    <li>
+        <h4>Visit EaseMail</h4>
+        <p>Go to <code>https://easemail.app/signup</code> in your web browser.</p>
+    </li>
+
+    <li>
+        <h4>Sign Up</h4>
+        <p>Enter your email address and create a strong password (minimum 8 characters).</p>
+        <div class="callout info">
+            <div class="callout-title">💡 Password Tips</div>
+            <p>Use a mix of uppercase, lowercase, numbers, and symbols. Consider using a password manager for best security.</p>
+        </div>
+    </li>
+
+    <li>
+        <h4>Verify Your Email</h4>
+        <p>Check your email for a verification link and click it to activate your account.</p>
+    </li>
+
+    <li>
+        <h4>Complete Onboarding</h4>
+        <p>Follow the guided setup to connect your email accounts and customize your preferences.</p>
+    </li>
+</ol>
+
+<h2>Connecting Your First Email Account</h2>
+
+<p>EaseMail works with all major email providers:</p>
+
+<div class="card-grid">
+    <div class="card">
+        <h4>📧 Gmail</h4>
+        <p>Google Workspace or personal Gmail accounts. Full support for labels, filters, and Google Calendar integration.</p>
+    </div>
+
+    <div class="card">
+        <h4>📨 Outlook</h4>
+        <p>Microsoft 365, Outlook.com, and Exchange accounts. Includes Teams calendar integration and shared mailboxes.</p>
+    </div>
+
+    <div class="card">
+        <h4>📮 Yahoo Mail</h4>
+        <p>Yahoo email accounts with full folder support and contact sync.</p>
+    </div>
+
+    <div class="card">
+        <h4>📬 IMAP</h4>
+        <p>Any email provider that supports IMAP protocol. Configure custom servers manually.</p>
+    </div>
+</div>
+
+<h3>Step-by-Step Connection Process</h3>
+
+<ol class="steps">
+    <li>
+        <h4>Navigate to Settings</h4>
+        <p>Click the <strong>⚙️ Settings</strong> icon in the left sidebar, then select <strong>Email Accounts</strong>.</p>
+    </li>
+
+    <li>
+        <h4>Choose Your Provider</h4>
+        <p>Click <strong>"Connect Email Account"</strong> and select your email provider from the list.</p>
+    </li>
+
+    <li>
+        <h4>Authorize Access</h4>
+        <p>You'll be redirected to your email provider's login page. Sign in and grant EaseMail permission to access your account.</p>
+        <div class="callout success">
+            <div class="callout-title">✅ Secure OAuth</div>
+            <p>EaseMail uses OAuth 2.0 authentication. We <strong>never</strong> see or store your email password. You can revoke access anytime from your email provider's security settings.</p>
+        </div>
+    </li>
+
+    <li>
+        <h4>Wait for Sync</h4>
+        <p>Your emails will begin syncing automatically. This may take a few minutes for large mailboxes. You'll see a progress indicator.</p>
+    </li>
+</ol>
+
+<h2>Understanding the Interface</h2>
+
+<h3>Main Navigation (Left Sidebar)</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Icon</th>
+            <th>Feature</th>
+            <th>What It Does</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>🏠</td>
+            <td><strong>Home</strong></td>
+            <td>Your personalized dashboard with quick stats and recent activity</td>
+        </tr>
+        <tr>
+            <td>📧</td>
+            <td><strong>Inbox</strong></td>
+            <td>View all your emails from all connected accounts in one place</td>
+        </tr>
+        <tr>
+            <td>📅</td>
+            <td><strong>Calendar</strong></td>
+            <td>Manage your schedule, meetings, and events</td>
+        </tr>
+        <tr>
+            <td>👥</td>
+            <td><strong>Contacts</strong></td>
+            <td>Organize and manage your contact list</td>
+        </tr>
+        <tr>
+            <td>🏢</td>
+            <td><strong>Organization</strong></td>
+            <td>Access your team workspace (if you're part of an organization)</td>
+        </tr>
+        <tr>
+            <td>⚙️</td>
+            <td><strong>Settings</strong></td>
+            <td>Customize EaseMail to your preferences</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>Your First 30 Minutes Checklist</h3>
+
+<div class="quick-ref">
+    <h3>✅ Essential Setup Tasks</h3>
+    <ul class="checklist">
+        <li>Connect at least one email account</li>
+        <li>Set up your email signature</li>
+        <li>Explore the inbox and folder structure</li>
+        <li>Try composing your first email</li>
+        <li>Test an AI feature (AI Compose or AI Remix)</li>
+        <li>Check your calendar integration</li>
+        <li>Add important contacts</li>
+        <li>Customize notification settings</li>
+    </ul>
+</div>
+
+</section>
+
+<section id="email-basics">
+<h1>2. Email Basics</h1>
+
+<h2>Reading Emails</h2>
+
+<h3>Navigating Your Inbox</h3>
+
+<p>Your inbox displays all emails from all connected accounts in a unified view. Here's what you can do:</p>
+
+<ul class="feature-list">
+    <li><strong>Click any email</strong> to open and read it in the detail view</li>
+    <li><strong>Use filters</strong> to show only unread, starred, or flagged emails</li>
+    <li><strong>Search</strong> using the search bar at the top (searches all accounts)</li>
+    <li><strong>Sort</strong> by date, sender, or importance</li>
+    <li><strong>Select multiple emails</strong> using checkboxes for bulk actions</li>
+</ul>
+
+<h3>Email Actions</h3>
+
+<p>When viewing an email, you have several actions available:</p>
+
+<div class="card-grid">
+    <div class="card">
+        <h4>✉️ Reply</h4>
+        <p>Respond to the sender only. Your reply includes the original message for context.</p>
+    </div>
+
+    <div class="card">
+        <h4>👥 Reply All</h4>
+        <p>Respond to everyone on the email thread, including all CC'd recipients.</p>
+    </div>
+
+    <div class="card">
+        <h4>➡️ Forward</h4>
+        <p>Send the email to someone else with your own message added.</p>
+    </div>
+
+    <div class="card">
+        <h4>🗑️ Delete</h4>
+        <p>Move email to trash (can be recovered within 30 days).</p>
+    </div>
+
+    <div class="card">
+        <h4>📁 Move to Folder</h4>
+        <p>Organize emails into folders or labels for better management.</p>
+    </div>
+
+    <div class="card">
+        <h4>⭐ Star/Flag</h4>
+        <p>Mark important emails for quick access later.</p>
+    </div>
+
+    <div class="card">
+        <h4>📋 Mark as Read/Unread</h4>
+        <p>Change read status to keep track of what needs attention.</p>
+    </div>
+
+    <div class="card">
+        <h4>🚫 Mark as Spam</h4>
+        <p>Report unwanted emails and train your spam filter.</p>
+    </div>
+</div>
+
+<h2>Composing Emails</h2>
+
+<h3>Creating a New Email</h3>
+
+<ol class="steps">
+    <li>
+        <h4>Click Compose</h4>
+        <p>Click the <strong>Compose</strong> button in the top left corner or press <kbd>C</kbd> keyboard shortcut.</p>
+    </li>
+
+    <li>
+        <h4>Fill in Recipients</h4>
+        <ul>
+            <li><strong>To:</strong> Primary recipients</li>
+            <li><strong>CC:</strong> Carbon copy - recipients who should be informed</li>
+            <li><strong>BCC:</strong> Blind carbon copy - hidden recipients (others can't see them)</li>
+        </ul>
+        <div class="callout info">
+            <div class="callout-title">💡 Quick Tip</div>
+            <p>Start typing a name or email address and EaseMail will auto-suggest from your contacts.</p>
+        </div>
+    </li>
+
+    <li>
+        <h4>Write Your Subject</h4>
+        <p>A clear, concise subject line helps recipients understand your email at a glance.</p>
+    </li>
+
+    <li>
+        <h4>Compose Your Message</h4>
+        <p>Use the rich text editor to format your email:</p>
+        <ul>
+            <li><strong>Bold</strong>, <em>italic</em>, <u>underline</u> text</li>
+            <li>Bullet lists and numbered lists</li>
+            <li>Change font size and color</li>
+            <li>Insert links, images, and emojis</li>
+        </ul>
+    </li>
+
+    <li>
+        <h4>Add Attachments (Optional)</h4>
+        <p>Click the 📎 attachment icon to add files (up to 25MB per file). Drag and drop files directly into the composer.</p>
+    </li>
+
+    <li>
+        <h4>Add Your Signature</h4>
+        <p>Your email signature is automatically added. You can edit or remove it if needed.</p>
+    </li>
+
+    <li>
+        <h4>Send</h4>
+        <p>Click <strong>Send</strong> button or press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (Windows) / <kbd>Cmd</kbd>+<kbd>Enter</kbd> (Mac).</p>
+    </li>
+</ol>
+
+<h2>Organizing Your Emails</h2>
+
+<h3>Folders & Labels</h3>
+
+<p>EaseMail syncs all your folders from each connected email account:</p>
+
+<ul>
+    <li><strong>System Folders:</strong> Inbox, Sent, Drafts, Trash, Spam</li>
+    <li><strong>Custom Folders:</strong> Any folders you've created in Gmail, Outlook, etc.</li>
+</ul>
+
+<div class="callout warning">
+    <div class="callout-title">⚠️ Important: Custom Folders</div>
+    <p>Messages in custom folders <strong>do not</strong> appear in your main inbox. To view them:</p>
+    <ol>
+        <li>Look for the "Folders (N)" section in the left sidebar</li>
+        <li>Click on the specific folder name</li>
+        <li>All messages in that folder will display</li>
+    </ol>
+</div>
+
+<h3>Creating and Managing Folders</h3>
+
+<ol>
+    <li>Folders are managed in your email provider (Gmail, Outlook, etc.)</li>
+    <li>Create folders in your provider's interface</li>
+    <li>EaseMail automatically syncs new folders within 5 minutes</li>
+    <li>Move emails to folders using the "Move to Folder" action</li>
+</ol>
+
+<h3>Search & Filters</h3>
+
+<p><strong>Quick Search:</strong></p>
+<ul>
+    <li>Use the search bar at the top of the inbox</li>
+    <li>Search by sender, subject, content, or date</li>
+    <li>Results include emails from all connected accounts</li>
+</ul>
+
+<p><strong>Advanced Filters:</strong></p>
+<ul>
+    <li><strong>Unread Only:</strong> Show only unread emails</li>
+    <li><strong>Starred/Flagged:</strong> Show only important emails</li>
+    <li><strong>Has Attachments:</strong> Filter emails with files</li>
+    <li><strong>By Account:</strong> Show emails from specific account only</li>
+    <li><strong>By Date Range:</strong> Find emails from specific time period</li>
+</ul>
+
+</section>
+
+<section id="ai-features">
+<h1>3. AI Features</h1>
+
+<div class="highlight-box">
+    <h3>🤖 AI-Powered Email Magic</h3>
+    <p>EaseMail's AI features help you write better emails faster, remix messages for different tones, and even compose emails by speaking. These tools are powered by advanced language models and are designed to save you time while maintaining your personal voice.</p>
+</div>
+
+<h2>AI Compose</h2>
+
+<p><strong>What it does:</strong> Generates complete email drafts from a simple prompt or idea.</p>
+
+<h3>How to Use AI Compose</h3>
+
+<ol class="steps">
+    <li>
+        <h4>Open Composer</h4>
+        <p>Click <strong>Compose</strong> to create a new email.</p>
+    </li>
+
+    <li>
+        <h4>Click AI Compose Button</h4>
+        <p>Look for the <strong>✨ AI Compose</strong> button in the composer toolbar.</p>
+    </li>
+
+    <li>
+        <h4>Describe What You Want</h4>
+        <p>Enter a simple prompt like:</p>
+        <ul>
+            <li>"Request a meeting with Sarah next Tuesday at 2pm"</li>
+            <li>"Thank client for their business and ask for feedback"</li>
+            <li>"Politely decline the invitation due to schedule conflict"</li>
+            <li>"Follow up on the proposal I sent last week"</li>
+        </ul>
+    </li>
+
+    <li>
+        <h4>Generate</h4>
+        <p>Click <strong>Generate</strong> and wait a few seconds while AI creates your email.</p>
+    </li>
+
+    <li>
+        <h4>Review and Edit</h4>
+        <p>The AI-generated email appears in the composer. Review it and make any necessary edits to match your style or add specific details.</p>
+    </li>
+
+    <li>
+        <h4>Send or Regenerate</h4>
+        <p>If you like it, send it! If not, click <strong>Regenerate</strong> for a different version.</p>
+    </li>
+</ol>
+
+<div class="callout success">
+    <div class="callout-title">✅ Best Practices for AI Compose</div>
+    <ul>
+        <li>Be specific in your prompts - more detail = better results</li>
+        <li>Always review AI-generated content before sending</li>
+        <li>Add personal touches or context that AI might miss</li>
+        <li>Use it for routine emails to save time on common tasks</li>
+        <li>Experiment with different prompts to find what works best</li>
+    </ul>
+</div>
+
+<h2>AI Remix</h2>
+
+<p><strong>What it does:</strong> Transforms your draft email into different tones while keeping the core message intact.</p>
+
+<h3>Available Tones</h3>
+
+<div class="card-grid">
+    <div class="card">
+        <h4>💼 Professional</h4>
+        <p>Formal, business-appropriate language. Perfect for client communications and formal requests.</p>
+    </div>
+
+    <div class="card">
+        <h4>😊 Friendly</h4>
+        <p>Warm, casual tone while maintaining professionalism. Great for colleagues and internal teams.</p>
+    </div>
+
+    <div class="card">
+        <h4>✂️ Concise</h4>
+        <p>Short and to-the-point. Removes unnecessary words while preserving meaning.</p>
+    </div>
+
+    <div class="card">
+        <h4>📝 Detailed</h4>
+        <p>Expands your message with more context and explanation. Useful for complex topics.</p>
+    </div>
+</div>
+
+<h3>How to Use AI Remix</h3>
+
+<ol class="steps">
+    <li>
+        <h4>Write Your Draft</h4>
+        <p>Type your email message in the composer (it can be rough - AI will polish it).</p>
+    </li>
+
+    <li>
+        <h4>Click AI Remix</h4>
+        <p>Click the <strong>🎨 AI Remix</strong> button in the toolbar.</p>
+    </li>
+
+    <li>
+        <h4>Choose Your Tone</h4>
+        <p>Select the tone that fits your situation (Professional, Friendly, Concise, or Detailed).</p>
+    </li>
+
+    <li>
+        <h4>Review the Remix</h4>
+        <p>AI will rewrite your email in the selected tone. Review the changes.</p>
+    </li>
+
+    <li>
+        <h4>Accept or Try Another</h4>
+        <p>Click <strong>Use This</strong> to accept, or try a different tone to compare options.</p>
+    </li>
+</ol>
+
+<div class="callout info">
+    <div class="callout-title">💡 When to Use Each Tone</div>
+    <ul>
+        <li><strong>Professional:</strong> Client emails, job applications, formal requests</li>
+        <li><strong>Friendly:</strong> Team updates, casual check-ins, thank you notes</li>
+        <li><strong>Concise:</strong> Quick updates, status reports, busy recipients</li>
+        <li><strong>Detailed:</strong> Complex explanations, documentation, thorough answers</li>
+    </ul>
+</div>
+
+<h2>AI Dictate</h2>
+
+<p><strong>What it does:</strong> Converts your spoken words into written emails using voice recognition.</p>
+
+<h3>How to Use AI Dictate</h3>
+
+<ol class="steps">
+    <li>
+        <h4>Open Composer</h4>
+        <p>Start a new email or reply.</p>
+    </li>
+
+    <li>
+        <h4>Click Microphone Icon</h4>
+        <p>Click the <strong>🎤 Dictate</strong> button in the toolbar.</p>
+    </li>
+
+    <li>
+        <h4>Grant Microphone Permission</h4>
+        <p>Your browser will ask for microphone access - click <strong>Allow</strong>.</p>
+    </li>
+
+    <li>
+        <h4>Start Speaking</h4>
+        <p>Speak clearly and naturally. AI Dictate will transcribe your words in real-time.</p>
+        <div class="callout success">
+            <div class="callout-title">✅ Dictation Tips</div>
+            <ul>
+                <li>Speak at a normal pace - not too fast or slow</li>
+                <li>Say punctuation: "comma", "period", "question mark"</li>
+                <li>Say "new paragraph" to add line breaks</li>
+                <li>Pause briefly between sentences</li>
+                <li>Use a quiet environment for best accuracy</li>
+            </ul>
+        </div>
+    </li>
+
+    <li>
+        <h4>Stop Recording</h4>
+        <p>Click the microphone icon again to stop dictation.</p>
+    </li>
+
+    <li>
+        <h4>Edit and Send</h4>
+        <p>Review the transcribed text, make any corrections, and send your email.</p>
+    </li>
+</ol>
+
+<h2>AI Smart Replies</h2>
+
+<p><strong>What it does:</strong> Suggests quick reply options for emails you receive.</p>
+
+<p>When reading an email, look for suggested replies at the bottom:</p>
+
+<ul>
+    <li>"Thanks for the update!"</li>
+    <li>"I'll get back to you soon."</li>
+    <li>"Sounds good to me!"</li>
+    <li>"Let me check and confirm."</li>
+</ul>
+
+<p>Click any suggestion to use it as your reply (you can edit before sending).</p>
+
+<h2>AI Email Summary</h2>
+
+<p><strong>What it does:</strong> Summarizes long emails or email threads into key points.</p>
+
+<ul>
+    <li>Click the <strong>📋 Summary</strong> button when viewing a long email</li>
+    <li>AI extracts the main points, action items, and key information</li>
+    <li>Perfect for lengthy threads or complex discussions</li>
+</ul>
+
+</section>
+
+<section id="calendar">
+<h1>4. Calendar & Meetings</h1>
+
+<h2>Calendar Overview</h2>
+
+<p>EaseMail's calendar syncs with your email accounts and shows all your events in one place.</p>
+
+<h3>Calendar Views</h3>
+
+<div class="card-grid">
+    <div class="card">
+        <h4>📅 Day View</h4>
+        <p>See your schedule hour by hour for a single day. Perfect for detailed planning.</p>
+    </div>
+
+    <div class="card">
+        <h4>📆 Week View</h4>
+        <p>View your entire week at a glance. Best for weekly planning and scheduling.</p>
+    </div>
+
+    <div class="card">
+        <h4>🗓️ Month View</h4>
+        <p>See the big picture with a full month calendar. Great for long-term planning.</p>
+    </div>
+
+    <div class="card">
+        <h4>📋 Agenda View</h4>
+        <p>List format showing all upcoming events chronologically. Easy to scan.</p>
+    </div>
+</div>
+
+<h3>Switching Views</h3>
+
+<p>Use the view selector buttons at the top of the calendar:</p>
+<ul>
+    <li>Click <strong>Day</strong>, <strong>Week</strong>, <strong>Month</strong>, or <strong>Agenda</strong></li>
+    <li>Use <strong>← Today →</strong> buttons to navigate dates</li>
+    <li>Click <strong>Today</strong> button to jump to current date</li>
+</ul>
+
+<h2>Creating Events</h2>
+
+<ol class="steps">
+    <li>
+        <h4>Click Create Event</h4>
+        <p>Click the <strong>+ New Event</strong> button or click a time slot in the calendar.</p>
+    </li>
+
+    <li>
+        <h4>Fill in Event Details</h4>
+        <ul>
+            <li><strong>Title:</strong> Name your event</li>
+            <li><strong>Date & Time:</strong> When it happens</li>
+            <li><strong>Duration:</strong> How long it will last</li>
+            <li><strong>Location:</strong> Where (physical address or video link)</li>
+            <li><strong>Description:</strong> Additional details, agenda, or notes</li>
+            <li><strong>Calendar:</strong> Which calendar to add it to (if you have multiple)</li>
+        </ul>
+    </li>
+
+    <li>
+        <h4>Add Attendees (Optional)</h4>
+        <p>Invite others by entering their email addresses. They'll receive an invitation.</p>
+    </li>
+
+    <li>
+        <h4>Set Reminders</h4>
+        <p>Choose when you want to be reminded: 5 minutes, 15 minutes, 30 minutes, 1 hour, or 1 day before.</p>
+    </li>
+
+    <li>
+        <h4>Make it Recurring (Optional)</h4>
+        <p>For repeating events, set the recurrence pattern (daily, weekly, monthly, yearly).</p>
+    </li>
+
+    <li>
+        <h4>Save Event</h4>
+        <p>Click <strong>Create Event</strong> to save. Invitations are sent automatically if you added attendees.</p>
+    </li>
+</ol>
+
+<h2>Managing Events</h2>
+
+<h3>View Event Details</h3>
+<p>Click any event on the calendar to see full details, including:</p>
+<ul>
+    <li>Title, date, time, and location</li>
+    <li>Description and attendees</li>
+    <li>RSVP status (if you're invited)</li>
+    <li>Meeting link (for virtual meetings)</li>
+</ul>
+
+<h3>RSVP to Invitations</h3>
+
+<p>When you receive a meeting invitation, you can respond with:</p>
+
+<ul>
+    <li><strong>✅ Accept:</strong> You'll attend - event added to calendar</li>
+    <li><strong>❓ Tentative:</strong> You might attend - marked as tentative</li>
+    <li><strong>❌ Decline:</strong> You won't attend - event not added</li>
+</ul>
+
+<h3>Edit or Delete Events</h3>
+
+<ol>
+    <li>Click the event to open details</li>
+    <li>Click <strong>Edit</strong> to modify details</li>
+    <li>Click <strong>Delete</strong> to remove (with confirmation)</li>
+</ol>
+
+<div class="callout warning">
+    <div class="callout-title">⚠️ Note for Organizers</div>
+    <p>If you edit or delete an event you created, all attendees are notified automatically.</p>
+</div>
+
+<h2>Microsoft Teams Integration</h2>
+
+<p>If you connect a Microsoft account, EaseMail automatically syncs your Teams meetings:</p>
+
+<ul class="feature-list">
+    <li><strong>Auto-Sync:</strong> Teams meetings appear in your EaseMail calendar</li>
+    <li><strong>Join Now Button:</strong> Quick access to join when meeting starts</li>
+    <li><strong>Meeting Links:</strong> Teams meeting URLs included in event details</li>
+    <li><strong>Token Refresh:</strong> Automatically refreshes access every 55 minutes</li>
+    <li><strong>Conflict Detection:</strong> Alerts when meetings overlap</li>
+</ul>
+
+<h2>Calendar Features</h2>
+
+<h3>Search Events</h3>
+<p>Use the search box at the top of calendar to find events by:</p>
+<ul>
+    <li>Event title</li>
+    <li>Description or notes</li>
+    <li>Location</li>
+    <li>Attendee names</li>
+</ul>
+
+<h3>Filter by Calendar</h3>
+<p>If you have multiple calendars (work, personal, Teams, etc.):</p>
+<ul>
+    <li>Use the calendar filters on the left sidebar</li>
+    <li>Toggle calendars on/off to show/hide their events</li>
+    <li>Each calendar has a unique color for easy identification</li>
+</ul>
+
+<h3>Conflict Detection</h3>
+<p>EaseMail automatically detects scheduling conflicts:</p>
+<ul>
+    <li>⚠️ Warning badge appears on overlapping events</li>
+    <li>"Conflict Alert" banner shows when viewing conflicting events</li>
+    <li>Helps you avoid double-booking yourself</li>
+</ul>
+
+<h3>Color Coding</h3>
+<ul>
+    <li>🔵 <strong>Blue:</strong> Email calendar events</li>
+    <li>🟣 <strong>Purple:</strong> Microsoft Teams meetings</li>
+    <li>Custom colors for additional calendars</li>
+</ul>
+
+</section>
+
+<section id="contacts">
+<h1>5. Contacts Management</h1>
+
+<h2>Viewing Your Contacts</h2>
+
+<p>Access your contacts by clicking <strong>👥 Contacts</strong> in the left sidebar.</p>
+
+<p>Your contacts sync from all connected email accounts and are merged intelligently:</p>
+
+<ul>
+    <li>Contacts from Gmail, Outlook, and other accounts appear together</li>
+    <li>Duplicate contacts are automatically merged</li>
+    <li>Search to quickly find anyone</li>
+    <li>Sort by name, email, or recently contacted</li>
+</ul>
+
+<h2>Adding New Contacts</h2>
+
+<ol class="steps">
+    <li>
+        <h4>Click Add Contact</h4>
+        <p>Click the <strong>+ New Contact</strong> button.</p>
+    </li>
+
+    <li>
+        <h4>Enter Contact Information</h4>
+        <ul>
+            <li><strong>Name:</strong> First and last name</li>
+            <li><strong>Email:</strong> Email address (can add multiple)</li>
+            <li><strong>Phone:</strong> Phone number(s)</li>
+            <li><strong>Company:</strong> Organization name</li>
+            <li><strong>Job Title:</strong> Their role/position</li>
+            <li><strong>Notes:</strong> Any additional information</li>
+        </ul>
+    </li>
+
+    <li>
+        <h4>Save Contact</h4>
+        <p>Click <strong>Save</strong> to add to your contacts list.</p>
+    </li>
+</ol>
+
+<h2>Editing Contacts</h2>
+
+<ol>
+    <li>Click on a contact to open their details</li>
+    <li>Click <strong>Edit</strong> button</li>
+    <li>Make your changes</li>
+    <li>Click <strong>Save</strong></li>
+</ol>
+
+<h2>Contact Actions</h2>
+
+<p>When viewing a contact, you can:</p>
+
+<ul class="feature-list">
+    <li><strong>📧 Send Email:</strong> Compose email to this contact</li>
+    <li><strong>📅 Schedule Meeting:</strong> Create calendar event with them</li>
+    <li><strong>📱 Call:</strong> Initiate call (if phone number available)</li>
+    <li><strong>🗑️ Delete:</strong> Remove contact from your list</li>
+    <li><strong>🏷️ Add to Group:</strong> Organize into contact groups</li>
+</ul>
+
+<h2>Contact Groups</h2>
+
+<p>Create groups to organize contacts by category:</p>
+
+<ul>
+    <li><strong>Team Members</strong> - Your colleagues</li>
+    <li><strong>Clients</strong> - Customer contacts</li>
+    <li><strong>Vendors</strong> - Suppliers and partners</li>
+    <li><strong>Friends & Family</strong> - Personal contacts</li>
+</ul>
+
+<p><strong>To create a group:</strong></p>
+<ol>
+    <li>Click <strong>New Group</strong></li>
+    <li>Name the group</li>
+    <li>Add contacts to the group</li>
+    <li>Click <strong>Save</strong></li>
+</ol>
+
+<p><strong>Send email to entire group:</strong></p>
+<ol>
+    <li>Click on the group</li>
+    <li>Click <strong>Email Group</strong></li>
+    <li>Compose your message - all group members are added to To: field</li>
+</ol>
+
+</section>
+
+<section id="organization">
+<h1>6. Working with Organizations</h1>
+
+<h2>What are Organizations?</h2>
+
+<p>Organizations are team workspaces where multiple users collaborate:</p>
+
+<ul class="feature-list">
+    <li><strong>Shared Email Accounts:</strong> Access team inboxes like support@company.com</li>
+    <li><strong>Collaboration:</strong> Work together on emails without duplicates</li>
+    <li><strong>Team Calendar:</strong> Shared schedule and meeting coordination</li>
+    <li><strong>Role-Based Access:</strong> Different permission levels (Owner, Admin, Member)</li>
+</ul>
+
+<h2>Joining an Organization</h2>
+
+<p>You can join an organization in two ways:</p>
+
+<h3>Via Email Invitation</h3>
+
+<ol class="steps">
+    <li>
+        <h4>Check Your Email</h4>
+        <p>You'll receive an invitation email with subject "You're invited to join [Organization Name]".</p>
+    </li>
+
+    <li>
+        <h4>Click Accept Invitation</h4>
+        <p>Click the link in the email.</p>
+    </li>
+
+    <li>
+        <h4>Sign In or Sign Up</h4>
+        <p>If you have an EaseMail account, sign in. If not, create an account.</p>
+    </li>
+
+    <li>
+        <h4>Accept</h4>
+        <p>Confirm you want to join the organization.</p>
+    </li>
+</ol>
+
+<h3>Via Direct Account Creation</h3>
+
+<p>An organization admin may create an account for you directly:</p>
+
+<ol>
+    <li>You'll receive a welcome email with temporary password</li>
+    <li>Click the login link</li>
+    <li>Sign in with provided credentials</li>
+    <li>Change your password immediately (required)</li>
+    <li>You're automatically added to the organization</li>
+</ol>
+
+<h2>Organization Roles</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Role</th>
+            <th>What You Can Do</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>👑 Owner</strong></td>
+            <td>Full control - manage billing, delete organization, transfer ownership, invite/remove members, configure everything</td>
+        </tr>
+        <tr>
+            <td><strong>🛡️ Admin</strong></td>
+            <td>Manage members, invite users, remove members, configure settings, view analytics - cannot modify billing or delete org</td>
+        </tr>
+        <tr>
+            <td><strong>👤 Member</strong></td>
+            <td>Access shared emails, use all features, collaborate with team - cannot manage other members or change settings</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Accessing Your Organization</h2>
+
+<ol>
+    <li>Click <strong>🏢 Organization</strong> in the left sidebar</li>
+    <li>You'll see a list of organizations you're part of</li>
+    <li>Click on an organization name to view its dashboard</li>
+</ol>
+
+<h2>Organization Dashboard</h2>
+
+<p>The organization dashboard shows:</p>
+
+<ul class="feature-list">
+    <li><strong>Overview Cards:</strong> Plan info, seats used, your role</li>
+    <li><strong>Team Members:</strong> List of all organization members with roles</li>
+    <li><strong>Pending Invites:</strong> People who've been invited but haven't joined yet</li>
+    <li><strong>Quick Actions:</strong> Dashboard, Analytics, Settings, Invite Members</li>
+</ul>
+
+<h2>Shared Email Accounts</h2>
+
+<p>If your organization has shared email accounts (like support@company.com):</p>
+
+<ul>
+    <li>These emails appear in your inbox alongside personal emails</li>
+    <li>A badge shows which account the email belongs to</li>
+    <li>When you reply, it sends from the shared account</li>
+    <li>All team members see the same emails and replies</li>
+    <li>No duplicate responses - team coordination is automatic</li>
+</ul>
+
+<h2>Leaving an Organization</h2>
+
+<div class="callout warning">
+    <div class="callout-title">⚠️ Important</div>
+    <p>Leaving an organization is permanent. You'll lose access to shared emails, team calendars, and organization data immediately.</p>
+</div>
+
+<p><strong>To leave:</strong></p>
+<ol>
+    <li>Go to Organization dashboard</li>
+    <li>Click <strong>Settings</strong> (gear icon)</li>
+    <li>Scroll to "Danger Zone"</li>
+    <li>Click <strong>Leave Organization</strong></li>
+    <li>Confirm your decision</li>
+</ol>
+
+<p><strong>Note:</strong> You cannot leave if you're the only owner. Transfer ownership first or delete the organization.</p>
+
+</section>
+
+<section id="settings">
+<h1>7. Settings & Preferences</h1>
+
+<h2>Accessing Settings</h2>
+
+<p>Click the <strong>⚙️ Settings</strong> icon in the left sidebar to access all configuration options.</p>
+
+<h2>Account Settings</h2>
+
+<h3>Profile</h3>
+<ul>
+    <li><strong>Name:</strong> Your display name</li>
+    <li><strong>Email:</strong> Your account email (cannot be changed)</li>
+    <li><strong>Profile Picture:</strong> Upload an avatar image</li>
+    <li><strong>Time Zone:</strong> Your local time zone for calendar events</li>
+    <li><strong>Language:</strong> Interface language (English, Spanish, French, etc.)</li>
+</ul>
+
+<h3>Security</h3>
+
+<div class="card-grid">
+    <div class="card">
+        <h4>🔒 Change Password</h4>
+        <p>Update your EaseMail account password. Requires your current password for verification.</p>
+    </div>
+
+    <div class="card">
+        <h4>🔐 Two-Factor Authentication</h4>
+        <p>Add extra security with 2FA (coming soon). Uses authenticator app or SMS codes.</p>
+    </div>
+
+    <div class="card">
+        <h4>📱 Active Sessions</h4>
+        <p>View all devices where you're logged in. Revoke access to any device remotely.</p>
+    </div>
+
+    <div class="card">
+        <h4>🔑 API Keys</h4>
+        <p>Generate API keys for integrations (Enterprise plan feature).</p>
+    </div>
+</div>
+
+<h2>Email Account Settings</h2>
+
+<h3>Connected Accounts</h3>
+
+<p>View and manage all connected email accounts:</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Setting</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Primary Account</strong></td>
+            <td>Set which account is used by default for composing emails. Click the star icon to make primary.</td>
+        </tr>
+        <tr>
+            <td><strong>Sync Status</strong></td>
+            <td>🟢 Synced | 🔵 Syncing | 🔴 Error | 🟡 Paused</td>
+        </tr>
+        <tr>
+            <td><strong>Manual Sync</strong></td>
+            <td>Click refresh icon to sync immediately</td>
+        </tr>
+        <tr>
+            <td><strong>Sync Frequency</strong></td>
+            <td>Automatic sync every 5 minutes (cannot be changed)</td>
+        </tr>
+        <tr>
+            <td><strong>Disconnect</strong></td>
+            <td>Remove account from EaseMail (can reconnect anytime)</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>Connect Additional Accounts</h3>
+
+<p>You can connect unlimited email accounts:</p>
+<ol>
+    <li>Click <strong>+ Connect Email Account</strong></li>
+    <li>Choose provider (Gmail, Outlook, IMAP)</li>
+    <li>Complete OAuth flow</li>
+    <li>Account begins syncing automatically</li>
+</ol>
+
+<h2>Email Signatures</h2>
+
+<h3>Creating a Signature</h3>
+
+<ol class="steps">
+    <li>
+        <h4>Navigate to Signatures</h4>
+        <p>Go to <strong>Settings</strong> → <strong>Signatures</strong>.</p>
+    </li>
+
+    <li>
+        <h4>Create New Signature</h4>
+        <p>Click <strong>+ New Signature</strong>.</p>
+    </li>
+
+    <li>
+        <h4>Design Your Signature</h4>
+        <p>Use the editor to create your signature:</p>
+        <ul>
+            <li>Your name and title</li>
+            <li>Company name</li>
+            <li>Phone number and email</li>
+            <li>Website and social links</li>
+            <li>Company logo (optional)</li>
+            <li>Legal disclaimer (if required)</li>
+        </ul>
+    </li>
+
+    <li>
+        <h4>Assign to Account</h4>
+        <p>Choose which email account(s) use this signature.</p>
+    </li>
+
+    <li>
+        <h4>Save</h4>
+        <p>Click <strong>Save Signature</strong>. It's now automatically added to your emails.</p>
+    </li>
+</ol>
+
+<div class="callout info">
+    <div class="callout-title">💡 Signature Tips</div>
+    <ul>
+        <li>Keep it concise - 4-6 lines maximum</li>
+        <li>Use professional fonts and colors</li>
+        <li>Include only essential contact information</li>
+        <li>Test how it looks on mobile devices</li>
+        <li>Avoid large images that slow loading</li>
+        <li>Create different signatures for different accounts (work vs. personal)</li>
+    </ul>
+</div>
+
+<h2>Notification Settings</h2>
+
+<h3>Desktop Notifications</h3>
+<ul>
+    <li><strong>New Email:</strong> Alert when new email arrives</li>
+    <li><strong>Calendar Reminders:</strong> Event reminders at scheduled time</li>
+    <li><strong>Mentions:</strong> When someone mentions you in email</li>
+    <li><strong>Meeting Invites:</strong> New calendar invitations</li>
+</ul>
+
+<h3>Email Notifications</h3>
+<ul>
+    <li><strong>Daily Digest:</strong> Summary of unread emails once per day</li>
+    <li><strong>Weekly Summary:</strong> Email statistics and highlights</li>
+    <li><strong>Security Alerts:</strong> Login from new device, suspicious activity</li>
+</ul>
+
+<h3>Notification Preferences</h3>
+<ul>
+    <li><strong>Sound:</strong> Play notification sound (on/off)</li>
+    <li><strong>Do Not Disturb:</strong> Set quiet hours when notifications are muted</li>
+    <li><strong>Smart Notifications:</strong> Only notify for important emails</li>
+</ul>
+
+<h2>Appearance</h2>
+
+<h3>Theme</h3>
+<ul>
+    <li><strong>☀️ Light Mode:</strong> Bright, clean interface (default)</li>
+    <li><strong>🌙 Dark Mode:</strong> Easy on the eyes in low light</li>
+    <li><strong>⚙️ Auto:</strong> Follows system theme settings</li>
+</ul>
+
+<h3>Display Density</h3>
+<ul>
+    <li><strong>Comfortable:</strong> More spacing, easier to read</li>
+    <li><strong>Compact:</strong> Show more emails on screen at once</li>
+</ul>
+
+<h3>Font Size</h3>
+<ul>
+    <li>Small, Medium (default), Large, Extra Large</li>
+    <li>Affects email list and reading pane</li>
+</ul>
+
+<h2>Privacy Settings</h2>
+
+<ul>
+    <li><strong>Read Receipts:</strong> Let senders know when you read their email</li>
+    <li><strong>Typing Indicators:</strong> Show when you're composing a reply</li>
+    <li><strong>Profile Visibility:</strong> Who can see your profile</li>
+    <li><strong>Contact Sync:</strong> Sync contacts with email providers</li>
+</ul>
+
+<h2>Data & Storage</h2>
+
+<h3>Export Your Data</h3>
+<p>Request a complete export of all your EaseMail data:</p>
+<ol>
+    <li>Go to <strong>Settings</strong> → <strong>Data & Storage</strong></li>
+    <li>Click <strong>Request Data Export</strong></li>
+    <li>Confirm your request</li>
+    <li>You'll receive a download link via email within 24 hours</li>
+    <li>Download includes: emails, contacts, calendar events, settings</li>
+</ol>
+
+<h3>Storage Usage</h3>
+<ul>
+    <li>View how much storage you're using</li>
+    <li>Breakdown by account and data type</li>
+    <li>Manage attachments to free up space</li>
+</ul>
+
+<h3>Delete Account</h3>
+
+<div class="callout danger">
+    <div class="callout-title">⚠️ Permanent Action</div>
+    <p>Deleting your EaseMail account is permanent and cannot be undone. Your email accounts remain unaffected, but all EaseMail data is deleted.</p>
+</div>
+
+<p><strong>To delete your account:</strong></p>
+<ol>
+    <li>Export your data first (if needed)</li>
+    <li>Go to <strong>Settings</strong> → <strong>Data & Storage</strong></li>
+    <li>Scroll to "Delete Account"</li>
+    <li>Click <strong>Delete My Account</strong></li>
+    <li>Enter your password to confirm</li>
+    <li>Account is deleted within 24 hours</li>
+</ol>
+
+</section>
+
+<section id="shortcuts">
+<h1>8. Keyboard Shortcuts</h1>
+
+<div class="callout info">
+    <div class="callout-title">💡 Boost Your Productivity</div>
+    <p>Keyboard shortcuts help you work faster by reducing mouse clicks. Press <kbd>?</kbd> anytime in EaseMail to see a quick reference of all shortcuts.</p>
+</div>
+
+<h2>Navigation Shortcuts</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Action</th>
+            <th>Windows/Linux</th>
+            <th>Mac</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Go to Inbox</td>
+            <td><kbd>G</kbd> then <kbd>I</kbd></td>
+            <td><kbd>G</kbd> then <kbd>I</kbd></td>
+        </tr>
+        <tr>
+            <td>Go to Calendar</td>
+            <td><kbd>G</kbd> then <kbd>C</kbd></td>
+            <td><kbd>G</kbd> then <kbd>C</kbd></td>
+        </tr>
+        <tr>
+            <td>Go to Contacts</td>
+            <td><kbd>G</kbd> then <kbd>T</kbd></td>
+            <td><kbd>G</kbd> then <kbd>T</kbd></td>
+        </tr>
+        <tr>
+            <td>Go to Settings</td>
+            <td><kbd>G</kbd> then <kbd>S</kbd></td>
+            <td><kbd>G</kbd> then <kbd>S</kbd></td>
+        </tr>
+        <tr>
+            <td>Search</td>
+            <td><kbd>Ctrl</kbd>+<kbd>K</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>K</kbd></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Email Actions</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Action</th>
+            <th>Windows/Linux</th>
+            <th>Mac</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Compose new email</td>
+            <td><kbd>C</kbd></td>
+            <td><kbd>C</kbd></td>
+        </tr>
+        <tr>
+            <td>Reply</td>
+            <td><kbd>R</kbd></td>
+            <td><kbd>R</kbd></td>
+        </tr>
+        <tr>
+            <td>Reply all</td>
+            <td><kbd>A</kbd></td>
+            <td><kbd>A</kbd></td>
+        </tr>
+        <tr>
+            <td>Forward</td>
+            <td><kbd>F</kbd></td>
+            <td><kbd>F</kbd></td>
+        </tr>
+        <tr>
+            <td>Send email</td>
+            <td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>Enter</kbd></td>
+        </tr>
+        <tr>
+            <td>Archive</td>
+            <td><kbd>E</kbd></td>
+            <td><kbd>E</kbd></td>
+        </tr>
+        <tr>
+            <td>Delete</td>
+            <td><kbd>#</kbd></td>
+            <td><kbd>#</kbd></td>
+        </tr>
+        <tr>
+            <td>Mark as read/unread</td>
+            <td><kbd>Shift</kbd>+<kbd>I</kbd></td>
+            <td><kbd>⇧</kbd>+<kbd>I</kbd></td>
+        </tr>
+        <tr>
+            <td>Star/Flag</td>
+            <td><kbd>S</kbd></td>
+            <td><kbd>S</kbd></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Selection & Navigation</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Action</th>
+            <th>Windows/Linux</th>
+            <th>Mac</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Next email</td>
+            <td><kbd>J</kbd> or <kbd>↓</kbd></td>
+            <td><kbd>J</kbd> or <kbd>↓</kbd></td>
+        </tr>
+        <tr>
+            <td>Previous email</td>
+            <td><kbd>K</kbd> or <kbd>↑</kbd></td>
+            <td><kbd>K</kbd> or <kbd>↑</kbd></td>
+        </tr>
+        <tr>
+            <td>Open email</td>
+            <td><kbd>Enter</kbd> or <kbd>O</kbd></td>
+            <td><kbd>Enter</kbd> or <kbd>O</kbd></td>
+        </tr>
+        <tr>
+            <td>Close email</td>
+            <td><kbd>Esc</kbd> or <kbd>U</kbd></td>
+            <td><kbd>Esc</kbd> or <kbd>U</kbd></td>
+        </tr>
+        <tr>
+            <td>Select email</td>
+            <td><kbd>X</kbd></td>
+            <td><kbd>X</kbd></td>
+        </tr>
+        <tr>
+            <td>Select all</td>
+            <td><kbd>Ctrl</kbd>+<kbd>A</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>A</kbd></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Application Shortcuts</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Action</th>
+            <th>Windows/Linux</th>
+            <th>Mac</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Show keyboard shortcuts</td>
+            <td><kbd>?</kbd></td>
+            <td><kbd>?</kbd></td>
+        </tr>
+        <tr>
+            <td>Refresh/Sync</td>
+            <td><kbd>Ctrl</kbd>+<kbd>R</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>R</kbd></td>
+        </tr>
+        <tr>
+            <td>Toggle sidebar</td>
+            <td><kbd>[</kbd></td>
+            <td><kbd>[</kbd></td>
+        </tr>
+        <tr>
+            <td>Toggle theme</td>
+            <td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>T</kbd></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>Text Formatting (While Composing)</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Action</th>
+            <th>Windows/Linux</th>
+            <th>Mac</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Bold</td>
+            <td><kbd>Ctrl</kbd>+<kbd>B</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>B</kbd></td>
+        </tr>
+        <tr>
+            <td>Italic</td>
+            <td><kbd>Ctrl</kbd>+<kbd>I</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>I</kbd></td>
+        </tr>
+        <tr>
+            <td>Underline</td>
+            <td><kbd>Ctrl</kbd>+<kbd>U</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>U</kbd></td>
+        </tr>
+        <tr>
+            <td>Insert link</td>
+            <td><kbd>Ctrl</kbd>+<kbd>K</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>K</kbd></td>
+        </tr>
+        <tr>
+            <td>Undo</td>
+            <td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>Z</kbd></td>
+        </tr>
+        <tr>
+            <td>Redo</td>
+            <td><kbd>Ctrl</kbd>+<kbd>Y</kbd></td>
+            <td><kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>Z</kbd></td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="quick-ref">
+    <h3>🎯 Most Useful Shortcuts</h3>
+    <p>Start with these essential shortcuts:</p>
+    <ul>
+        <li><kbd>C</kbd> - Compose new email</li>
+        <li><kbd>R</kbd> - Reply to email</li>
+        <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> / <kbd>⌘</kbd>+<kbd>Enter</kbd> - Send</li>
+        <li><kbd>J</kbd>/<kbd>K</kbd> - Navigate up/down</li>
+        <li><kbd>E</kbd> - Archive</li>
+        <li><kbd>?</kbd> - See all shortcuts</li>
+    </ul>
+</div>
+
+</section>
+
+<section id="troubleshooting">
+<h1>9. Comprehensive Troubleshooting Guide</h1>
+
+<div class="highlight-box">
+    <h3>🔧 Fix It Yourself</h3>
+    <p>Most issues can be resolved quickly using this guide. If you can't find a solution here, our support team is ready to help at <strong>support@easemail.app</strong></p>
+</div>
+
+<h2>🔐 Login & Authentication Issues</h2>
+
+<div class="trouble-item">
+    <h4>Can't Log In - "Invalid Credentials" Error</h4>
+
+    <p><strong>Symptoms:</strong></p>
+    <ul>
+        <li>Error message: "Invalid login credentials"</li>
+        <li>Password not working despite being correct</li>
+        <li>Redirected back to login page</li>
+    </ul>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li><strong>Verify your email address is correct</strong>
+            <ul>
+                <li>Check for typos</li>
+                <li>Ensure no extra spaces</li>
+                <li>Try copy/pasting if you have it saved</li>
+            </ul>
+        </li>
+
+        <li><strong>Check Caps Lock and keyboard layout</strong>
+            <ul>
+                <li>Caps Lock might be on</li>
+                <li>Keyboard might be in different language mode</li>
+            </ul>
+        </li>
+
+        <li><strong>Reset your password:</strong>
+            <ul>
+                <li>Click <strong>"Forgot Password?"</strong> on login page</li>
+                <li>Enter your email address</li>
+                <li>Check inbox for password reset email (check spam folder!)</li>
+                <li>Click the reset link (valid for 24 hours)</li>
+                <li>Create a new strong password</li>
+            </ul>
+        </li>
+
+        <li><strong>Clear browser cache and cookies:</strong>
+            <ul>
+                <li><strong>Chrome:</strong> Ctrl+Shift+Delete → Clear browsing data</li>
+                <li><strong>Firefox:</strong> Ctrl+Shift+Delete → Clear cookies and cache</li>
+                <li><strong>Safari:</strong> Safari menu → Clear History</li>
+                <li>Restart browser after clearing</li>
+            </ul>
+        </li>
+
+        <li><strong>Try incognito/private mode:</strong>
+            <ul>
+                <li><strong>Chrome:</strong> Ctrl+Shift+N</li>
+                <li><strong>Firefox:</strong> Ctrl+Shift+P</li>
+                <li><strong>Safari:</strong> Cmd+Shift+N</li>
+                <li>If this works, the issue is browser cache/cookies</li>
+            </ul>
+        </li>
+
+        <li><strong>Try a different browser</strong>
+            <ul>
+                <li>Test with Chrome, Firefox, or Edge</li>
+                <li>If it works in another browser, your primary browser has an issue</li>
+            </ul>
+        </li>
+    </ol>
+
+    <p><strong>Still not working?</strong> Contact support at support@easemail.app with:</p>
+    <ul>
+        <li>Your email address</li>
+        <li>Browser name and version</li>
+        <li>Screenshot of the error</li>
+    </ul>
+</div>
+
+<div class="trouble-item">
+    <h4>Email Verification Link Not Working</h4>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li>Check if link expired (valid for 24 hours)</li>
+        <li>Request a new verification email:
+            <ul>
+                <li>Go to login page</li>
+                <li>Click "Resend verification email"</li>
+                <li>Check inbox (and spam folder)</li>
+            </ul>
+        </li>
+        <li>Try copying the entire URL and pasting in browser</li>
+        <li>Make sure you're clicking the link in the most recent email</li>
+    </ol>
+</div>
+
+<h2>📧 Email Sync Issues</h2>
+
+<div class="trouble-item">
+    <h4>Emails Not Syncing / New Emails Not Appearing</h4>
+
+    <p><strong>Symptoms:</strong></p>
+    <ul>
+        <li>New emails not showing up</li>
+        <li>Sent emails missing</li>
+        <li>Sync status shows "Error" (🔴 red icon)</li>
+        <li>Folders not updating</li>
+    </ul>
+
+    <p><strong>Solutions:</strong></p>
+
+    <ol>
+        <li><strong>Check sync status:</strong>
+            <ul>
+                <li>Go to <strong>Settings</strong> → <strong>Email Accounts</strong></li>
+                <li>Look at the status indicator:
+                    <ul>
+                        <li>🟢 <strong>Synced</strong> - Working normally</li>
+                        <li>🔵 <strong>Syncing</strong> - In progress</li>
+                        <li>🔴 <strong>Error</strong> - Problem detected</li>
+                        <li>🟡 <strong>Paused</strong> - Sync disabled</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+
+        <li><strong>Manual sync:</strong>
+            <ul>
+                <li>Click the <strong>🔄 Refresh</strong> icon next to the account</li>
+                <li>Wait 30 seconds for sync to complete</li>
+                <li>Check if emails appear</li>
+            </ul>
+        </li>
+
+        <li><strong>Check internet connection:</strong>
+            <ul>
+                <li>Verify you're online</li>
+                <li>Try loading other websites</li>
+                <li>Restart your router if needed</li>
+                <li>Switch from Wi-Fi to wired connection</li>
+            </ul>
+        </li>
+
+        <li><strong>Check email provider status:</strong>
+            <ul>
+                <li><strong>Gmail:</strong> Check status.google.com</li>
+                <li><strong>Outlook:</strong> Check status.office365.com</li>
+                <li>If provider is down, wait for them to fix it</li>
+            </ul>
+        </li>
+
+        <li><strong>Reconnect your email account:</strong>
+            <ul>
+                <li>Go to <strong>Settings</strong> → <strong>Email Accounts</strong></li>
+                <li>Click the <strong>🗑️ Trash</strong> icon to disconnect</li>
+                <li>Confirm disconnection</li>
+                <li>Click <strong>+ Connect Email Account</strong></li>
+                <li>Choose your provider and re-authenticate</li>
+                <li>Grant all required permissions</li>
+                <li>Wait for initial sync (may take several minutes)</li>
+            </ul>
+        </li>
+
+        <li><strong>Check custom folders:</strong>
+            <ul>
+                <li>Messages in custom folders <strong>don't appear in main inbox</strong></li>
+                <li>Look in left sidebar for "Folders (N)" section</li>
+                <li>Click the specific folder to view its messages</li>
+            </ul>
+        </li>
+
+        <li><strong>For Microsoft accounts (special case):</strong>
+            <ul>
+                <li>Token auto-refreshes every 55 minutes</li>
+                <li>If stuck, wait 5 minutes then manually refresh</li>
+                <li>Reconnect if persistent issues</li>
+            </ul>
+        </li>
+    </ol>
+
+    <p><strong>Advanced troubleshooting:</strong></p>
+    <ul>
+        <li>Check browser console for errors (F12 → Console tab)</li>
+        <li>Disable browser extensions temporarily</li>
+        <li>Check Nylas status at status.nylas.com</li>
+    </ul>
+</div>
+
+<div class="trouble-item">
+    <h4>Custom Folders Empty / Messages Not Showing</h4>
+
+    <p><strong>Symptoms:</strong></p>
+    <ul>
+        <li>Custom folders visible in sidebar</li>
+        <li>Folder shows message count (e.g., "Sales (45)")</li>
+        <li>But clicking folder shows no messages</li>
+    </ul>
+
+    <p><strong>Why this happens:</strong></p>
+    <p>Custom folder messages intentionally don't appear in main inbox to prevent clutter. You must click the folder to view its contents.</p>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li><strong>Click the folder in sidebar:</strong>
+            <ul>
+                <li>Look for "Folders (N)" section in left sidebar</li>
+                <li>Click on the specific folder name</li>
+                <li>Messages will load in main area</li>
+            </ul>
+        </li>
+
+        <li><strong>Refresh the folder:</strong>
+            <ul>
+                <li>Go to Settings → Email Accounts</li>
+                <li>Click refresh icon for that account</li>
+                <li>Wait for sync to complete</li>
+            </ul>
+        </li>
+
+        <li><strong>Check sync status:</strong>
+            <ul>
+                <li>Ensure account shows 🟢 "Synced" status</li>
+                <li>If 🔴 error, reconnect account</li>
+            </ul>
+        </li>
+
+        <li><strong>Verify messages exist:</strong>
+            <ul>
+                <li>Check original email client (Gmail, Outlook)</li>
+                <li>If messages aren't there either, they were deleted/moved</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<h2>📅 Calendar Issues</h2>
+
+<div class="trouble-item">
+    <h4>Calendar Not Loading / Blank Calendar</h4>
+
+    <p><strong>Symptoms:</strong></p>
+    <ul>
+        <li>Calendar page is blank</li>
+        <li>Shows "No events" when events should be there</li>
+        <li>500 error message</li>
+        <li>Infinite loading spinner</li>
+    </ul>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li><strong>Hard refresh the page:</strong>
+            <ul>
+                <li><strong>Windows:</strong> Ctrl+Shift+R</li>
+                <li><strong>Mac:</strong> Cmd+Shift+R</li>
+                <li>This clears cached calendar data</li>
+            </ul>
+        </li>
+
+        <li><strong>Verify email account connected:</strong>
+            <ul>
+                <li>Go to Settings → Email Accounts</li>
+                <li>Ensure at least one account is connected</li>
+                <li>Calendar requires connected email account</li>
+            </ul>
+        </li>
+
+        <li><strong>Check calendar permissions:</strong>
+            <ul>
+                <li>Disconnect email account</li>
+                <li>Reconnect and grant calendar permissions</li>
+                <li>Make sure "Calendar" is checked during OAuth</li>
+            </ul>
+        </li>
+
+        <li><strong>For Microsoft Teams calendar:</strong>
+            <ul>
+                <li>Ensure Microsoft account is connected</li>
+                <li>Token auto-refreshes every 55 minutes</li>
+                <li>If stuck, disconnect and reconnect Microsoft account</li>
+                <li>Grant all permissions including Teams access</li>
+            </ul>
+        </li>
+
+        <li><strong>Try different calendar view:</strong>
+            <ul>
+                <li>Switch between Day, Week, Month, Agenda views</li>
+                <li>Sometimes one view has issues while others work</li>
+            </ul>
+        </li>
+
+        <li><strong>Check browser console:</strong>
+            <ul>
+                <li>Press F12 to open developer tools</li>
+                <li>Click "Console" tab</li>
+                <li>Look for red error messages</li>
+                <li>Screenshot errors and send to support</li>
+            </ul>
+        </li>
+
+        <li><strong>Clear browser cache:</strong>
+            <ul>
+                <li>Ctrl+Shift+Delete (Windows) / Cmd+Shift+Delete (Mac)</li>
+                <li>Clear cached images and files</li>
+                <li>Restart browser</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<div class="trouble-item">
+    <h4>Events Not Syncing / Missing Events</h4>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li>Check which calendar you're viewing (work, personal, Teams)</li>
+        <li>Use calendar filters to enable all calendars</li>
+        <li>Manually refresh: Click refresh icon</li>
+        <li>Check original calendar (Google Calendar, Outlook) to confirm events exist</li>
+        <li>For recurring events, click to see all instances</li>
+        <li>Reconnect email account if sync fails</li>
+    </ol>
+</div>
+
+<h2>🤖 AI Features Issues</h2>
+
+<div class="trouble-item">
+    <h4>AI Compose Not Working / No Response</h4>
+
+    <p><strong>Symptoms:</strong></p>
+    <ul>
+        <li>AI Compose button does nothing</li>
+        <li>Stuck on "Generating..." forever</li>
+        <li>Error message appears</li>
+    </ul>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li><strong>Check your subscription plan:</strong>
+            <ul>
+                <li>AI features may require Pro or Enterprise plan</li>
+                <li>Go to Settings → Billing to check plan</li>
+                <li>Contact owner if upgrade needed</li>
+            </ul>
+        </li>
+
+        <li><strong>Verify AI features are enabled:</strong>
+            <ul>
+                <li>Go to Settings → AI Features</li>
+                <li>Ensure AI Compose is toggled ON</li>
+            </ul>
+        </li>
+
+        <li><strong>Check your prompt:</strong>
+            <ul>
+                <li>Prompt might be too vague</li>
+                <li>Try being more specific</li>
+                <li>Example: "Schedule meeting Tuesday 2pm" instead of "meeting"</li>
+            </ul>
+        </li>
+
+        <li><strong>Refresh page and retry:</strong>
+            <ul>
+                <li>Sometimes AI services have brief hiccups</li>
+                <li>Wait 30 seconds and try again</li>
+            </ul>
+        </li>
+
+        <li><strong>Check internet connection:</strong>
+            <ul>
+                <li>AI requires stable internet</li>
+                <li>Test with speedtest.net</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<div class="trouble-item">
+    <h4>AI Dictate Not Working / No Microphone Access</h4>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li><strong>Grant microphone permission:</strong>
+            <ul>
+                <li>Click address bar lock icon</li>
+                <li>Find "Microphone" permission</li>
+                <li>Set to "Allow"</li>
+                <li>Refresh page</li>
+            </ul>
+        </li>
+
+        <li><strong>Check system microphone:</strong>
+            <ul>
+                <li><strong>Windows:</strong> Settings → Sound → Input</li>
+                <li><strong>Mac:</strong> System Preferences → Sound → Input</li>
+                <li>Ensure correct microphone selected</li>
+                <li>Test microphone works in other apps</li>
+            </ul>
+        </li>
+
+        <li><strong>Check browser permissions:</strong>
+            <ul>
+                <li><strong>Chrome:</strong> Settings → Privacy → Microphone</li>
+                <li>Ensure Chrome has system microphone access</li>
+            </ul>
+        </li>
+
+        <li><strong>Try different browser:</strong>
+            <ul>
+                <li>Chrome has best dictation support</li>
+                <li>Firefox and Safari also supported</li>
+            </ul>
+        </li>
+
+        <li><strong>Check for conflicting apps:</strong>
+            <ul>
+                <li>Close Zoom, Skype, or other apps using microphone</li>
+                <li>Only one app can use microphone at a time</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<h2>⚙️ General Application Issues</h2>
+
+<div class="trouble-item">
+    <h4>Page Loading Slowly / Freezing</h4>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li><strong>Check internet speed:</strong>
+            <ul>
+                <li>Test at speedtest.net</li>
+                <li>Need at least 5 Mbps for smooth experience</li>
+            </ul>
+        </li>
+
+        <li><strong>Close unused tabs:</strong>
+            <ul>
+                <li>Too many tabs consume memory</li>
+                <li>Close tabs you're not using</li>
+            </ul>
+        </li>
+
+        <li><strong>Disable browser extensions:</strong>
+            <ul>
+                <li>Extensions can interfere with EaseMail</li>
+                <li>Temporarily disable all extensions</li>
+                <li>Re-enable one by one to find culprit</li>
+            </ul>
+        </li>
+
+        <li><strong>Clear browser cache:</strong>
+            <ul>
+                <li>Ctrl+Shift+Delete</li>
+                <li>Clear cached files</li>
+                <li>Restart browser</li>
+            </ul>
+        </li>
+
+        <li><strong>Update your browser:</strong>
+            <ul>
+                <li>Check for browser updates</li>
+                <li>Install latest version</li>
+                <li>Restart browser after update</li>
+            </ul>
+        </li>
+
+        <li><strong>Restart your computer:</strong>
+            <ul>
+                <li>Clears memory</li>
+                <li>Resolves many performance issues</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<div class="trouble-item">
+    <h4>Can't Send Emails / Send Button Disabled</h4>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li><strong>Check required fields:</strong>
+            <ul>
+                <li>To: field must have at least one recipient</li>
+                <li>Subject is recommended (you'll get warning if empty)</li>
+                <li>Email body can be empty</li>
+            </ul>
+        </li>
+
+        <li><strong>Verify recipient email addresses:</strong>
+            <ul>
+                <li>Must be valid format (name@domain.com)</li>
+                <li>Invalid addresses shown in red</li>
+                <li>Remove or correct invalid addresses</li>
+            </ul>
+        </li>
+
+        <li><strong>Check attachment size:</strong>
+            <ul>
+                <li>Maximum 25MB per file</li>
+                <li>Maximum 50MB total per email</li>
+                <li>Compress large files or use file sharing</li>
+            </ul>
+        </li>
+
+        <li><strong>Wait for attachments to upload:</strong>
+            <ul>
+                <li>Send button disabled while uploading</li>
+                <li>Wait for upload progress to reach 100%</li>
+            </ul>
+        </li>
+
+        <li><strong>Check email account connection:</strong>
+            <ul>
+                <li>Go to Settings → Email Accounts</li>
+                <li>Ensure "From" account is connected and synced</li>
+                <li>Reconnect if showing error</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<div class="trouble-item">
+    <h4>Can't Upload Attachments</h4>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li>Check file size (max 25MB per file)</li>
+        <li>Check file type (most types supported, some blocked for security)</li>
+        <li>Try different file or compress it</li>
+        <li>Disable antivirus temporarily</li>
+        <li>Try different browser</li>
+        <li>Check internet connection stability</li>
+    </ol>
+</div>
+
+<h2>🔒 Permission Issues</h2>
+
+<div class="trouble-item">
+    <h4>"Insufficient Permissions" / 403 Errors</h4>
+
+    <p><strong>Symptoms:</strong></p>
+    <ul>
+        <li>Error: "Insufficient permissions" or "Access denied"</li>
+        <li>Can't access certain features</li>
+        <li>Actions fail with 403 Forbidden</li>
+    </ul>
+
+    <p><strong>Solutions:</strong></p>
+    <ol>
+        <li><strong>Check your role:</strong>
+            <ul>
+                <li>Go to Organization dashboard</li>
+                <li>Check "Your Role" card</li>
+                <li>Some features require Admin or Owner role</li>
+            </ul>
+        </li>
+
+        <li><strong>Request elevated access:</strong>
+            <ul>
+                <li>Contact organization owner</li>
+                <li>Ask for Admin role if you need management features</li>
+            </ul>
+        </li>
+
+        <li><strong>Log out and back in:</strong>
+            <ul>
+                <li>Permissions sometimes cache incorrectly</li>
+                <li>Fresh login resolves this</li>
+            </ul>
+        </li>
+
+        <li><strong>Clear browser cache:</strong>
+            <ul>
+                <li>Ctrl+Shift+Delete</li>
+                <li>Clear cookies and cached data</li>
+                <li>Log in again</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+
+<h2>🌐 Browser Compatibility</h2>
+
+<div class="callout info">
+    <div class="callout-title">✅ Supported Browsers</div>
+    <ul>
+        <li>✅ <strong>Chrome:</strong> Latest version (recommended)</li>
+        <li>✅ <strong>Firefox:</strong> Latest version</li>
+        <li>✅ <strong>Safari:</strong> Latest version (macOS/iOS)</li>
+        <li>✅ <strong>Edge:</strong> Latest version</li>
+        <li>⚠️ <strong>Other browsers:</strong> May work but not officially supported</li>
+    </ul>
+    <p><strong>Always use the latest version for best security and performance.</strong></p>
+</div>
+
+<h2>📞 When to Contact Support</h2>
+
+<p>Contact our support team at <strong>support@easemail.app</strong> if:</p>
+
+<ul class="feature-list">
+    <li><strong>You've tried all troubleshooting steps</strong> and issue persists</li>
+    <li><strong>Error messages persist</strong> after 24 hours</li>
+    <li><strong>Data loss or corruption</strong> occurs</li>
+    <li><strong>Security concerns</strong> (suspicious activity, unauthorized access)</li>
+    <li><strong>Billing issues</strong> (incorrect charges, plan problems)</li>
+    <li><strong>Account locked</strong> and password reset doesn't work</li>
+</ul>
+
+<h3>Information to Include</h3>
+
+<p>Help us help you faster by providing:</p>
+
+<ol>
+    <li><strong>Your email address</strong> (account identifier)</li>
+    <li><strong>Organization name</strong> (if applicable)</li>
+    <li><strong>Browser and version</strong> (e.g., "Chrome 120")</li>
+    <li><strong>Operating system</strong> (e.g., "Windows 11" or "macOS 14")</li>
+    <li><strong>Exact error message</strong> (copy/paste or screenshot)</li>
+    <li><strong>Time when issue occurred</strong> (with timezone)</li>
+    <li><strong>Steps to reproduce</strong> (what you were doing)</li>
+    <li><strong>Screenshots or screen recording</strong> (if possible)</li>
+    <li><strong>Browser console errors</strong> (F12 → Console tab → screenshot any red errors)</li>
+</ol>
+
+<h3>Response Times</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Priority</th>
+            <th>Response Time</th>
+            <th>Examples</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Critical</strong></td>
+            <td>1-2 hours</td>
+            <td>Service down, can't access account, data loss</td>
+        </tr>
+        <tr>
+            <td><strong>High</strong></td>
+            <td>4-8 hours</td>
+            <td>Feature broken, sync failing, can't send emails</td>
+        </tr>
+        <tr>
+            <td><strong>Medium</strong></td>
+            <td>24 hours</td>
+            <td>Minor bug, cosmetic issue, feature request</td>
+        </tr>
+        <tr>
+            <td><strong>Low</strong></td>
+            <td>48 hours</td>
+            <td>General questions, how-to inquiries</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="callout success">
+    <div class="callout-title">💡 Pro Tip</div>
+    <p>Before contacting support, check <strong>status.easemail.app</strong> for known outages or maintenance. Many "issues" are actually planned maintenance!</p>
+</div>
+
+</section>
+
+<section id="faq">
+<h1>10. Frequently Asked Questions</h1>
+
+<h2>📧 Email & Accounts</h2>
+
+<h3>Q: How many email accounts can I connect?</h3>
+<p><strong>A:</strong> You can connect <strong>unlimited personal email accounts</strong> to EaseMail. There's no restriction on how many Gmail, Outlook, or IMAP accounts you add. Organization-level shared accounts may have limits depending on your team's subscription plan.</p>
+
+<h3>Q: Does EaseMail store my email passwords?</h3>
+<p><strong>A:</strong> <strong>No, never.</strong> EaseMail uses OAuth 2.0 authentication, which means:</p>
+<ul>
+    <li>You log in directly with Gmail, Outlook, etc.</li>
+    <li>We receive an access token, not your password</li>
+    <li>You can revoke access anytime from your email provider</li>
+    <li>Your password never passes through EaseMail servers</li>
+</ul>
+
+<h3>Q: Can I use EaseMail without connecting an email account?</h3>
+<p><strong>A:</strong> No, EaseMail requires at least one connected email account to function. It's designed as a unified email client, not a standalone email service.</p>
+
+<h3>Q: Why aren't my sent emails showing in EaseMail?</h3>
+<p><strong>A:</strong> Check your sync status:</p>
+<ol>
+    <li>Go to Settings → Email Accounts</li>
+    <li>Verify status is "Synced" (green)</li>
+    <li>Click refresh button to manual sync</li>
+    <li>Check "Sent" folder in sidebar (may not appear in main inbox)</li>
+    <li>If still not syncing, disconnect and reconnect account</li>
+</ol>
+
+<h3>Q: What happens to my emails if I disconnect an account?</h3>
+<p><strong>A:</strong> When you disconnect an email account from EaseMail:</p>
+<ul>
+    <li>Emails stop syncing to EaseMail</li>
+    <li>Previously synced emails remain visible in EaseMail for historical purposes</li>
+    <li>Your actual email account (Gmail, Outlook) is completely unaffected</li>
+    <li>You can reconnect the account anytime</li>
+</ul>
+
+<h3>Q: Can I schedule emails to send later?</h3>
+<p><strong>A:</strong> Email scheduling is coming soon! For now, use your email provider's native scheduling feature (available in Gmail and Outlook), and those scheduled emails will sync to EaseMail when sent.</p>
+
+<h2>🤖 AI Features</h2>
+
+<h3>Q: Are AI features available on all plans?</h3>
+<p><strong>A:</strong> Basic AI features are available on all plans. Advanced AI features and higher usage limits require Pro or Enterprise plans. Check Settings → Billing to see your plan details.</p>
+
+<h3>Q: Is my email content used to train AI models?</h3>
+<p><strong>A:</strong> <strong>No.</strong> Your email content is processed by AI only when you explicitly use AI features (Compose, Remix, etc.). We do not use your emails to train AI models. All AI processing is done in real-time and is not stored or used for training purposes.</p>
+
+<h3>Q: Can I disable AI features?</h3>
+<p><strong>A:</strong> Yes. Go to Settings → AI Features and toggle off any AI feature you don't want to use. AI buttons will be hidden from the interface.</p>
+
+<h3>Q: Which languages does AI Compose support?</h3>
+<p><strong>A:</strong> AI Compose works best with English but also supports:</p>
+<ul>
+    <li>Spanish (Español)</li>
+    <li>French (Français)</li>
+    <li>German (Deutsch)</li>
+    <li>Portuguese (Português)</li>
+    <li>Italian (Italiano)</li>
+</ul>
+<p>More languages coming soon!</p>
+
+<h2>📅 Calendar</h2>
+
+<h3>Q: Does EaseMail work with Microsoft Teams?</h3>
+<p><strong>A:</strong> <strong>Yes!</strong> When you connect a Microsoft account:</p>
+<ul>
+    <li>✅ Teams meetings automatically sync to your calendar</li>
+    <li>✅ "Join Now" button appears for active meetings</li>
+    <li>✅ Meeting links included in event details</li>
+    <li>✅ Access token auto-refreshes every 55 minutes</li>
+    <li>✅ Conflict detection for overlapping meetings</li>
+</ul>
+
+<h3>Q: Can I create recurring events?</h3>
+<p><strong>A:</strong> Yes! When creating an event, enable the "Recurring" option and set your pattern (daily, weekly, monthly, yearly). You can also set an end date or number of occurrences.</p>
+
+<h3>Q: Why don't I see all my calendar events?</h3>
+<p><strong>A:</strong> Check these:</p>
+<ol>
+    <li>Verify email account is connected and synced</li>
+    <li>Check calendar filters - some calendars might be hidden</li>
+    <li>Ensure you granted calendar permissions during OAuth</li>
+    <li>Try different view (Day, Week, Month, Agenda)</li>
+    <li>Reconnect email account if sync is broken</li>
+</ol>
+
+<h2>🏢 Organizations</h2>
+
+<h3>Q: What's the difference between personal account and organization?</h3>
+<p><strong>A:</strong> </p>
+<ul>
+    <li><strong>Personal Account:</strong> Just you, your email accounts, your data</li>
+    <li><strong>Organization:</strong> Team workspace with shared email accounts, shared calendar, multiple members, role-based permissions</li>
+</ul>
+<p>You can have a personal account AND be part of multiple organizations.</p>
+
+<h3>Q: Can I be part of multiple organizations?</h3>
+<p><strong>A:</strong> Yes! You can join unlimited organizations with the same EaseMail account. Switch between organizations using the Organization selector in the sidebar.</p>
+
+<h3>Q: How do I leave an organization?</h3>
+<p><strong>A:</strong> Go to Organization dashboard → Settings → "Leave Organization". This is permanent and cannot be undone. You'll lose access to shared resources immediately.</p>
+
+<h2>💰 Billing & Plans</h2>
+
+<h3>Q: What payment methods do you accept?</h3>
+<p><strong>A:</strong> We accept:</p>
+<ul>
+    <li>Credit cards (Visa, Mastercard, Amex)</li>
+    <li>Debit cards</li>
+    <li>PayPal</li>
+    <li>Company invoicing (Enterprise only)</li>
+</ul>
+
+<h3>Q: Can I upgrade or downgrade my plan?</h3>
+<p><strong>A:</strong> Yes, anytime. Go to Settings → Billing → Change Plan. Changes take effect immediately. Upgrades are prorated, downgrades take effect at next billing cycle.</p>
+
+<h3>Q: Is there a free trial?</h3>
+<p><strong>A:</strong> Yes! New users get 14 days free trial of Pro features. No credit card required. After trial, you can choose to subscribe or continue with the free plan.</p>
+
+<h3>Q: Can I cancel anytime?</h3>
+<p><strong>A:</strong> Yes, cancel anytime with no penalty. You'll retain access until the end of your current billing period. Your account reverts to the free plan after subscription ends.</p>
+
+<h2>🔒 Security & Privacy</h2>
+
+<h3>Q: How secure is EaseMail?</h3>
+<p><strong>A:</strong> EaseMail uses enterprise-grade security:</p>
+<ul>
+    <li>🔒 TLS 1.3 encryption for all data in transit</li>
+    <li>🔐 AES-256 encryption for data at rest</li>
+    <li>🛡️ OAuth 2.0 - we never see your email password</li>
+    <li>🏢 SOC 2 Type II compliance (in progress)</li>
+    <li>🔍 Regular security audits</li>
+    <li>💾 Encrypted backups</li>
+    <li>👤 Row-level security (RLS) in database</li>
+</ul>
+
+<h3>Q: Where is my data stored?</h3>
+<p><strong>A:</strong> Your data is stored in secure data centers in the United States (US-East region). We use Supabase for database hosting and AWS for infrastructure. All data is encrypted at rest and in transit.</p>
+
+<h3>Q: Do you sell my data?</h3>
+<p><strong>A:</strong> <strong>Never.</strong> We do not sell, rent, or share your personal data with third parties for marketing purposes. Your email data is yours. We make money from subscriptions, not from your data.</p>
+
+<h3>Q: Can I export all my data?</h3>
+<p><strong>A:</strong> Yes! Go to Settings → Data & Storage → Request Data Export. You'll receive a download link within 24 hours containing all your emails, contacts, calendar events, and settings in standard formats.</p>
+
+<h2>📱 Mobile & Desktop</h2>
+
+<h3>Q: Is there a mobile app?</h3>
+<p><strong>A:</strong> Native mobile apps for iOS and Android are coming soon (2026). Currently, EaseMail is fully responsive and works great on mobile browsers (Safari, Chrome Mobile). Just visit easemail.app on your phone.</p>
+
+<h3>Q: Can I use keyboard shortcuts?</h3>
+<p><strong>A:</strong> Yes! Press <kbd>?</kbd> anywhere in EaseMail to see all available shortcuts. Essential shortcuts:</p>
+<ul>
+    <li><kbd>C</kbd> - Compose email</li>
+    <li><kbd>R</kbd> - Reply</li>
+    <li><kbd>J</kbd>/<kbd>K</kbd> - Navigate emails</li>
+    <li><kbd>Ctrl/Cmd</kbd>+<kbd>Enter</kbd> - Send</li>
+</ul>
+
+<h3>Q: Which browsers are supported?</h3>
+<p><strong>A:</strong> We officially support the latest versions of:</p>
+<ul>
+    <li>✅ Google Chrome (recommended)</li>
+    <li>✅ Mozilla Firefox</li>
+    <li>✅ Safari (macOS/iOS)</li>
+    <li>✅ Microsoft Edge</li>
+</ul>
+<p>Other browsers may work but aren't officially tested.</p>
+
+<h2>🆘 Support</h2>
+
+<h3>Q: How do I get help if I have a problem?</h3>
+<p><strong>A:</strong> We're here to help!</p>
+<ol>
+    <li><strong>Check this guide:</strong> Most issues covered in Troubleshooting section</li>
+    <li><strong>Check status page:</strong> status.easemail.app for known issues</li>
+    <li><strong>Email support:</strong> support@easemail.app (fastest response)</li>
+    <li><strong>In-app help:</strong> Click Help in sidebar</li>
+</ol>
+
+<h3>Q: What are your support hours?</h3>
+<p><strong>A:</strong> </p>
+<ul>
+    <li><strong>Free & Pro Plans:</strong> Business hours (9am-5pm PST, Mon-Fri)</li>
+    <li><strong>Enterprise Plans:</strong> 24/7 priority support with dedicated account manager</li>
+    <li><strong>Critical Issues:</strong> 24/7 for all plans (service outages, security issues)</li>
+</ul>
+
+</section>
+
+</div>
+
+<!-- Footer -->
+<div class="container">
+<div class="footer">
+    <h2>Need More Help?</h2>
+    <p style="font-size: 18px; margin: 20px 0;">We're here for you!</p>
+
+    <div class="card-grid" style="margin-top: 30px;">
+        <div class="card">
+            <h4>📧 Email Support</h4>
+            <p><strong>support@easemail.app</strong></p>
+            <p>Response within 24 hours (faster for urgent issues)</p>
+        </div>
+
+        <div class="card">
+            <h4>📚 Documentation</h4>
+            <p><strong>docs.easemail.app</strong></p>
+            <p>Complete guides, tutorials, and API docs</p>
+        </div>
+
+        <div class="card">
+            <h4>📊 Status Page</h4>
+            <p><strong>status.easemail.app</strong></p>
+            <p>Real-time service status and incidents</p>
+        </div>
+
+        <div class="card">
+            <h4>🔒 Security</h4>
+            <p><strong>security@easemail.app</strong></p>
+            <p>Report security issues (2-hour response)</p>
+        </div>
+    </div>
+
+    <hr style="margin: 60px 0 30px 0;">
+
+    <p style="font-size: 14px; color: #718096;">&copy; 2026 EaseMail, Inc. All rights reserved.</p>
+    <p style="font-size: 14px; color: #718096;"><strong>Version 1.0</strong> | February 2026</p>
+    <p style="font-size: 14px; color: #718096;">
+        <a href="https://easemail.app">easemail.app</a> |
+        <a href="https://docs.easemail.app">Documentation</a> |
+        <a href="mailto:support@easemail.app">Support</a>
+    </p>
+</div>
+</div>
+
+</body>
+</html>

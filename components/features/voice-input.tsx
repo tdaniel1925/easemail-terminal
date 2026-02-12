@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Mic, Square, Loader2, AlertCircle } from 'lucide-react';
+import { Mic, Square, Loader2, AlertCircle, Radio } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface VoiceInputProps {
@@ -197,7 +197,7 @@ export function VoiceInput({ onTranscript, tone = 'professional', id, iconOnly =
               className="h-9 w-9"
               onClick={startRecording}
             >
-              <Mic className="h-4 w-4" />
+              <Radio className="h-4 w-4" />
             </Button>
           ) : (
             <Tooltip>
@@ -206,9 +206,11 @@ export function VoiceInput({ onTranscript, tone = 'professional', id, iconOnly =
                   id={id}
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={startRecording}
+                  className="h-9"
                 >
-                  <Mic className="mr-2 h-4 w-4" />
+                  <Radio className="mr-2 h-4 w-4" />
                   AI Dictate
                 </Button>
               </TooltipTrigger>

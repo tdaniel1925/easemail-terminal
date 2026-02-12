@@ -8,6 +8,15 @@ import { isString, isArray } from '@/lib/guards';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
 import { ApiErrors } from '@/lib/api-error';
 
+// Increase body size limit for API route to support attachments
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '25mb'
+    }
+  }
+};
+
 // Validation schema for email send requests
 const sendEmailSchema = z.object({
   to: z.union([

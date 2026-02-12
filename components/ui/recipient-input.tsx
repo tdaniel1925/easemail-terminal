@@ -14,6 +14,20 @@ interface Contact {
   companyName?: string;
 }
 
+interface RecentRecipient {
+  email: string;
+  name?: string;
+  count: number;
+}
+
+interface Suggestion {
+  type: 'contact' | 'recent';
+  email: string;
+  name: string;
+  company?: string;
+  frequency?: number;
+}
+
 interface RecipientInputProps {
   value: string;
   onChange: (value: string) => void;
@@ -23,16 +37,18 @@ interface RecipientInputProps {
 
 export function RecipientInput({ value, onChange, placeholder, id }: RecipientInputProps) {
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [recentRecipients, setRecentRecipients] = useState<RecentRecipient[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<Suggestion[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Fetch contacts on mount
+  // Fetch contacts and recent recipients on mount
   useEffect(() => {
     fetchContacts();
+    fetchRecentRecipients();
   }, []);
 
   const fetchContacts = async () => {
@@ -47,6 +63,18 @@ export function RecipientInput({ value, onChange, placeholder, id }: RecipientIn
     }
   };
 
+  const fetchRecentRecipients = async () => {
+    try {
+      const response = await fetch('/api/recipients/recent');
+      const data = await response.json();
+      if (response.ok && data.recipients) {
+        setRecentRecipients(data.recipients);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent recipients:', error);
+    }
+  };
+
   // Extract the current partial input after the last comma
   const getCurrentInput = (fullValue: string): string => {
     const lastComma = fullValue.lastIndexOf(',');
@@ -56,43 +84,77 @@ export function RecipientInput({ value, onChange, placeholder, id }: RecipientIn
     return fullValue.substring(lastComma + 1).trim();
   };
 
-  // Filter contacts based on input
+  // Filter contacts and recent recipients based on input
   useEffect(() => {
     const currentInput = getCurrentInput(value);
     setInputValue(currentInput);
 
     if (currentInput.length >= 2) {
-      const filtered = contacts.filter((contact) => {
-        const name = `${contact.givenName || ''} ${contact.surname || ''}`.trim().toLowerCase();
-        const email = contact.emails?.[0]?.email?.toLowerCase() || '';
-        const company = contact.companyName?.toLowerCase() || '';
-        const search = currentInput.toLowerCase();
+      const search = currentInput.toLowerCase();
+      const suggestions: Suggestion[] = [];
 
-        return name.includes(search) || email.includes(search) || company.includes(search);
-      }).slice(0, 10); // Limit to 10 suggestions
+      // Add matching contacts
+      contacts.forEach((contact) => {
+        const name = `${contact.givenName || ''} ${contact.surname || ''}`.trim();
+        const email = contact.emails?.[0]?.email || '';
+        const company = contact.companyName || '';
 
-      setFilteredContacts(filtered);
-      setShowSuggestions(filtered.length > 0);
+        if (
+          name.toLowerCase().includes(search) ||
+          email.toLowerCase().includes(search) ||
+          company.toLowerCase().includes(search)
+        ) {
+          suggestions.push({
+            type: 'contact',
+            email,
+            name: name || email,
+            company,
+          });
+        }
+      });
+
+      // Add matching recent recipients (excluding those already in contacts)
+      const contactEmails = new Set(contacts.map(c => c.emails?.[0]?.email?.toLowerCase()).filter(Boolean));
+
+      recentRecipients.forEach((recipient) => {
+        const email = recipient.email.toLowerCase();
+        const name = recipient.name || recipient.email;
+
+        if (
+          !contactEmails.has(email) &&
+          (name.toLowerCase().includes(search) || email.includes(search))
+        ) {
+          suggestions.push({
+            type: 'recent',
+            email: recipient.email,
+            name: name,
+            frequency: recipient.count,
+          });
+        }
+      });
+
+      // Sort: contacts first, then by frequency
+      suggestions.sort((a, b) => {
+        if (a.type === 'contact' && b.type === 'recent') return -1;
+        if (a.type === 'recent' && b.type === 'contact') return 1;
+        if (a.type === 'recent' && b.type === 'recent') {
+          return (b.frequency || 0) - (a.frequency || 0);
+        }
+        return 0;
+      });
+
+      const limited = suggestions.slice(0, 10);
+      setFilteredSuggestions(limited);
+      setShowSuggestions(limited.length > 0);
       setSelectedIndex(0);
     } else {
       setShowSuggestions(false);
-      setFilteredContacts([]);
+      setFilteredSuggestions([]);
     }
-  }, [value, contacts]);
+  }, [value, contacts, recentRecipients]);
 
-  const getContactName = (contact: Contact): string => {
-    if (contact.givenName || contact.surname) {
-      return `${contact.givenName || ''} ${contact.surname || ''}`.trim();
-    }
-    return contact.emails?.[0]?.email || 'Unknown';
-  };
-
-  const getContactEmail = (contact: Contact): string => {
-    return contact.emails?.[0]?.email || '';
-  };
-
-  const selectContact = (contact: Contact) => {
-    const email = getContactEmail(contact);
+  const selectSuggestion = (suggestion: Suggestion) => {
+    const email = suggestion.email;
     const lastComma = value.lastIndexOf(',');
 
     let newValue: string;
@@ -112,13 +174,13 @@ export function RecipientInput({ value, onChange, placeholder, id }: RecipientIn
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex((prev) => Math.min(prev + 1, filteredContacts.length - 1));
+      setSelectedIndex((prev) => Math.min(prev + 1, filteredSuggestions.length - 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
-    } else if (e.key === 'Enter' && filteredContacts.length > 0) {
+    } else if (e.key === 'Enter' && filteredSuggestions.length > 0) {
       e.preventDefault();
-      selectContact(filteredContacts[selectedIndex]);
+      selectSuggestion(filteredSuggestions[selectedIndex]);
     } else if (e.key === 'Escape') {
       setShowSuggestions(false);
     }
@@ -155,38 +217,43 @@ export function RecipientInput({ value, onChange, placeholder, id }: RecipientIn
       />
 
       {/* Suggestions Dropdown */}
-      {showSuggestions && filteredContacts.length > 0 && (
+      {showSuggestions && filteredSuggestions.length > 0 && (
         <div
           ref={suggestionsRef}
           className="absolute z-50 w-full mt-1 bg-popover border rounded-lg shadow-lg max-h-64 overflow-auto"
         >
-          {filteredContacts.map((contact, index) => {
-            const name = getContactName(contact);
-            const email = getContactEmail(contact);
-
+          {filteredSuggestions.map((suggestion, index) => {
             return (
               <button
-                key={contact.id}
+                key={`${suggestion.type}-${suggestion.email}`}
                 type="button"
                 className={cn(
                   'w-full text-left px-4 py-3 hover:bg-accent transition-colors border-b last:border-b-0',
                   index === selectedIndex && 'bg-accent'
                 )}
-                onClick={() => selectContact(contact)}
+                onClick={() => selectSuggestion(suggestion)}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                    {name.charAt(0).toUpperCase()}
+                    {suggestion.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm">{name}</div>
+                    <div className="font-medium text-sm flex items-center gap-2">
+                      {suggestion.name}
+                      {suggestion.type === 'contact' && (
+                        <Badge variant="secondary" className="text-xs">Contact</Badge>
+                      )}
+                      {suggestion.type === 'recent' && suggestion.frequency && suggestion.frequency > 5 && (
+                        <Badge variant="outline" className="text-xs">Frequent</Badge>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
                       <Mail className="h-3 w-3" />
-                      {email}
+                      {suggestion.email}
                     </div>
-                    {contact.companyName && (
-                      <div className="text-xs text-muted-foreground">{contact.companyName}</div>
+                    {suggestion.company && (
+                      <div className="text-xs text-muted-foreground">{suggestion.company}</div>
                     )}
                   </div>
                 </div>

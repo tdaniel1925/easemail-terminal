@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { User, Palette, Mail, Bell, Shield, CreditCard, PenTool, Zap } from 'lucide-react';
+import { User, Palette, Mail, Bell, Shield, CreditCard, PenTool, Zap, BookOpen } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 const settingsSections = [
@@ -48,6 +48,12 @@ const settingsSections = [
     name: 'Security',
     href: '/app/settings/security',
     icon: Shield,
+    requiresRole: null,
+  },
+  {
+    name: 'Help & Guides',
+    href: '/app/settings/help',
+    icon: BookOpen,
     requiresRole: null,
   },
   {

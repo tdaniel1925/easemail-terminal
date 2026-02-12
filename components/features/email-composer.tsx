@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2, Zap, Braces, MailCheck, Settings } from 'lucide-react';
+import { Sparkles, Send, Loader2, X, Mic, Paperclip, Save, FileText, BookmarkPlus, Clock, AlertCircle, Eye, Smile, Flag, Undo2, Zap, Braces, MailCheck, Settings, Radio } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHotkeys } from 'react-hotkeys-hook';
 import dynamic from 'next/dynamic';
@@ -45,7 +45,7 @@ interface EmailComposerProps {
   };
 }
 
-export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProps) {
+export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }: EmailComposerProps) {
   // Format recipients
   const formatRecipients = (recipients?: string | string[]) => {
     if (!recipients) return '';
@@ -61,11 +61,11 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
         : `Re: ${replyTo.subject.replace(/^Re:\s*/i, '')}`)
     : '';
 
-  // Format quoted message
+  // Format quoted message with 3 blank lines for user to type reply above
   const quotedBody = replyTo?.body && !replyTo.isForward
-    ? `\n\n---\nOn ${replyTo.date ? new Date(replyTo.date * 1000).toLocaleString() : 'previous date'}, ${replyTo.from || 'sender'} wrote:\n\n${replyTo.body.replace(/^/gm, '> ')}`
+    ? `\n\n\n\n\n---\nOn ${replyTo.date ? new Date(replyTo.date * 1000).toLocaleString() : 'previous date'}, ${replyTo.from || 'sender'} wrote:\n\n${replyTo.body.replace(/^/gm, '> ')}`
     : replyTo?.isForward && replyTo?.body
-    ? `\n\n---------- Forwarded message ---------\nFrom: ${replyTo.from}\nDate: ${replyTo.date ? new Date(replyTo.date * 1000).toLocaleString() : ''}\nSubject: ${replyTo.subject}\n\n${replyTo.body}`
+    ? `\n\n\n\n\n---------- Forwarded message ---------\nFrom: ${replyTo.from}\nDate: ${replyTo.date ? new Date(replyTo.date * 1000).toLocaleString() : ''}\nSubject: ${replyTo.subject}\n\n${replyTo.body}`
     : '';
 
   const [to, setTo] = useState(initialTo);
@@ -126,6 +126,11 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
   const [showCannedResponses, setShowCannedResponses] = useState(false);
   const [cannedResponseSearch, setCannedResponseSearch] = useState('');
   const [filteredTemplates, setFilteredTemplates] = useState<any[]>([]);
+
+  // Account selection states
+  const [accounts, setAccounts] = useState<any[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(initialAccountId || '');
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
 
   // Template variables states
   const [showVariables, setShowVariables] = useState(false);
@@ -277,6 +282,28 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
     }
   };
 
+  // Account functions
+  const fetchAccounts = async () => {
+    try {
+      setLoadingAccounts(true);
+      const response = await fetch('/api/email-accounts');
+      const data = await response.json();
+      if (response.ok && data.accounts) {
+        setAccounts(data.accounts);
+        // Set default account if not already set
+        if (!selectedAccountId && data.accounts.length > 0) {
+          // Use primary account or first account
+          const primaryAccount = data.accounts.find((acc: any) => acc.is_primary);
+          setSelectedAccountId(primaryAccount?.id || data.accounts[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch accounts:', error);
+    } finally {
+      setLoadingAccounts(false);
+    }
+  };
+
   // Signature functions
   const fetchSignatures = async () => {
     try {
@@ -342,8 +369,9 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
     }
   };
 
-  // Fetch signatures when composer opens
+  // Fetch accounts and signatures when composer opens
   useEffect(() => {
+    fetchAccounts();
     fetchSignatures();
   }, []);
 
@@ -463,6 +491,16 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
       }
     };
   }, [to, cc, bcc, subject, body]); // Re-run when any field changes
+
+  // Cleanup undo send timer on unmount
+  useEffect(() => {
+    return () => {
+      if (undoSendTimerRef.current) {
+        clearInterval(undoSendTimerRef.current);
+        undoSendTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Keyboard shortcuts
   useHotkeys('ctrl+enter,meta+enter', (e) => {
@@ -669,7 +707,7 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
         ...(processedAttachments.length > 0 && { attachments: processedAttachments }),
         ...(replyTo?.messageId && { messageId: replyTo.messageId, replyAll: replyTo.replyAll }),
         ...(requestReadReceipt && { readReceipt: true }),
-        ...(accountId && { accountId }),
+        ...(selectedAccountId && { accountId: selectedAccountId }),
       };
 
       const response = await fetch(endpoint, {
@@ -721,9 +759,29 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
       return;
     }
 
-    // Send immediately without countdown
+    // Start undo send countdown (5 seconds)
     setSending(true);
-    actualSend();
+    let countdown = 5;
+    setUndoSendCountdown(countdown);
+
+    toast.info('Sending email...', {
+      description: `You have ${countdown} seconds to undo`,
+      duration: 5000,
+    });
+
+    undoSendTimerRef.current = setInterval(() => {
+      countdown--;
+      setUndoSendCountdown(countdown);
+
+      if (countdown <= 0) {
+        if (undoSendTimerRef.current) {
+          clearInterval(undoSendTimerRef.current);
+          undoSendTimerRef.current = null;
+        }
+        setUndoSendCountdown(null);
+        actualSend();
+      }
+    }, 1000);
   };
 
   return (
@@ -750,6 +808,31 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
           <div className="flex-1 flex flex-col space-y-3 min-h-0">
           {/* Recipient Fields - Fixed height, no flex grow */}
           <div className="shrink-0 space-y-3">
+            {/* From Account Selector */}
+            {accounts.length > 1 && (
+              <div className="space-y-2">
+                <Label htmlFor="from-account">From</Label>
+                <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+                  <SelectTrigger id="from-account" disabled={loadingAccounts}>
+                    <SelectValue placeholder="Select sending account..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          <span>{account.email}</span>
+                          {account.is_primary && (
+                            <Badge variant="secondary" className="text-xs">Primary</Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* To */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -892,16 +975,16 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
               </div>
             )}
 
-            {/* Modern Bottom Toolbar - Single Row, Icon-Only, Sleek Design */}
+            {/* Modern Bottom Toolbar - With Labels for AI Features */}
             <div className="flex items-center justify-between gap-3 px-1">
               {/* Left: AI & Content Tools */}
               <div className="flex items-center gap-1">
-                {/* AI Dictate - Icon Only */}
+                {/* AI Dictate - With Label */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div>
                       <VoiceInput
-                        iconOnly={true}
+                        iconOnly={false}
                         onTranscript={(text) => {
                           const convertToHTML = (plainText: string) => {
                             if (plainText.includes('<p>') || plainText.includes('<br>') || plainText.includes('<div>')) {
@@ -927,20 +1010,26 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
                   </TooltipContent>
                 </Tooltip>
 
-                {/* AI Remix - Icon Only */}
+                {/* AI Remix - With Label */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
-                      size="icon"
-                      className="h-9 w-9"
+                      size="sm"
+                      className="h-9"
                       onClick={handleAIRemix}
                       disabled={remixing || !body || body.length < 10}
                     >
                       {remixing ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Remixing
+                        </>
                       ) : (
-                        <Sparkles className="h-4 w-4" />
+                        <>
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          AI Remix
+                        </>
                       )}
                     </Button>
                   </TooltipTrigger>
@@ -954,16 +1043,17 @@ export function EmailComposer({ onClose, accountId, replyTo }: EmailComposerProp
 
                 <div className="w-px h-6 bg-border mx-1" />
 
-                {/* Voice Message - Icon Only */}
+                {/* Voice Message - With Label */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
-                      size="icon"
-                      className="h-9 w-9"
+                      size="sm"
+                      className="h-9"
                       onClick={() => setShowVoiceRecorder(true)}
                     >
-                      <Mic className="h-4 w-4" />
+                      <Mic className="mr-2 h-4 w-4" />
+                      Voice Message
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>

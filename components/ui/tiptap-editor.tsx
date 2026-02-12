@@ -3,6 +3,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Highlight from '@tiptap/extension-highlight';
@@ -13,9 +14,12 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { TableCell } from '@tiptap/extension-table-cell';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Bold,
   Italic,
@@ -36,7 +40,8 @@ import {
   Type,
   Table as TableIcon,
   Plus,
-  Trash
+  Trash,
+  ImagePlus
 } from 'lucide-react';
 
 interface TiptapEditorProps {
@@ -47,6 +52,10 @@ interface TiptapEditorProps {
 }
 
 export function TiptapEditor({ content, onChange, placeholder = 'Write your message here...', minHeight = '300px' }: TiptapEditorProps) {
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkText, setLinkText] = useState('');
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -58,6 +67,13 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
         openOnClick: false,
         HTMLAttributes: {
           class: 'text-blue-600 underline hover:text-blue-800',
+        },
+      }),
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+        HTMLAttributes: {
+          class: 'max-w-full h-auto rounded-lg',
         },
       }),
       Placeholder.configure({
@@ -137,16 +153,119 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
     return null;
   }
 
-  const addLink = () => {
-    const url = window.prompt('Enter URL:');
-    if (url) {
+  const openLinkDialog = () => {
+    // Check if there's selected text
+    const { from, to } = editor.state.selection;
+    const selectedText = editor.state.doc.textBetween(from, to, '');
+
+    // Check if current selection has a link
+    const existingLink = editor.getAttributes('link');
+
+    setLinkText(selectedText || '');
+    setLinkUrl(existingLink.href || '');
+    setShowLinkDialog(true);
+  };
+
+  const insertLink = () => {
+    if (!linkUrl) {
+      setShowLinkDialog(false);
+      return;
+    }
+
+    // Add protocol if missing
+    let url = linkUrl;
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('mailto:')) {
+      url = 'https://' + url;
+    }
+
+    if (linkText) {
+      // Insert text with link
+      editor
+        .chain()
+        .focus()
+        .insertContent(`<a href="${url}">${linkText}</a>`)
+        .run();
+    } else {
+      // Just set link on selected text
       editor.chain().focus().setLink({ href: url }).run();
     }
+
+    setShowLinkDialog(false);
+    setLinkUrl('');
+    setLinkText('');
   };
 
   const removeLink = () => {
     editor.chain().focus().unsetLink().run();
   };
+
+  // Image functions
+  const handleImageUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        await insertImage(file);
+      }
+    };
+    input.click();
+  };
+
+  const insertImage = async (file: File) => {
+    // Convert image to base64
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      editor.chain().focus().setImage({ src: base64 }).run();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handlePaste = (event: ClipboardEvent) => {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        event.preventDefault();
+        const file = items[i].getAsFile();
+        if (file) {
+          insertImage(file);
+        }
+        break;
+      }
+    }
+  };
+
+  const handleDrop = (event: DragEvent) => {
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].type.startsWith('image/')) {
+        event.preventDefault();
+        insertImage(files[i]);
+        break; // Only insert first image
+      }
+    }
+  };
+
+  // Add paste and drop event listeners
+  useEffect(() => {
+    if (!editor) return;
+
+    const editorElement = editor.view.dom;
+
+    editorElement.addEventListener('paste', handlePaste as any);
+    editorElement.addEventListener('drop', handleDrop as any);
+
+    return () => {
+      editorElement.removeEventListener('paste', handlePaste as any);
+      editorElement.removeEventListener('drop', handleDrop as any);
+    };
+  }, [editor]);
 
   return (
     <div className="border rounded-lg overflow-hidden bg-background">
@@ -371,10 +490,22 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
           variant={editor.isActive('link') ? 'default' : 'ghost'}
           size="sm"
           className="h-8 w-8 p-0"
-          onClick={editor.isActive('link') ? removeLink : addLink}
+          onClick={editor.isActive('link') ? removeLink : openLinkDialog}
           title={editor.isActive('link') ? 'Remove Link' : 'Add Link'}
         >
           <LinkIcon className="h-4 w-4" />
+        </Button>
+
+        {/* Images */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={handleImageUpload}
+          title="Insert Image (or paste/drag-drop)"
+        >
+          <ImagePlus className="h-4 w-4" />
         </Button>
 
         <div className="w-px h-6 bg-border mx-1" />
@@ -457,6 +588,53 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
       <div data-testid="email-body">
         <EditorContent editor={editor} />
       </div>
+
+      {/* Link Dialog */}
+      <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Insert Link</DialogTitle>
+            <DialogDescription>
+              Add a hyperlink to your email
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="link-text">Link Text (optional)</Label>
+              <Input
+                id="link-text"
+                placeholder="Click here"
+                value={linkText}
+                onChange={(e) => setLinkText(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave empty to use selected text
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="link-url">URL</Label>
+              <Input
+                id="link-url"
+                placeholder="https://example.com"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    insertLink();
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLinkDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={insertLink}>Insert Link</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,204 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EaseMail Organization Admin User Guide</title>
+    <title>EaseMail Organization Admin User Guide - Version 1.1</title>
     <style>
-        @page {
-            size: 8.5in 11in;
-            margin: 0.75in;
-        }
-
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
 
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            color: #1a202c;
-            max-width: 8.5in;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
             margin: 0 auto;
-            padding: 0;
             background: white;
-        }
-
-        /* Cover Page */
-        .cover {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            page-break-after: always;
-            padding: 2in;
-        }
-
-        .cover h1 {
-            font-size: 48px;
-            font-weight: 700;
-            margin: 0 0 20px 0;
-            letter-spacing: -1px;
-        }
-
-        .cover .subtitle {
-            font-size: 24px;
-            font-weight: 300;
-            margin: 0 0 60px 0;
-            opacity: 0.9;
-        }
-
-        .cover .version {
-            font-size: 16px;
-            opacity: 0.8;
-            margin-top: 60px;
-        }
-
-        .cover .logo {
-            width: 120px;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 24px;
-            margin: 0 auto 40px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-        }
-
-        /* Table of Contents */
-        .toc {
-            page-break-after: always;
-            padding: 40px 0;
-        }
-
-        .toc h2 {
-            font-size: 32px;
-            margin-bottom: 30px;
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-            padding-bottom: 10px;
-        }
-
-        .toc ul {
-            list-style: none;
-            padding: 0;
-        }
-
-        .toc li {
-            padding: 12px 0;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 16px;
-        }
-
-        .toc li a {
-            color: #2d3748;
-            text-decoration: none;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .toc li a:hover {
-            color: #667eea;
-        }
-
-        /* Sections */
-        section {
-            page-break-before: always;
-            padding: 40px 0;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
         }
 
         h1 {
-            font-size: 36px;
-            color: #667eea;
-            margin: 0 0 30px 0;
-            font-weight: 700;
-            border-bottom: 4px solid #667eea;
-            padding-bottom: 12px;
+            color: #2563eb;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 10px;
         }
 
         h2 {
-            font-size: 28px;
-            color: #2d3748;
-            margin: 40px 0 20px 0;
-            font-weight: 600;
+            color: #1e40af;
+            font-size: 2em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
         }
 
         h3 {
-            font-size: 22px;
-            color: #4a5568;
-            margin: 30px 0 15px 0;
-            font-weight: 600;
+            color: #1e3a8a;
+            font-size: 1.5em;
+            margin-top: 30px;
+            margin-bottom: 15px;
         }
 
         h4 {
-            font-size: 18px;
-            color: #718096;
-            margin: 20px 0 10px 0;
-            font-weight: 600;
+            color: #1e40af;
+            font-size: 1.2em;
+            margin-top: 20px;
+            margin-bottom: 10px;
         }
 
         p {
-            margin: 0 0 16px 0;
-            text-align: justify;
+            margin-bottom: 15px;
         }
 
-        /* Lists */
         ul, ol {
-            margin: 0 0 20px 0;
-            padding-left: 30px;
+            margin-left: 30px;
+            margin-bottom: 15px;
         }
 
         li {
             margin-bottom: 8px;
         }
 
-        /* Callout Boxes */
-        .callout {
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 8px;
-            border-left: 4px solid;
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #dc2626;
         }
 
-        .callout.info {
-            background: #ebf8ff;
-            border-color: #3182ce;
-        }
-
-        .callout.warning {
-            background: #fffaf0;
-            border-color: #ed8936;
-        }
-
-        .callout.success {
-            background: #f0fff4;
-            border-color: #38a169;
-        }
-
-        .callout.danger {
-            background: #fff5f5;
-            border-color: #e53e3e;
-        }
-
-        .callout-title {
-            font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-
-        /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
-            font-size: 14px;
+            background: white;
         }
 
         th {
-            background: #667eea;
+            background: #2563eb;
             color: white;
             padding: 12px;
             text-align: left;
@@ -209,1123 +98,758 @@
 
         td {
             padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
+            border: 1px solid #e5e7eb;
         }
 
         tr:nth-child(even) {
-            background: #f7fafc;
+            background: #f9fafb;
         }
 
-        /* Code Blocks */
-        code {
-            background: #f7fafc;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            color: #e53e3e;
+        .version {
+            color: #6b7280;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            font-weight: 500;
         }
 
-        pre {
-            background: #2d3748;
-            color: #f7fafc;
+        .toc {
+            background: #f3f4f6;
             padding: 20px;
             border-radius: 8px;
-            overflow-x: auto;
-            margin: 20px 0;
-        }
-
-        pre code {
-            background: none;
-            color: inherit;
-            padding: 0;
-        }
-
-        /* Steps */
-        .steps {
-            counter-reset: step;
-            list-style: none;
-            padding: 0;
-        }
-
-        .steps li {
-            counter-increment: step;
-            position: relative;
-            padding-left: 60px;
-            margin-bottom: 30px;
-        }
-
-        .steps li::before {
-            content: counter(step);
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 40px;
-            height: 40px;
-            background: #667eea;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 18px;
-        }
-
-        /* Checklist */
-        .checklist {
-            list-style: none;
-            padding: 0;
-        }
-
-        .checklist li {
-            padding-left: 30px;
-            position: relative;
-            margin-bottom: 12px;
-        }
-
-        .checklist li::before {
-            content: "☐";
-            position: absolute;
-            left: 0;
-            font-size: 20px;
-            color: #667eea;
-        }
-
-        /* Icons */
-        .icon {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-
-        /* Footer */
-        .page-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: #a0aec0;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        /* Print Styles */
-        @media print {
-            .page-footer {
-                position: fixed;
-                bottom: 0;
-            }
-
-            section {
-                page-break-inside: avoid;
-            }
-
-            h1, h2, h3 {
-                page-break-after: avoid;
-            }
-
-            img, figure, table {
-                page-break-inside: avoid;
-            }
-        }
-
-        /* Highlight Box */
-        .highlight-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 12px;
             margin: 30px 0;
         }
 
-        .highlight-box h3 {
-            color: white;
+        .toc h2 {
             margin-top: 0;
+            color: #1e40af;
+            border: none;
         }
 
-        /* Quick Reference Cards */
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc a {
+            color: #2563eb;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .warning {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            padding: 15px;
             margin: 20px 0;
+            border-radius: 4px;
         }
 
-        .card {
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
+        .info {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .success {
+            background: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .checklist {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .checklist li:before {
+            content: "☐ ";
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+
+        .comparison-table td:first-child {
+            font-weight: 600;
+            background: #f9fafb;
+        }
+
+        .changelog {
+            background: #f0f9ff;
             padding: 20px;
-            background: white;
+            border-radius: 8px;
+            margin: 30px 0;
         }
 
-        .card h4 {
-            margin-top: 0;
-            color: #667eea;
+        .changelog h3 {
+            color: #0369a1;
+        }
+
+        a {
+            color: #2563eb;
+        }
+
+        a:hover {
+            color: #1e40af;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #e5e7eb;
+            margin: 30px 0;
+        }
+
+        .footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 20px;
+            }
+
+            h2 {
+                page-break-after: avoid;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>EaseMail Organization Admin User Guide</h1>
+        <p class="version"><strong>Version 1.1 | February 12, 2026</strong></p>
 
-<!-- Cover Page -->
-<div class="cover">
-    <div class="logo">📧</div>
-    <h1>EaseMail</h1>
-    <div class="subtitle">Organization Admin User Guide</div>
-    <p style="font-size: 18px; max-width: 600px; opacity: 0.9;">
-        Your complete guide to managing teams, email accounts, and organizational settings with confidence.
-    </p>
-    <div class="version">Version 1.0 | February 2026</div>
-</div>
+        <p>Welcome to EaseMail! As an Organization Admin, you have elevated privileges to help manage your organization's email operations and team collaboration.</p>
 
-<!-- Table of Contents -->
-<div class="toc">
-    <h2>Table of Contents</h2>
-    <ul>
-        <li><a href="#quick-start"><strong>1. Quick Start Guide</strong> <span>3</span></a></li>
-        <li><a href="#your-role"><strong>2. Understanding Your Role</strong> <span>5</span></a></li>
-        <li><a href="#dashboard"><strong>3. Dashboard Overview</strong> <span>7</span></a></li>
-        <li><a href="#team-management"><strong>4. Managing Team Members</strong> <span>9</span></a></li>
-        <li><a href="#email-management"><strong>5. Email Account Management</strong> <span>12</span></a></li>
-        <li><a href="#settings"><strong>6. Organization Settings</strong> <span>14</span></a></li>
-        <li><a href="#analytics"><strong>7. Analytics & Reports</strong> <span>16</span></a></li>
-        <li><a href="#best-practices"><strong>8. Best Practices</strong> <span>18</span></a></li>
-        <li><a href="#troubleshooting"><strong>9. Troubleshooting</strong> <span>20</span></a></li>
-        <li><a href="#faq"><strong>10. FAQ</strong> <span>22</span></a></li>
-    </ul>
-</div>
+        <hr>
 
-<!-- Section 1: Quick Start -->
-<section id="quick-start">
-    <h1>1. Quick Start Guide</h1>
-
-    <div class="highlight-box">
-        <h3>🚀 Welcome, Admin!</h3>
-        <p>This guide will have you up and running in 30 minutes. Follow the steps below to get started with EaseMail.</p>
-    </div>
-
-    <h2>First Time Login</h2>
-
-    <ol class="steps">
-        <li>
-            <h4>Access EaseMail</h4>
-            <p>Navigate to <code>https://easemail.app/login</code> and enter your email address and temporary password from your welcome email.</p>
-        </li>
-
-        <li>
-            <h4>Change Your Password</h4>
-            <div class="callout warning">
-                <div class="callout-title">⚠️ Security First</div>
-                <p>You must change your temporary password immediately. Use a strong password with at least 8 characters, including letters, numbers, and symbols.</p>
-            </div>
-            <p>Go to <strong>Settings → Security → Change Password</strong></p>
-        </li>
-
-        <li>
-            <h4>Connect Your Email Account</h4>
-            <p>Click <strong>Connect</strong> in the sidebar or navigate to <strong>Settings → Email Accounts</strong>. Choose your provider:</p>
+        <div class="toc">
+            <h2>Table of Contents</h2>
             <ul>
-                <li><strong>Gmail</strong> - For Google Workspace or personal Gmail</li>
-                <li><strong>Outlook</strong> - For Microsoft 365 or Outlook.com</li>
-                <li><strong>IMAP</strong> - For any other email provider</li>
-            </ul>
-            <p>Follow the OAuth flow to grant permissions. Your emails will sync automatically.</p>
-        </li>
-
-        <li>
-            <h4>Explore Your Organization</h4>
-            <p>Click <strong>Organization</strong> in the sidebar to view your organization dashboard, team members, and available actions.</p>
-        </li>
-    </ol>
-
-    <h2>Your First 30 Minutes</h2>
-
-    <div class="card-grid">
-        <div class="card">
-            <h4>✅ Essential Tasks</h4>
-            <ul class="checklist">
-                <li>Change temporary password</li>
-                <li>Connect email account</li>
-                <li>Review team members</li>
-                <li>Set up email signature</li>
+                <li><a href="#quick-start">1. Quick Start Guide</a></li>
+                <li><a href="#role">2. Understanding Your Role</a></li>
+                <li><a href="#dashboard">3. Dashboard Overview</a></li>
+                <li><a href="#team-management">4. Managing Team Members</a></li>
+                <li><a href="#email-management">5. Email Account Management</a></li>
+                <li><a href="#org-settings">6. Organization Settings</a></li>
+                <li><a href="#analytics">7. Analytics & Reports</a></li>
+                <li><a href="#best-practices">8. Best Practices</a></li>
+                <li><a href="#troubleshooting">9. Troubleshooting</a></li>
+                <li><a href="#faq">10. FAQ</a></li>
             </ul>
         </div>
 
-        <div class="card">
-            <h4>📍 Key Locations</h4>
-            <ul>
-                <li><strong>Inbox:</strong> Main navigation</li>
-                <li><strong>Organization:</strong> Sidebar</li>
-                <li><strong>Settings:</strong> Gear icon</li>
-                <li><strong>Help:</strong> Question mark icon</li>
-            </ul>
-        </div>
-    </div>
-</section>
+        <hr>
 
-<!-- Section 2: Your Role -->
-<section id="your-role">
-    <h1>2. Understanding Your Role</h1>
+        <h2 id="quick-start">Quick Start Guide</h2>
 
-    <h2>Admin vs Owner vs Member</h2>
+        <h3>First Time Login</h3>
 
-    <p>As an <strong>Organization Admin</strong>, you have elevated privileges to manage teams and settings, but some actions are reserved for the Organization Owner.</p>
+        <ol>
+            <li><strong>Access EaseMail</strong>
+                <ul>
+                    <li>Go to: <a href="https://easemail.app/login">https://easemail.app/login</a></li>
+                    <li>Enter your email address and temporary password</li>
+                    <li>Click "Sign In"</li>
+                </ul>
+            </li>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Capability</th>
-                <th>Owner</th>
-                <th>Admin (You)</th>
-                <th>Member</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Delete Organization</td>
-                <td>✅</td>
-                <td>❌</td>
-                <td>❌</td>
-            </tr>
-            <tr>
-                <td>Modify Billing</td>
-                <td>✅</td>
-                <td>❌</td>
-                <td>❌</td>
-            </tr>
-            <tr>
-                <td>Transfer Ownership</td>
-                <td>✅</td>
-                <td>❌</td>
-                <td>❌</td>
-            </tr>
-            <tr>
-                <td>Invite Members</td>
-                <td>✅</td>
-                <td>✅</td>
-                <td>❌</td>
-            </tr>
-            <tr>
-                <td>Remove Members</td>
-                <td>✅</td>
-                <td>✅</td>
-                <td>❌</td>
-            </tr>
-            <tr>
-                <td>Manage Roles</td>
-                <td>✅</td>
-                <td>✅</td>
-                <td>❌</td>
-            </tr>
-            <tr>
-                <td>View Analytics</td>
-                <td>✅</td>
-                <td>✅</td>
-                <td>❌</td>
-            </tr>
-            <tr>
-                <td>Configure Settings</td>
-                <td>✅</td>
-                <td>✅</td>
-                <td>❌</td>
-            </tr>
-            <tr>
-                <td>Access Shared Emails</td>
-                <td>✅</td>
-                <td>✅</td>
-                <td>✅</td>
-            </tr>
-            <tr>
-                <td>Use AI Features</td>
-                <td>✅</td>
-                <td>✅</td>
-                <td>✅</td>
-            </tr>
-        </tbody>
-    </table>
+            <li><strong>Change Your Password</strong> ⚠️ IMPORTANT
+                <ul>
+                    <li>After first login, change your password</li>
+                    <li>Go to: <strong>Settings → Security → Change Password</strong></li>
+                    <li>Use a strong password (minimum 8 characters)</li>
+                </ul>
+            </li>
 
-    <h2>Your Admin Responsibilities</h2>
+            <li><strong>Connect Your Email Account</strong>
+                <ul>
+                    <li>Navigate to: <strong>Settings → Email Accounts</strong></li>
+                    <li>Click "Connect Email Account"</li>
+                    <li>Choose your provider (Gmail, Outlook, IMAP)</li>
+                    <li>Follow the OAuth flow and grant permissions</li>
+                </ul>
+            </li>
 
-    <div class="card-grid">
-        <div class="card">
-            <h4>👥 Team Management</h4>
-            <ul>
-                <li>Invite and onboard new members</li>
-                <li>Assign appropriate roles</li>
-                <li>Remove departing members</li>
-                <li>Monitor member activity</li>
-            </ul>
-        </div>
+            <li><strong>Explore Your Organization Dashboard</strong>
+                <ul>
+                    <li>Click <strong>Organization</strong> in the sidebar</li>
+                    <li>Review team members and organization details</li>
+                </ul>
+            </li>
+        </ol>
 
-        <div class="card">
-            <h4>⚙️ Configuration</h4>
-            <ul>
-                <li>Update organization settings</li>
-                <li>Manage integrations</li>
-                <li>Configure team preferences</li>
-                <li>Set up webhooks</li>
-            </ul>
-        </div>
+        <hr>
 
-        <div class="card">
-            <h4>📊 Monitoring</h4>
-            <ul>
-                <li>Review analytics dashboards</li>
-                <li>Track email volume</li>
-                <li>Monitor response times</li>
-                <li>Check audit logs</li>
-            </ul>
-        </div>
+        <h2 id="role">Understanding Your Role</h2>
 
-        <div class="card">
-            <h4>🤝 Support</h4>
-            <ul>
-                <li>Help onboard new users</li>
-                <li>Troubleshoot issues</li>
-                <li>Coordinate with owner</li>
-                <li>Act as support liaison</li>
-            </ul>
-        </div>
-    </div>
-</section>
+        <h3>Admin vs Owner vs Member</h3>
 
-<!-- Section 3: Dashboard -->
-<section id="dashboard">
-    <h1>3. Dashboard Overview</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Capability</th>
+                    <th>Owner</th>
+                    <th>Admin (You)</th>
+                    <th>Member</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Delete Organization</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Modify Billing</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Transfer Ownership</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td><strong>Add New Users</strong></td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Invite Members</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Remove Members</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Manage Roles</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>View Analytics</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>View Audit Logs</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Configure Settings</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>❌</td>
+                </tr>
+                <tr>
+                    <td>Access Shared Emails</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                </tr>
+                <tr>
+                    <td>Use AI Features</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                    <td>✅</td>
+                </tr>
+            </tbody>
+        </table>
 
-    <h2>Main Navigation</h2>
+        <h3>What You Can Do as an Admin</h3>
 
-    <p>The left sidebar provides access to all major features:</p>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Icon</th>
-                <th>Feature</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>🏠</td>
-                <td><strong>Home</strong></td>
-                <td>Quick access dashboard with recent activity</td>
-            </tr>
-            <tr>
-                <td>📧</td>
-                <td><strong>Inbox</strong></td>
-                <td>Unified email inbox across all accounts</td>
-            </tr>
-            <tr>
-                <td>📅</td>
-                <td><strong>Calendar</strong></td>
-                <td>Your calendar and meeting schedule</td>
-            </tr>
-            <tr>
-                <td>👥</td>
-                <td><strong>Contacts</strong></td>
-                <td>Contact management and directory</td>
-            </tr>
-            <tr>
-                <td>🏢</td>
-                <td><strong>Organization</strong></td>
-                <td>Organization dashboard (Admin access)</td>
-            </tr>
-            <tr>
-                <td>⚙️</td>
-                <td><strong>Settings</strong></td>
-                <td>Personal and organization settings</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h2>Organization Dashboard</h2>
-
-    <div class="callout info">
-        <div class="callout-title">📍 How to Access</div>
-        <p>Click <strong>Organization</strong> in the sidebar, then select your organization name from the list.</p>
-    </div>
-
-    <h3>Overview Cards</h3>
-
-    <p>The dashboard displays three key metrics at the top:</p>
-
-    <ol>
-        <li><strong>Plan Information</strong> - Current subscription plan (FREE, PRO, or ENTERPRISE) and active features</li>
-        <li><strong>Seats Used</strong> - Shows X / Y seats used and how many are available for new members</li>
-        <li><strong>Your Role</strong> - Displays your role badge (ADMIN) and access level</li>
-    </ol>
-
-    <h3>Quick Actions</h3>
-
-    <ul>
-        <li><strong>Dashboard</strong> - View detailed organization metrics and activity</li>
-        <li><strong>Analytics</strong> - Access comprehensive reports and insights</li>
-        <li><strong>Audit Logs</strong> - Review security and activity logs</li>
-        <li><strong>Settings</strong> - Configure organization preferences</li>
-        <li><strong>Invite Member</strong> - Add new team members to organization</li>
-    </ul>
-</section>
-
-<!-- Section 4: Team Management -->
-<section id="team-management">
-    <h1>4. Managing Team Members</h1>
-
-    <h2>Inviting New Members</h2>
-
-    <ol class="steps">
-        <li>
-            <h4>Navigate to Organization Dashboard</h4>
-            <p>Click <strong>Organization</strong> in sidebar, then select your organization.</p>
-        </li>
-
-        <li>
-            <h4>Click "Invite Member"</h4>
-            <p>The invitation dialog will open with a form.</p>
-        </li>
-
-        <li>
-            <h4>Enter Member Details</h4>
-            <ul>
-                <li><strong>Email Address:</strong> Enter the team member's email</li>
-                <li><strong>Role:</strong> Choose from:
-                    <ul>
-                        <li><strong>Admin</strong> - Full management capabilities (like you)</li>
-                        <li><strong>Member</strong> - Access to shared emails and collaboration</li>
-                        <li><strong>Viewer</strong> - Read-only access to organization data</li>
-                    </ul>
-                </li>
-            </ul>
-        </li>
-
-        <li>
-            <h4>Send Invitation</h4>
-            <p>Click <strong>Send Invite</strong>. The member receives an email invitation with instructions to join.</p>
-        </li>
-    </ol>
-
-    <div class="callout success">
-        <div class="callout-title">✅ What Happens Next</div>
-        <p>The invited member receives a welcome email with login credentials and setup instructions. They appear in "Pending Invites" until they accept.</p>
-    </div>
-
-    <h2>Managing Existing Members</h2>
-
-    <h3>View All Members</h3>
-    <p>Scroll to the "Team Members" section to see a list of all organization members with their roles and join dates.</p>
-
-    <h3>Change Member Role</h3>
-    <ol>
-        <li>Find the member in the list</li>
-        <li>Click <strong>"Edit Role"</strong> button</li>
-        <li>Select new role from dropdown (Admin, Member, or Viewer)</li>
-        <li>Click <strong>"Update Role"</strong></li>
-        <li>Confirmation message appears</li>
-    </ol>
-
-    <div class="callout warning">
-        <div class="callout-title">⚠️ Important</div>
-        <p>You cannot remove the organization owner or change their role. Only the owner can transfer ownership.</p>
-    </div>
-
-    <h3>Remove a Member</h3>
-    <ol>
-        <li>Find the member in the list</li>
-        <li>Click the <strong>trash icon</strong> (🗑️)</li>
-        <li>Confirm removal in the dialog</li>
-        <li>Member loses access immediately</li>
-    </ol>
-
-    <h2>Managing Pending Invitations</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Action</th>
-                <th>Description</th>
-                <th>How To</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>View Pending</strong></td>
-                <td>See all pending invitations</td>
-                <td>Check "Pending Invites" section</td>
-            </tr>
-            <tr>
-                <td><strong>Resend</strong></td>
-                <td>Send invitation email again</td>
-                <td>Click "Resend" button</td>
-            </tr>
-            <tr>
-                <td><strong>Revoke</strong></td>
-                <td>Cancel invitation</td>
-                <td>Click "Revoke" button</td>
-            </tr>
-        </tbody>
-    </table>
-</section>
-
-<!-- Section 5: Email Management -->
-<section id="email-management">
-    <h1>5. Email Account Management</h1>
-
-    <h2>Connecting Email Accounts</h2>
-
-    <ol class="steps">
-        <li>
-            <h4>Navigate to Email Accounts</h4>
-            <p>Go to <strong>Settings → Email Accounts</strong> or click <strong>Connect</strong> in the sidebar.</p>
-        </li>
-
-        <li>
-            <h4>Click "Connect Email Account"</h4>
-            <p>The provider selection dialog appears.</p>
-        </li>
-
-        <li>
-            <h4>Choose Your Provider</h4>
-            <p>Select from available options:</p>
-            <ul>
-                <li><strong>Gmail</strong> - Google Workspace or personal Gmail accounts</li>
-                <li><strong>Outlook</strong> - Microsoft 365 or Outlook.com accounts</li>
-                <li><strong>Yahoo Mail</strong> - Yahoo email accounts</li>
-                <li><strong>IMAP</strong> - Any other email provider with IMAP access</li>
-            </ul>
-        </li>
-
-        <li>
-            <h4>Complete OAuth Flow</h4>
-            <p>You'll be redirected to your email provider's login page. Sign in and grant the necessary permissions for EaseMail to access your account.</p>
-        </li>
-
-        <li>
-            <h4>Account Syncs Automatically</h4>
-            <p>Once connected, your emails will begin syncing immediately. This may take a few minutes for large mailboxes.</p>
-        </li>
-    </ol>
-
-    <h2>Shared Email Accounts</h2>
-
-    <p>Set up shared email accounts (like support@company.com) for team collaboration:</p>
-
-    <div class="highlight-box">
-        <h3>Benefits of Shared Accounts</h3>
+        <p><strong>Team Management:</strong></p>
         <ul>
-            <li>Team collaboration on support emails</li>
-            <li>Shared email history across all team members</li>
-            <li>Coordinated responses prevent duplicate replies</li>
-            <li>Visibility into team workload</li>
+            <li><strong>Add new users directly</strong> to organization (creates account + adds to org)</li>
+            <li>Invite existing users via email invitation</li>
+            <li>Assign roles (Admin, Member)</li>
+            <li>Remove team members</li>
+            <li>View member activity and audit logs</li>
         </ul>
-    </div>
 
-    <h3>Setting Up Shared Access</h3>
-    <ol>
-        <li>Organization owner or admin connects the shared email account</li>
-        <li>Grant access to specific team members or make it organization-wide</li>
-        <li>Members can view and respond from the shared inbox</li>
-        <li>All actions are logged for accountability</li>
-    </ol>
+        <hr>
 
-    <h2>Email Account Settings</h2>
+        <h2 id="dashboard">Dashboard Overview</h2>
 
-    <h3>Set Primary Account</h3>
-    <p>Your primary account is used by default when composing new emails. To change it:</p>
-    <ol>
-        <li>Go to <strong>Settings → Email Accounts</strong></li>
-        <li>Click on the account you want to make primary</li>
-        <li>Click <strong>"Set as Primary"</strong></li>
-    </ol>
+        <h3>Main Navigation</h3>
 
-    <h3>Sync Settings</h3>
-    <ul>
-        <li><strong>Auto-sync:</strong> Real-time synchronization (recommended)</li>
-        <li><strong>Manual sync:</strong> Click refresh button to sync</li>
-        <li><strong>Sync frequency:</strong> Configure in account settings</li>
-    </ul>
-
-    <h3>Disconnect Account</h3>
-    <div class="callout danger">
-        <div class="callout-title">⚠️ Warning</div>
-        <p>Disconnecting an account removes it from EaseMail but does not delete any emails from your actual email account.</p>
-    </div>
-    <ol>
-        <li>Go to <strong>Settings → Email Accounts</strong></li>
-        <li>Click on the account to expand</li>
-        <li>Click <strong>"Disconnect"</strong></li>
-        <li>Confirm in dialog</li>
-    </ol>
-</section>
-
-<!-- Section 6: Organization Settings -->
-<section id="settings">
-    <h1>6. Organization Settings</h1>
-
-    <h2>Accessing Settings</h2>
-
-    <p>Navigate to <strong>Organization → [Your Org] → Settings</strong> (gear icon)</p>
-
-    <h2>General Settings</h2>
-
-    <h3>Organization Name</h3>
-    <p>Update your company or organization name. This is visible to all members and used in emails and notifications.</p>
-
-    <h3>Domain</h3>
-    <p>Set your organization's domain (e.g., company.com). This helps identify team members and is used for email verification.</p>
-
-    <h2>Integration Settings</h2>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Integration</th>
-                <th>Description</th>
-                <th>Use Case</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>Webhooks</strong></td>
-                <td>Configure HTTP callbacks</td>
-                <td>Send notifications to external systems</td>
-            </tr>
-            <tr>
-                <td><strong>API Access</strong></td>
-                <td>Manage API keys</td>
-                <td>Integrate with custom applications</td>
-            </tr>
-            <tr>
-                <td><strong>Calendar</strong></td>
-                <td>Connect external calendars</td>
-                <td>Sync with Microsoft Teams or Google Calendar</td>
-            </tr>
-            <tr>
-                <td><strong>Third-Party Apps</strong></td>
-                <td>Authorize apps</td>
-                <td>Connect Slack, Zapier, and other services</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <h2>Team Preferences</h2>
-
-    <ul>
-        <li><strong>Default Email Signature:</strong> Set organization-wide email signature template</li>
-        <li><strong>Response Templates:</strong> Create shared templates for common email responses</li>
-        <li><strong>Auto-Reply Rules:</strong> Configure automatic responses for specific scenarios</li>
-        <li><strong>Notification Settings:</strong> Control how and when team members receive notifications</li>
-    </ul>
-
-    <h2>Danger Zone (Owner Only)</h2>
-
-    <div class="callout danger">
-        <div class="callout-title">⚠️ Admin Limitations</div>
-        <p>As an Admin, you <strong>cannot</strong>:</p>
+        <p><strong>Left Sidebar:</strong></p>
         <ul>
-            <li>Delete the organization</li>
-            <li>Transfer ownership to another member</li>
-            <li>Modify billing information or subscription</li>
+            <li>🏠 <strong>Home</strong>: Quick access dashboard with personalized greeting</li>
+            <li>📧 <strong>Inbox</strong>: Unified email inbox</li>
+            <li>📅 <strong>Calendar</strong>: Your calendar and meetings (supports MS Teams)</li>
+            <li>👥 <strong>Contacts</strong>: Contact management</li>
+            <li>🏢 <strong>Organization</strong>: Organization dashboard (Admin access)</li>
+            <li>⚙️ <strong>Settings</strong>: Personal and organization settings</li>
         </ul>
-        <p>These actions are reserved for the organization <strong>Owner</strong>. Contact your owner if these changes are needed.</p>
-    </div>
-</section>
 
-<!-- Section 7: Analytics -->
-<section id="analytics">
-    <h1>7. Analytics & Reports</h1>
+        <h3>Quick Actions</h3>
+        <ul>
+            <li><strong>Dashboard</strong>: View organization metrics</li>
+            <li><strong>Analytics</strong>: Detailed reports and insights</li>
+            <li><strong>Audit Logs</strong>: Security and activity logs</li>
+            <li><strong>Settings</strong>: Organization configuration</li>
+            <li><strong>Add User</strong>: Create new user account and add to organization</li>
+            <li><strong>Invite Member</strong>: Send invitation to existing user</li>
+        </ul>
 
-    <h2>Accessing Analytics</h2>
+        <hr>
 
-    <p>Navigate to <strong>Organization → Analytics</strong> to view comprehensive reports.</p>
+        <h2 id="team-management">Managing Team Members</h2>
 
-    <h2>Available Reports</h2>
+        <h3>Two Ways to Add Team Members</h3>
 
-    <h3>Email Activity Dashboard</h3>
-    <ul>
-        <li><strong>Total Emails:</strong> Volume of sent and received emails</li>
-        <li><strong>Response Time:</strong> Average time to first response</li>
-        <li><strong>Email by Category:</strong> Distribution across folders (inbox, sent, archived)</li>
-        <li><strong>Sender Analysis:</strong> Most active senders and receivers</li>
-    </ul>
+        <p>EaseMail provides <strong>two methods</strong> for adding team members:</p>
 
-    <h3>Team Performance</h3>
-    <ul>
-        <li><strong>Member Activity:</strong> Individual email volumes and participation</li>
-        <li><strong>Response Rates:</strong> How quickly team members respond to emails</li>
-        <li><strong>Collaboration Metrics:</strong> Shared email engagement and teamwork</li>
-        <li><strong>Peak Hours:</strong> When your team is most active</li>
-    </ul>
+        <h4>Method 1: Add User (Direct Creation)</h4>
 
-    <h3>Calendar Analytics</h3>
-    <ul>
-        <li><strong>Meeting Distribution:</strong> Types and frequency of meetings</li>
-        <li><strong>Time Allocation:</strong> Where time is being spent</li>
-        <li><strong>Attendee Analysis:</strong> Meeting participation patterns</li>
-        <li><strong>Conflict Detection:</strong> Scheduling conflicts and overlaps</li>
-    </ul>
+        <p><strong>Best for:</strong> Creating brand new accounts for team members who don't have EaseMail accounts yet.</p>
 
-    <h3>Usage Metrics</h3>
-    <ul>
-        <li><strong>Feature Usage:</strong> Which features are most utilized</li>
-        <li><strong>AI Usage:</strong> How often AI-powered features are used</li>
-        <li><strong>API Calls:</strong> API integration usage (if applicable)</li>
-        <li><strong>Storage Usage:</strong> Email and attachment storage consumption</li>
-    </ul>
+        <p><strong>How it works:</strong></p>
+        <ol>
+            <li>Creates a new EaseMail user account</li>
+            <li>Automatically adds them to your organization</li>
+            <li>Sends welcome email with temporary password</li>
+            <li>User can log in immediately</li>
+        </ol>
 
-    <h2>Exporting Reports</h2>
+        <p><strong>Steps:</strong></p>
+        <ol>
+            <li>Navigate to <strong>Organization</strong> dashboard</li>
+            <li>Click <strong>"Add User"</strong> button (next to "Invite Member")</li>
+            <li>Fill in user details:
+                <ul>
+                    <li><strong>Email Address</strong>: User's email (required)</li>
+                    <li><strong>Full Name</strong>: User's full name (required)</li>
+                    <li><strong>Temporary Password</strong>: Initial password (required)</li>
+                    <li><strong>Role</strong>: Select Admin or Member</li>
+                </ul>
+            </li>
+            <li>Click <strong>"Create User"</strong></li>
+        </ol>
 
-    <ol class="steps">
-        <li>
-            <h4>Navigate to Desired Report</h4>
-            <p>Select the report you want to export from the Analytics dashboard.</p>
-        </li>
-
-        <li>
-            <h4>Click "Export" Button</h4>
-            <p>Usually located in the top right corner of the report.</p>
-        </li>
-
-        <li>
-            <h4>Choose Format</h4>
+        <div class="warning">
+            <p><strong>⚠️ Important Notes:</strong></p>
             <ul>
-                <li><strong>CSV</strong> - Best for spreadsheets and data analysis</li>
-                <li><strong>PDF</strong> - Best for presentations and sharing</li>
-                <li><strong>JSON</strong> - Best for integrations and custom processing</li>
+                <li>User receives email with temporary password</li>
+                <li>They MUST change password on first login</li>
+                <li>This creates a complete EaseMail account</li>
             </ul>
-        </li>
+        </div>
 
-        <li>
-            <h4>Download File</h4>
-            <p>The file downloads to your computer immediately.</p>
-        </li>
-    </ol>
+        <h4>Method 2: Invite Member (Email Invitation)</h4>
 
-    <h2>Scheduling Reports</h2>
+        <p><strong>Best for:</strong> Adding existing EaseMail users or when you want the user to set up their own account.</p>
 
-    <p>Set up automated reports to be delivered via email:</p>
+        <p><strong>Steps:</strong></p>
+        <ol>
+            <li>Navigate to <strong>Organization</strong> dashboard</li>
+            <li>Click <strong>"Invite Member"</strong> button</li>
+            <li>Enter email address and select role</li>
+            <li>Click <strong>"Send Invite"</strong></li>
+            <li>Member receives invitation email valid for 7 days</li>
+        </ol>
 
-    <ol>
-        <li>Go to <strong>Analytics → Scheduled Reports</strong></li>
-        <li>Click <strong>"New Scheduled Report"</strong></li>
-        <li>Configure:
+        <h3>Comparison: Add User vs Invite Member</h3>
+
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Add User</th>
+                    <th>Invite Member</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Creates Account</td>
+                    <td>✅ Yes, immediately</td>
+                    <td>❌ No, user creates own</td>
+                </tr>
+                <tr>
+                    <td>Requires Password</td>
+                    <td>✅ Yes, temporary</td>
+                    <td>❌ No, user sets own</td>
+                </tr>
+                <tr>
+                    <td>Immediate Access</td>
+                    <td>✅ Yes, instant</td>
+                    <td>❌ Pending acceptance</td>
+                </tr>
+                <tr>
+                    <td>Best For</td>
+                    <td>New team members</td>
+                    <td>Existing EaseMail users</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Managing Existing Members</h3>
+
+        <p><strong>Change Member Role:</strong></p>
+        <ol>
+            <li>Find the member in the Team Members list</li>
+            <li>Click <strong>"Edit Role"</strong> button</li>
+            <li>Select new role (Admin or Member)</li>
+            <li>Click <strong>"Update Role"</strong></li>
+        </ol>
+
+        <p><strong>Remove a Member:</strong></p>
+        <ol>
+            <li>Find the member in the Team Members list</li>
+            <li>Click the <strong>trash icon</strong> (🗑️)</li>
+            <li>Confirm removal</li>
+            <li>Member loses access immediately</li>
+        </ol>
+
+        <div class="warning">
+            <p><strong>⚠️ Important Notes:</strong></p>
             <ul>
-                <li>Report type (email activity, team performance, etc.)</li>
-                <li>Frequency (daily, weekly, monthly)</li>
-                <li>Recipients (email addresses)</li>
-                <li>Format (PDF or CSV)</li>
+                <li>You cannot remove the organization owner</li>
+                <li>Removing a MEMBER role frees up one seat</li>
+                <li>ADMIN/OWNER roles don't count toward seat limit</li>
             </ul>
-        </li>
-        <li>Click <strong>"Schedule"</strong></li>
-        <li>Reports will be sent automatically via email</li>
-    </ol>
-</section>
+        </div>
 
-<!-- Section 8: Best Practices -->
-<section id="best-practices">
-    <h1>8. Best Practices</h1>
+        <hr>
 
-    <h2>Team Management Best Practices</h2>
+        <h2 id="email-management">Email Account Management</h2>
 
-    <div class="card-grid">
-        <div class="card">
-            <h4 style="color: #38a169;">✅ DO</h4>
+        <h3>Connecting Email Accounts</h3>
+
+        <ol>
+            <li>Go to <strong>Settings → Email Accounts</strong></li>
+            <li>Click <strong>"Connect Account"</strong> button</li>
+            <li>Choose your provider:
+                <ul>
+                    <li><strong>Google</strong> (Gmail, Google Workspace)</li>
+                    <li><strong>Microsoft</strong> (Outlook, Office 365)</li>
+                    <li><strong>IMAP</strong> (Yahoo, custom servers)</li>
+                </ul>
+            </li>
+            <li>Complete OAuth authentication</li>
+            <li>Grant required permissions (read, send, manage, calendar)</li>
+            <li>Account syncs automatically</li>
+        </ol>
+
+        <h3>Folder Syncing</h3>
+
+        <ul>
+            <li>All folders sync automatically (inbox, sent, drafts, trash, custom folders)</li>
+            <li>Custom folders appear in sidebar under "Folders" section</li>
+            <li><strong>Click folder to view messages</strong></li>
+            <li>Folder counts update in real-time</li>
+        </ul>
+
+        <div class="info">
+            <p><strong>Custom Folders:</strong> Messages in custom folders don't appear in main inbox. Click the specific folder in the sidebar to view its contents.</p>
+        </div>
+
+        <hr>
+
+        <h2 id="org-settings">Organization Settings</h2>
+
+        <h3>Accessing Organization Settings</h3>
+
+        <ol>
+            <li>Navigate to <strong>Organization → [Your Org]</strong></li>
+            <li>Click <strong>"Settings"</strong> button (gear icon)</li>
+        </ol>
+
+        <h3>Integration Settings</h3>
+
+        <p><strong>Microsoft Teams:</strong></p>
+        <ul>
+            <li>Connect MS Teams for calendar integration</li>
+            <li>Sync Teams meetings to calendar</li>
+            <li>Auto-refresh tokens for continuous access (every 55 minutes)</li>
+            <li>"Join Now" buttons for active meetings</li>
+        </ul>
+
+        <p><strong>Webhooks:</strong></p>
+        <ul>
+            <li>Configure webhooks for external integrations</li>
+            <li>Subscribe to events (new email, member added, etc.)</li>
+        </ul>
+
+        <h3>Audit Logs (Admin/Owner Only)</h3>
+
+        <p><strong>Access:</strong> Organization → Audit Logs</p>
+
+        <p><strong>What's Logged:</strong></p>
+        <ul>
+            <li>Member additions/removals</li>
+            <li>Role changes</li>
+            <li>Settings modifications</li>
+            <li>Email account connections</li>
+            <li>Invitation sent/accepted/revoked</li>
+        </ul>
+
+        <div class="warning">
+            <p><strong>⚠️ Note:</strong> As an Admin, you cannot delete the organization or modify billing. Contact your owner for these actions.</p>
+        </div>
+
+        <hr>
+
+        <h2 id="analytics">Analytics & Reports</h2>
+
+        <h3>Accessing Analytics</h3>
+
+        <p>Navigate to: <strong>Organization → Analytics</strong></p>
+
+        <h3>Available Reports</h3>
+
+        <h4>Email Activity Dashboard:</h4>
+        <ul>
+            <li><strong>Total Emails</strong>: Sent and received volume by date</li>
+            <li><strong>Response Time</strong>: Average time to first response</li>
+            <li><strong>Email by Category</strong>: Distribution across folders</li>
+            <li><strong>Sender Analysis</strong>: Most active senders/receivers</li>
+        </ul>
+
+        <h4>Team Performance:</h4>
+        <ul>
+            <li><strong>Member Activity</strong>: Individual email volumes</li>
+            <li><strong>Response Rates</strong>: Team response times</li>
+            <li><strong>Peak Hours</strong>: When team is most active</li>
+        </ul>
+
+        <h4>Calendar Analytics:</h4>
+        <ul>
+            <li><strong>Meeting Distribution</strong>: Types of meetings (Teams, email invites)</li>
+            <li><strong>Conflict Detection</strong>: Scheduling conflicts and overlaps</li>
+            <li><strong>Meeting Duration</strong>: Average meeting lengths</li>
+        </ul>
+
+        <h3>Exporting Reports</h3>
+
+        <ol>
+            <li>Navigate to desired report</li>
+            <li>Click <strong>"Export"</strong> button</li>
+            <li>Choose format: CSV, PDF, or JSON</li>
+            <li>File downloads to your computer</li>
+        </ol>
+
+        <hr>
+
+        <h2 id="best-practices">Best Practices</h2>
+
+        <h3>Team Management</h3>
+
+        <div class="success">
+            <h4>✅ DO:</h4>
             <ul>
-                <li>Regularly review team member access</li>
+                <li>Regularly review team member access (monthly)</li>
                 <li>Use appropriate roles (don't make everyone Admin)</li>
-                <li>Remove access for departed members immediately</li>
-                <li>Document role changes internally</li>
-                <li>Set up onboarding process for new members</li>
+                <li>Remove access for departed members <strong>immediately</strong></li>
+                <li>Use "Add User" for new team members (faster setup)</li>
+                <li>Use "Invite Member" when user should control account setup</li>
+                <li>Review pending invitations weekly</li>
+                <li>Check audit logs regularly</li>
             </ul>
         </div>
 
-        <div class="card">
-            <h4 style="color: #e53e3e;">❌ DON'T</h4>
+        <div class="warning">
+            <h4>❌ DON'T:</h4>
             <ul>
                 <li>Share admin credentials with multiple people</li>
                 <li>Leave pending invitations open indefinitely</li>
-                <li>Grant admin access without proper vetting</li>
-                <li>Forget to revoke contractor access after projects</li>
+                <li>Create accounts with weak temporary passwords</li>
+                <li>Use the same temporary password for multiple users</li>
             </ul>
         </div>
-    </div>
 
-    <h2>Email Organization Best Practices</h2>
+        <h3>Security</h3>
 
-    <div class="card-grid">
-        <div class="card">
-            <h4 style="color: #38a169;">✅ DO</h4>
+        <div class="success">
+            <h4>✅ DO:</h4>
             <ul>
-                <li>Use shared accounts for team collaboration</li>
-                <li>Set up email rules for auto-categorization</li>
-                <li>Create templates for common responses</li>
-                <li>Use labels/folders to organize emails</li>
-                <li>Archive old emails regularly</li>
+                <li>Use strong, unique passwords (12+ characters)</li>
+                <li>Enable two-factor authentication (2FA)</li>
+                <li>Review audit logs regularly (weekly)</li>
+                <li>Report suspicious activity to security@easemail.app</li>
+                <li>Use OAuth authentication (never share email passwords)</li>
+                <li>Monitor team member activity in audit logs</li>
             </ul>
         </div>
 
-        <div class="card">
-            <h4 style="color: #e53e3e;">❌ DON'T</h4>
-            <ul>
-                <li>Use personal email for organization business</li>
-                <li>Delete important emails (archive instead)</li>
-                <li>Ignore email security warnings</li>
-                <li>Share sensitive info without encryption</li>
-            </ul>
-        </div>
-    </div>
+        <hr>
 
-    <h2>Security Best Practices</h2>
+        <h2 id="troubleshooting">Troubleshooting</h2>
 
-    <div class="highlight-box">
-        <h3>🔒 Security Checklist</h3>
-        <ul class="checklist">
-            <li>Use strong, unique passwords for all accounts</li>
-            <li>Enable two-factor authentication (2FA) whenever possible</li>
-            <li>Review audit logs regularly for suspicious activity</li>
-            <li>Report any security concerns immediately to support</li>
-            <li>Keep your email accounts secure with updated passwords</li>
-            <li>Never share your password with anyone, including support</li>
-            <li>Use different passwords for different services</li>
-            <li>Don't click suspicious links in emails</li>
-            <li>Always lock your computer when stepping away</li>
+        <h3>Common Issues</h3>
+
+        <h4>Custom Folders Not Showing Messages</h4>
+
+        <p><strong>Symptoms:</strong></p>
+        <ul>
+            <li>Custom folders visible but appear empty</li>
+            <li>Folder shows count but no messages visible</li>
         </ul>
-    </div>
 
-    <h2>Communication Best Practices</h2>
+        <p><strong>Solutions:</strong></p>
+        <ol>
+            <li><strong>Click the folder in sidebar</strong> to view contents
+                <ul>
+                    <li>Custom folder messages don't appear in main inbox</li>
+                    <li>Must click specific folder to view</li>
+                </ul>
+            </li>
+            <li>Refresh the folder (click refresh button)</li>
+            <li>Check folder sync status (should be "Synced" green)</li>
+        </ol>
 
-    <ul>
-        <li><strong>Respond Promptly:</strong> Answer team member questions quickly</li>
-        <li><strong>Document Decisions:</strong> Keep records of important policy changes</li>
-        <li><strong>Keep Owner Informed:</strong> Communicate significant issues up the chain</li>
-        <li><strong>Announce Changes:</strong> Let team know about policy or setting changes</li>
-        <li><strong>Provide Feedback:</strong> Share suggestions for platform improvements</li>
-        <li><strong>Don't Assume:</strong> Ensure everyone knows how to use new features</li>
-        <li><strong>Plan for Downtime:</strong> Announce maintenance windows in advance</li>
-    </ul>
-</section>
+        <h4>Email Not Syncing</h4>
 
-<!-- Section 9: Troubleshooting -->
-<section id="troubleshooting">
-    <h1>9. Troubleshooting</h1>
+        <p><strong>Solutions:</strong></p>
+        <ol>
+            <li>Click the <strong>Refresh</strong> button manually</li>
+            <li>Check internet connection</li>
+            <li>Verify email account is still connected</li>
+            <li>Reconnect email account:
+                <ul>
+                    <li>Disconnect the account</li>
+                    <li>Connect again through OAuth</li>
+                </ul>
+            </li>
+            <li>For Microsoft accounts: Token auto-refreshes every 55 minutes</li>
+        </ol>
 
-    <h2>Common Issues & Solutions</h2>
+        <h4>Calendar Not Loading</h4>
 
-    <h3>Can't Log In</h3>
-    <div class="callout danger">
-        <div class="callout-title">Symptoms</div>
-        <p>"Invalid credentials" error or password not working</p>
-    </div>
-    <p><strong>Solutions:</strong></p>
-    <ol>
-        <li>Verify you're using the correct email address</li>
-        <li>Check if Caps Lock is on</li>
-        <li>Try password reset:
+        <p><strong>Solutions:</strong></p>
+        <ol>
+            <li>Refresh the page</li>
+            <li>Ensure email account is connected</li>
+            <li>Check calendar permissions (reconnect if needed)</li>
+            <li>For Microsoft Teams calendar: Ensure Microsoft account connected</li>
+            <li>Try different calendar view (Day, Week, Month, Agenda)</li>
+        </ol>
+
+        <h3>Getting Help</h3>
+
+        <p><strong>Contact Support:</strong></p>
+        <ul>
+            <li><strong>Email</strong>: <a href="mailto:support@easemail.app">support@easemail.app</a></li>
+            <li><strong>Documentation</strong>: <a href="https://docs.easemail.app">https://docs.easemail.app</a></li>
+            <li><strong>Status Page</strong>: <a href="https://status.easemail.app">https://status.easemail.app</a></li>
+        </ul>
+
+        <hr>
+
+        <h2 id="faq">FAQ</h2>
+
+        <h3>General Questions</h3>
+
+        <p><strong>Q: What's the difference between Admin and Owner?</strong></p>
+        <p>A: Admins can manage members, add users, invite members, configure settings, and view analytics/audit logs. However, Admins <strong>cannot</strong> delete the organization, transfer ownership, or modify billing information.</p>
+
+        <p><strong>Q: What's the difference between "Add User" and "Invite Member"?</strong></p>
+        <p>A:</p>
+        <ul>
+            <li><strong>Add User</strong>: Creates new EaseMail account immediately + adds to organization. You set temporary password. Best for new team members.</li>
+            <li><strong>Invite Member</strong>: Sends email invitation. User creates/uses own account. Best for existing EaseMail users.</li>
+        </ul>
+
+        <p><strong>Q: Is my email data secure?</strong></p>
+        <p>A: <strong>Absolutely.</strong> EaseMail uses:</p>
+        <ul>
+            <li>🔒 Enterprise-grade encryption (TLS 1.3)</li>
+            <li>🔐 Secure OAuth 2.0 authentication</li>
+            <li>🛡️ Row-level security (RLS) in database</li>
+            <li>💾 Encrypted data at rest</li>
+        </ul>
+
+        <h3>Email & Calendar</h3>
+
+        <p><strong>Q: Does EaseMail work with Microsoft Teams?</strong></p>
+        <p>A: <strong>Yes!</strong> Connect your Microsoft account and:</p>
+        <ul>
+            <li>✅ Teams meetings sync to calendar</li>
+            <li>✅ "Join Now" buttons appear for active meetings</li>
+            <li>✅ Token auto-refreshes every 55 minutes</li>
+            <li>✅ Conflict detection for overlapping meetings</li>
+        </ul>
+
+        <p><strong>Q: Why don't messages from custom folders show in my inbox?</strong></p>
+        <p>A: <strong>By design.</strong> EaseMail syncs all folders but displays them separately. Custom folders appear in sidebar under "Folders (N)". Click on a specific folder to view its messages.</p>
+
+        <h3>Billing & Plans</h3>
+
+        <p><strong>Q: What counts as a "seat"?</strong></p>
+        <p>A: Only <strong>MEMBER</strong> role counts toward seat limit:</p>
+        <ul>
+            <li>OWNER: Does NOT count toward limit</li>
+            <li>ADMIN: Does NOT count toward limit</li>
+            <li>MEMBER: DOES count toward limit (each member = 1 seat)</li>
+        </ul>
+
+        <hr>
+
+        <div class="changelog">
+            <h2>Changelog</h2>
+
+            <h3>Version 1.1 - February 12, 2026</h3>
             <ul>
-                <li>Click "Forgot Password" on login page</li>
-                <li>Check email for reset link</li>
-                <li>Create new password</li>
+                <li>✨ Added "Add User" functionality documentation</li>
+                <li>✨ Added comparison: "Add User" vs "Invite Member"</li>
+                <li>✨ Added custom folders workflow clarification</li>
+                <li>✨ Added Microsoft Teams calendar integration details</li>
+                <li>✨ Enhanced troubleshooting section</li>
+                <li>✨ Added seat limit clarifications (MEMBER vs ADMIN/OWNER)</li>
+                <li>✨ Updated team management workflows</li>
+                <li>✨ Added audit logs information</li>
+                <li>📝 Improved FAQ section with detailed answers</li>
+                <li>📝 Enhanced security best practices</li>
             </ul>
-        </li>
-        <li>Clear browser cache and cookies</li>
-        <li>Try a different browser</li>
-    </ol>
 
-    <h3>Email Not Syncing</h3>
-    <div class="callout danger">
-        <div class="callout-title">Symptoms</div>
-        <p>New emails not appearing, sync status shows "Error"</p>
-    </div>
-    <p><strong>Solutions:</strong></p>
-    <ol>
-        <li>Click the <strong>Refresh</strong> button manually</li>
-        <li>Check your internet connection</li>
-        <li>Verify email account is still connected in Settings → Email Accounts</li>
-        <li>Reconnect email account:
+            <h3>Version 1.0 - February 2026</h3>
             <ul>
-                <li>Disconnect the account</li>
-                <li>Connect again through OAuth</li>
+                <li>🎉 Initial release</li>
+                <li>Core admin functionality documentation</li>
+                <li>Basic troubleshooting guide</li>
+                <li>FAQ section</li>
             </ul>
-        </li>
-        <li>Check Nylas service status if issue persists</li>
-    </ol>
-
-    <h3>Can't Invite Team Members</h3>
-    <div class="callout danger">
-        <div class="callout-title">Symptoms</div>
-        <p>"Invite Member" button grayed out or error when sending invitation</p>
-    </div>
-    <p><strong>Solutions:</strong></p>
-    <ol>
-        <li>Check organization seat limit in Organization dashboard</li>
-        <li>Verify you have Admin or Owner role</li>
-        <li>Ensure email address isn't already a member</li>
-        <li>Verify valid email address format</li>
-        <li>Contact owner if all seats are used</li>
-    </ol>
-
-    <h3>Calendar Not Loading</h3>
-    <div class="callout danger">
-        <div class="callout-title">Symptoms</div>
-        <p>Calendar shows blank, 500 error, or "No events" message</p>
-    </div>
-    <p><strong>Solutions:</strong></p>
-    <ol>
-        <li>Refresh the page</li>
-        <li>Ensure email account is connected</li>
-        <li>Check calendar permissions (reconnect email account if needed)</li>
-        <li>Try connecting to Microsoft Teams calendar</li>
-        <li>Clear browser cache</li>
-    </ol>
-
-    <h2>Getting Help</h2>
-
-    <div class="card-grid">
-        <div class="card">
-            <h4>📧 Contact Support</h4>
-            <p><strong>Email:</strong> support@easemail.app</p>
-            <p><strong>Website:</strong> easemail.app</p>
         </div>
 
-        <div class="card">
-            <h4>📚 Resources</h4>
-            <p>Visit <strong>easemail.app</strong> for documentation, tutorials, and additional resources.</p>
+        <div class="footer">
+            <p>&copy; 2026 EaseMail. All rights reserved.</p>
+            <p><strong>Version 1.1 - February 12, 2026</strong></p>
+            <p>For the latest version, visit: <a href="https://docs.easemail.app">https://docs.easemail.app</a></p>
+            <p>Questions? Contact: <a href="mailto:support@easemail.app">support@easemail.app</a></p>
         </div>
     </div>
-
-    <h3>Before Contacting Support</h3>
-    <ul class="checklist">
-        <li>Note the exact error message</li>
-        <li>Take a screenshot if possible</li>
-        <li>List steps to reproduce the problem</li>
-        <li>Check status page for known issues</li>
-        <li>Try basic troubleshooting first</li>
-    </ul>
-
-    <h3>Information to Provide</h3>
-    <ul>
-        <li>Your email address</li>
-        <li>Organization name</li>
-        <li>Browser and version</li>
-        <li>Operating system</li>
-        <li>Time when issue occurred</li>
-        <li>What you were trying to do</li>
-    </ul>
-</section>
-
-<!-- Section 10: FAQ -->
-<section id="faq">
-    <h1>10. Frequently Asked Questions</h1>
-
-    <h2>General Questions</h2>
-
-    <h3>Q: What's the difference between Admin and Owner?</h3>
-    <p><strong>A:</strong> Admins can manage members and settings, but cannot delete the organization, transfer ownership, or modify billing. Only the Owner has these capabilities.</p>
-
-    <h3>Q: How many email accounts can I connect?</h3>
-    <p><strong>A:</strong> You can connect unlimited personal email accounts. Shared organization accounts depend on your subscription plan.</p>
-
-    <h3>Q: Can I use EaseMail on mobile?</h3>
-    <p><strong>A:</strong> Yes! EaseMail is fully responsive and works on mobile browsers. Native mobile apps are coming soon.</p>
-
-    <h3>Q: Is my email data secure?</h3>
-    <p><strong>A:</strong> Yes. We use enterprise-grade encryption, secure OAuth authentication, and never store your email passwords. All data is encrypted in transit and at rest.</p>
-
-    <h2>Team Management</h2>
-
-    <h3>Q: How do I know if someone has accepted their invitation?</h3>
-    <p><strong>A:</strong> Accepted invitations disappear from "Pending Invites" and the user appears in the "Team Members" list.</p>
-
-    <h3>Q: Can I have multiple Admins?</h3>
-    <p><strong>A:</strong> Yes! You can have as many Admins as needed, within your seat limit.</p>
-
-    <h3>Q: What happens when I remove a team member?</h3>
-    <p><strong>A:</strong> They immediately lose access to the organization. Their personal email accounts remain connected to their individual account, but they can't access organization resources.</p>
-
-    <h3>Q: Can I demote myself from Admin?</h3>
-    <p><strong>A:</strong> No. Only the Owner can change your role. Contact your organization owner if you need your role changed.</p>
-
-    <h2>Email & Calendar</h2>
-
-    <h3>Q: Why aren't my sent emails showing in EaseMail?</h3>
-    <p><strong>A:</strong> Check your email account sync settings. Click the refresh button or try reconnecting your account.</p>
-
-    <h3>Q: Can I schedule emails to send later?</h3>
-    <p><strong>A:</strong> Yes! When composing an email, click "Schedule" and choose your desired send time.</p>
-
-    <h3>Q: How do I set up out-of-office replies?</h3>
-    <p><strong>A:</strong> Go to <strong>Settings → Auto-Reply</strong> and configure your message and dates.</p>
-
-    <h3>Q: Does EaseMail work with Microsoft Teams?</h3>
-    <p><strong>A:</strong> Yes! Connect your Microsoft account to sync Teams meetings with your EaseMail calendar.</p>
-
-    <h2>Billing & Plans</h2>
-
-    <h3>Q: How do I upgrade our plan?</h3>
-    <p><strong>A:</strong> Contact the organization owner. Only they can modify billing and subscriptions.</p>
-
-    <h3>Q: What happens if we exceed our seat limit?</h3>
-    <p><strong>A:</strong> You won't be able to invite new members until you upgrade your plan or remove existing members to free up seats.</p>
-
-    <h3>Q: Can we add seats mid-billing cycle?</h3>
-    <p><strong>A:</strong> Yes! Contact your organization owner to add seats. Billing is prorated for the remaining billing period.</p>
-
-    <h3>Q: Do inactive members count toward the seat limit?</h3>
-    <p><strong>A:</strong> Yes. Inactive members still occupy seats. Remove them to free up space for new members.</p>
-
-    <h2>Technical</h2>
-
-    <h3>Q: Which browsers are supported?</h3>
-    <p><strong>A:</strong> Chrome, Firefox, Safari, and Edge (latest versions recommended).</p>
-
-    <h3>Q: Can I use keyboard shortcuts?</h3>
-    <p><strong>A:</strong> Yes! Press <code>?</code> anywhere in the app to see all available keyboard shortcuts.</p>
-
-    <h3>Q: How often does email sync?</h3>
-    <p><strong>A:</strong> Real-time for most actions. Full synchronization occurs every 5 minutes automatically.</p>
-
-    <h3>Q: Can I export all my data?</h3>
-    <p><strong>A:</strong> Yes. Go to <strong>Settings → Data Export</strong> and request a full data export. You'll receive a download link via email.</p>
-</section>
-
-<!-- Additional Resources -->
-<section>
-    <h1>Additional Resources</h1>
-
-    <h2>Get Help & Support</h2>
-
-    <div class="highlight-box">
-        <h3>📧 Contact Information</h3>
-        <p style="font-size: 18px; margin-bottom: 10px;"><strong>Email:</strong> support@easemail.app</p>
-        <p style="font-size: 18px;"><strong>Website:</strong> easemail.app</p>
-    </div>
-
-    <h2>Online Resources</h2>
-    <p>Visit <strong>easemail.app</strong> to access:</p>
-    <ul>
-        <li>User documentation and guides</li>
-        <li>Video tutorials and training materials</li>
-        <li>API documentation for integrations</li>
-        <li>Release notes and platform updates</li>
-        <li>Community forums and support</li>
-    </ul>
-</section>
-
-<!-- Footer -->
-<div style="text-align: center; padding: 60px 20px; border-top: 3px solid #667eea; margin-top: 60px;">
-    <p style="font-size: 14px; color: #718096; margin-bottom: 10px;">
-        © 2026 EaseMail. All rights reserved.
-    </p>
-    <p style="font-size: 12px; color: #a0aec0; margin-bottom: 8px;">
-        Version 1.0 | February 2026
-    </p>
-    <p style="font-size: 12px; color: #a0aec0;">
-        <strong>easemail.app</strong> | support@easemail.app
-    </p>
-</div>
-
 </body>
 </html>

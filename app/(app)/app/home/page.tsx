@@ -50,9 +50,10 @@ export default function HomePage() {
     today: 0,
     starred: 0,
     sent: 0,
-    avgResponseTime: '2h',
-    topSender: 'team@company.com',
+    avgResponseTime: '...',
+    topSender: 'Loading...',
   });
+  const [loadingStats, setLoadingStats] = useState(true);
   const [todayEvents, setTodayEvents] = useState<any[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [focusTimeRecommendations, setFocusTimeRecommendations] = useState<any[]>([]);
@@ -118,13 +119,27 @@ export default function HomePage() {
 
   const fetchStats = async () => {
     try {
+      setLoadingStats(true);
       const response = await fetch('/api/stats');
       const data = await response.json();
       if (data.stats) {
         setStats(data.stats);
+      } else {
+        console.error('No stats in response:', data);
       }
     } catch (error) {
       console.error('Failed to fetch stats:', error);
+      // Set fallback values on error
+      setStats({
+        unread: 0,
+        today: 0,
+        starred: 0,
+        sent: 0,
+        avgResponseTime: 'N/A',
+        topSender: 'No data',
+      });
+    } finally {
+      setLoadingStats(false);
     }
   };
 
@@ -276,37 +291,43 @@ export default function HomePage() {
                 <h2 className="text-base font-bold">Today's Summary</h2>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground mb-0.5">Emails Received</div>
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.today}</div>
-                  </div>
-                  <div className="p-2 bg-blue-500 rounded-xl">
-                    <TrendingUp className="h-10 w-10 text-white" />
-                  </div>
+              {loadingStats ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900">
+                    <div>
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Emails Received Today</div>
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.today}</div>
+                    </div>
+                    <div className="p-2 bg-blue-500 rounded-xl">
+                      <TrendingUp className="h-10 w-10 text-white" />
+                    </div>
+                  </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground mb-0.5">Avg. Response Time</div>
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.avgResponseTime}</div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900">
+                    <div>
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Avg. Response Time</div>
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.avgResponseTime}</div>
+                    </div>
+                    <div className="p-2 bg-green-500 rounded-xl">
+                      <Clock className="h-6 w-6 text-white" />
+                    </div>
                   </div>
-                  <div className="p-2 bg-green-500 rounded-xl">
-                    <Clock className="h-6 w-6 text-white" />
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
-                  <div className="flex-1">
-                    <div className="text-xs font-medium text-muted-foreground mb-0.5">Top Sender</div>
-                    <div className="text-sm font-semibold text-purple-900 dark:text-purple-100 truncate">{stats.topSender}</div>
-                  </div>
-                  <div className="p-2 bg-purple-500 rounded-xl">
-                    <BarChart3 className="h-6 w-6 text-white" />
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900">
+                    <div className="flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-0.5">Top Sender</div>
+                      <div className="text-sm font-semibold text-purple-900 dark:text-purple-100 truncate">{stats.topSender}</div>
+                    </div>
+                    <div className="p-2 bg-purple-500 rounded-xl">
+                      <BarChart3 className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
