@@ -162,6 +162,17 @@ export async function POST(request: NextRequest) {
         name,
         preferences: {},
       });
+
+      // Create user_preferences with onboarding completed (admin-created users skip onboarding)
+      await (supabase as any).from('user_preferences').insert({
+        user_id: userId,
+        onboarding_completed: true,
+        onboarding_completed_at: new Date().toISOString(),
+        ai_features_enabled: true,
+        auto_categorize: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
     }
 
     // Add user to organization

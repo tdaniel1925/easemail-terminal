@@ -122,6 +122,23 @@ export async function POST(request: NextRequest) {
           // In production, you'd want to handle this more gracefully
         }
 
+        // Create user_preferences with onboarding completed (admin-created users skip onboarding)
+        const { error: prefsInsertError } = await (serviceClient
+          .from('user_preferences') as any)
+          .insert({
+            user_id: newAuthUser.user.id,
+            onboarding_completed: true,
+            onboarding_completed_at: new Date().toISOString(),
+            ai_features_enabled: true,
+            auto_categorize: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+
+        if (prefsInsertError) {
+          console.error('Error creating user_preferences record:', prefsInsertError);
+        }
+
         // Create email accounts for this user (if provided)
         if (userToCreate.emailAccounts && userToCreate.emailAccounts.length > 0) {
           for (const emailAccount of userToCreate.emailAccounts) {

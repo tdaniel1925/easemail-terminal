@@ -16,15 +16,29 @@ export default async function AppLayout({
 
   // Check if user has completed onboarding
   const supabase = await createClient();
-  const { data: preferences } = (await supabase
+  const { data: preferences, error: prefsError } = (await supabase
     .from('user_preferences')
     .select('onboarding_completed')
     .eq('user_id', user.id)
-    .single()) as { data: { onboarding_completed: boolean } | null };
+    .single()) as { data: { onboarding_completed: boolean } | null; error: any };
+
+  // If error or no preferences record, redirect to onboarding
+  if (prefsError || !preferences) {
+    if (prefsError) {
+      console.error('User preferences fetch error:', {
+        userId: user.id,
+        error: prefsError,
+        code: prefsError.code,
+        message: prefsError.message,
+      });
+    } else {
+      console.log('User preferences record not found for user:', user.id);
+    }
+    redirect('/onboarding');
+  }
 
   // Redirect to onboarding if not completed
-  // (Existing users will have onboarding_completed = true from migration)
-  if (!preferences?.onboarding_completed) {
+  if (!preferences.onboarding_completed) {
     redirect('/onboarding');
   }
 

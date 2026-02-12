@@ -102,6 +102,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Create user_preferences with onboarding completed (admin-created users skip onboarding)
+    const { error: prefsError } = await (supabase as any).from('user_preferences').insert({
+      user_id: userId,
+      onboarding_completed: true,
+      onboarding_completed_at: new Date().toISOString(),
+      ai_features_enabled: true,
+      auto_categorize: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    if (prefsError) {
+      console.error('Failed to create user preferences:', prefsError);
+      // Don't fail the request, but log it
+    }
+
     // Send welcome email
     try {
       const html = getWelcomeEmailHtml({
