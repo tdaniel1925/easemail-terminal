@@ -16,6 +16,15 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { Node, mergeAttributes } from '@tiptap/core';
 import { useEffect, useState } from 'react';
 
+// Extend Tiptap's Commands interface to include our custom setImage command
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    image: {
+      setImage: (options: { src: string; alt?: string; title?: string }) => ReturnType;
+    };
+  }
+}
+
 // Custom Image extension compatible with current Tiptap version
 const CustomImage = Node.create({
   name: 'image',
