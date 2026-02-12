@@ -51,9 +51,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all user_preferences
-    const { data: allPreferences, error: prefsError } = await supabase
+    const { data: allPreferences, error: prefsError } = (await supabase
       .from('user_preferences')
-      .select('user_id, onboarding_completed, created_at');
+      .select('user_id, onboarding_completed, created_at')) as {
+      data: Array<{ user_id: string; onboarding_completed: boolean; created_at: string }> | null;
+      error: any;
+    };
 
     if (prefsError) {
       console.error('Error fetching user_preferences:', prefsError);
@@ -62,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     // Create a map for quick lookup
     const prefsMap = new Map(
-      allPreferences.map(pref => [pref.user_id, pref])
+      (allPreferences || []).map(pref => [pref.user_id, pref])
     );
 
     // Find users without preferences
