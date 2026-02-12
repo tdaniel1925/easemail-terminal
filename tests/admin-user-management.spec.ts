@@ -26,17 +26,17 @@ test.describe('Admin User Management', () => {
     await page.fill('input[name="password"]', SUPER_ADMIN_PASSWORD);
     await page.click('button[type="submit"]');
 
-    // Wait for dashboard to load
-    await page.waitForURL('/app/**', { timeout: 10000 });
+    // Wait for dashboard to load (handles both easemail.app and www.easemail.app)
+    await page.waitForURL(/\/app/, { timeout: 10000 });
 
-    // Verify we're logged in as super admin
-    await expect(page.locator('text=Admin')).toBeVisible({ timeout: 5000 });
+    // Verify we're logged in as super admin (check for Admin link in sidebar)
+    await expect(page.locator('text=Admin, a:has-text("Admin")')).toBeVisible({ timeout: 5000 });
   });
 
   test('Super admin should access admin dashboard', async ({ page }) => {
     // Navigate to admin dashboard
     await page.click('text=Admin');
-    await page.waitForURL('/app/admin/**');
+    await page.waitForURL(/\/app\/admin/);
 
     // Verify admin dashboard loads
     await expect(page.locator('h1:has-text("Admin Dashboard"), h2:has-text("Organizations")')).toBeVisible();
@@ -50,11 +50,11 @@ test.describe('Admin User Management', () => {
   test('Super admin should create organization successfully', async ({ page }) => {
     // Navigate to admin dashboard
     await page.click('text=Admin');
-    await page.waitForURL('/app/admin/**');
+    await page.waitForURL(/\/app\/admin/);
 
     // Click Create Organization button
     await page.click('button:has-text("Create Organization")');
-    await page.waitForURL('/app/admin/organizations/create');
+    await page.waitForURL(/\/app\/admin\/organizations\/create/);
 
     // Fill organization form
     await page.fill('input[name="name"]', TEST_ORG_NAME);
@@ -78,11 +78,11 @@ test.describe('Admin User Management', () => {
   test('Super admin should add user to organization and user should skip onboarding', async ({ page, context }) => {
     // Navigate to admin dashboard
     await page.click('text=Admin');
-    await page.waitForURL('/app/admin/**');
+    await page.waitForURL(/\/app\/admin/);
 
     // Click Add User to Org button
     await page.click('button:has-text("Add User to Org")');
-    await page.waitForURL('/app/admin/organizations/add-user');
+    await page.waitForURL(/\/app\/admin\/organizations\/add-user/);
 
     // Select an organization (first one in the list)
     const orgSelector = 'select[name="organization_id"]';
@@ -125,7 +125,7 @@ test.describe('Admin User Management', () => {
       await page.click('button[type="submit"]');
 
       // CRITICAL: User should go DIRECTLY to dashboard, NOT onboarding
-      await page.waitForURL('/app/**', { timeout: 10000 });
+      await page.waitForURL(/\/app/, { timeout: 10000 });
 
       // Verify we're on dashboard, NOT onboarding
       await expect(page).not.toHaveURL('/onboarding');
@@ -143,11 +143,11 @@ test.describe('Admin User Management', () => {
   test('Super admin should create individual user and user should skip onboarding', async ({ page, context }) => {
     // Navigate to admin dashboard
     await page.click('text=Admin');
-    await page.waitForURL('/app/admin/**');
+    await page.waitForURL(/\/app\/admin/);
 
     // Click Create Individual User button
     await page.click('button:has-text("Create Individual User")');
-    await page.waitForURL('/app/admin/users/create-individual');
+    await page.waitForURL(/\/app\/admin\/users\/create-individual/);
 
     // Fill user form
     await page.fill('input[name="name"]', 'Individual Test User');
@@ -183,7 +183,7 @@ test.describe('Admin User Management', () => {
       await page.click('button[type="submit"]');
 
       // CRITICAL: User should go DIRECTLY to dashboard, NOT onboarding
-      await page.waitForURL('/app/**', { timeout: 10000 });
+      await page.waitForURL(/\/app/, { timeout: 10000 });
 
       // Verify we're on dashboard, NOT onboarding
       await expect(page).not.toHaveURL('/onboarding');
@@ -260,7 +260,7 @@ test.describe('Admin User Management', () => {
 
     // Navigate to admin dashboard
     await page.click('text=Admin');
-    await page.waitForURL('/app/admin/**');
+    await page.waitForURL(/\/app\/admin/);
 
     // Look for recent users or a way to view user details
     // This is a placeholder - adjust based on actual admin UI
@@ -328,7 +328,7 @@ test.describe('Onboarding Flow', () => {
     }
 
     // Should redirect to dashboard
-    await page.waitForURL('/app/**', { timeout: 10000 });
+    await page.waitForURL(/\/app/, { timeout: 10000 });
     await expect(page).not.toHaveURL('/onboarding');
 
     console.log('✅ Onboarding flow completed successfully');
@@ -346,7 +346,7 @@ test.describe('Error Handling', () => {
     await page.click('button[type="submit"]');
 
     // Should successfully load dashboard
-    await page.waitForURL('/app/**', { timeout: 10000 });
+    await page.waitForURL(/\/app/, { timeout: 10000 });
 
     // Check console for errors
     const consoleLogs: string[] = [];

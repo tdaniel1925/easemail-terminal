@@ -4,7 +4,11 @@ import { defineConfig, devices } from '@playwright/test';
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// require('dotenv').config();
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Load .env.test file for testing
+dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -25,7 +29,7 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     // For local testing, use localhost. For production testing, use https://easemail.app
-    baseURL: process.env.TEST_BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
