@@ -47,7 +47,18 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
 
     // Refresh counts every 60 seconds
     const interval = setInterval(fetchFolderCounts, 60000);
-    return () => clearInterval(interval);
+
+    // Listen for account changes from settings page
+    const handleAccountsChanged = () => {
+      console.log('Email accounts changed, refreshing sidebar...');
+      fetchAccounts();
+    };
+    window.addEventListener('email-accounts-changed', handleAccountsChanged);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('email-accounts-changed', handleAccountsChanged);
+    };
   }, []);
 
   // Fetch folders and counts when selected account changes
@@ -64,6 +75,24 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
       const data = await response.json();
       if (data.accounts) {
         setAccounts(data.accounts);
+
+        // Check if currently selected account still exists
+        if (selectedAccount) {
+          const currentAccountStillExists = data.accounts.find((a: any) => a.id === selectedAccount);
+          if (!currentAccountStillExists && data.accounts.length > 0) {
+            // Selected account was deleted, switch to primary or first account
+            const primary = data.accounts.find((a: any) => a.is_primary) || data.accounts[0];
+            setSelectedAccount(primary.id);
+            localStorage.setItem('selectedAccountId', primary.id);
+
+            // Update URL if on inbox
+            if (pathname === '/app/inbox') {
+              const currentParams = new URLSearchParams(window.location.search);
+              currentParams.set('accountId', primary.id);
+              router.push(`${pathname}?${currentParams.toString()}`);
+            }
+          }
+        }
 
         // Set selected account on initial load
         if (!selectedAccount && data.accounts.length > 0) {

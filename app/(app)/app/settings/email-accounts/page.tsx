@@ -99,6 +99,9 @@ export default function EmailAccountsSettingsPage() {
         setDeleteDialogOpen(false);
         setAccountToDelete(null);
         fetchAccounts();
+
+        // Notify other components (like sidebar) that accounts have changed
+        window.dispatchEvent(new CustomEvent('email-accounts-changed'));
       } else {
         toast.error(data.error || 'Failed to remove account');
       }
