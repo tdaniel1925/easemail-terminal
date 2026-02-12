@@ -1,6 +1,6 @@
 # Nylas Webhooks Setup
 
-This guide explains how to set up Nylas webhooks for real-time email and calendar synchronization in EaseMail.
+This guide explains how to set up Nylas webhooks f1or real-time email and calendar synchronization in EaseMail.
 
 ## What are Webhooks?
 

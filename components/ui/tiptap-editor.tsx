@@ -3,7 +3,6 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Highlight from '@tiptap/extension-highlight';
@@ -14,7 +13,74 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { TableCell } from '@tiptap/extension-table-cell';
+import { Node, mergeAttributes } from '@tiptap/core';
 import { useEffect, useState } from 'react';
+
+// Custom Image extension compatible with current Tiptap version
+const CustomImage = Node.create({
+  name: 'image',
+
+  addOptions() {
+    return {
+      inline: false,
+      allowBase64: true,
+      HTMLAttributes: {},
+    };
+  },
+
+  inline() {
+    return this.options.inline;
+  },
+
+  group() {
+    return this.options.inline ? 'inline' : 'block';
+  },
+
+  draggable: true,
+
+  addAttributes() {
+    return {
+      src: {
+        default: null,
+      },
+      alt: {
+        default: null,
+      },
+      title: {
+        default: null,
+      },
+      width: {
+        default: null,
+      },
+      height: {
+        default: null,
+      },
+    };
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'img[src]',
+      },
+    ];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)];
+  },
+
+  addCommands() {
+    return {
+      setImage: (options: { src: string; alt?: string; title?: string }) => ({ commands }) => {
+        return commands.insertContent({
+          type: this.name,
+          attrs: options,
+        });
+      },
+    };
+  },
+});
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -69,7 +135,7 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
           class: 'text-blue-600 underline hover:text-blue-800',
         },
       }),
-      Image.configure({
+      CustomImage.configure({
         inline: true,
         allowBase64: true,
         HTMLAttributes: {
