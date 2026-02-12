@@ -28,6 +28,14 @@ export default function EmailAccountsSettingsPage() {
 
   useEffect(() => {
     fetchAccounts();
+
+    // Check for success parameter from OAuth redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      toast.success('Email account connected successfully!');
+      // Clean up URL
+      window.history.replaceState({}, '', '/app/settings/email-accounts');
+    }
   }, []);
 
   const fetchAccounts = async () => {

@@ -136,11 +136,25 @@ export async function GET(request: NextRequest) {
       provider,
     });
 
-    // Redirect directly to onboarding with success flag
-    // The onboarding wrapper will detect email_connected=true and show success message
-    return NextResponse.redirect(
-      new URL('/onboarding?email_connected=true', request.url)
-    );
+    // Check if user has completed onboarding
+    const { data: preferences } = await serviceClient
+      .from('user_preferences')
+      .select('onboarding_completed')
+      .eq('user_id', state)
+      .single();
+
+    // Redirect based on onboarding status
+    if (preferences?.onboarding_completed) {
+      // User has already completed onboarding, send them to email accounts settings
+      return NextResponse.redirect(
+        new URL('/app/settings/email-accounts?success=true', request.url)
+      );
+    } else {
+      // User is in onboarding flow
+      return NextResponse.redirect(
+        new URL('/onboarding?email_connected=true', request.url)
+      );
+    }
   } catch (error: any) {
     logger.error('OAuth callback error', error, {
       userId: state,
