@@ -290,7 +290,9 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
     input.click();
   };
 
-  const insertImage = async (file: File) => {
+  const insertImage = (file: File) => {
+    if (!editor) return;
+
     // Convert image to base64
     const reader = new FileReader();
     reader.onload = () => {
@@ -300,40 +302,40 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
     reader.readAsDataURL(file);
   };
 
-  const handlePaste = (event: ClipboardEvent) => {
-    const items = event.clipboardData?.items;
-    if (!items) return;
-
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.indexOf('image') !== -1) {
-        event.preventDefault();
-        const file = items[i].getAsFile();
-        if (file) {
-          insertImage(file);
-        }
-        break;
-      }
-    }
-  };
-
-  const handleDrop = (event: DragEvent) => {
-    const files = event.dataTransfer?.files;
-    if (!files || files.length === 0) return;
-
-    for (let i = 0; i < files.length; i++) {
-      if (files[i].type.startsWith('image/')) {
-        event.preventDefault();
-        insertImage(files[i]);
-        break; // Only insert first image
-      }
-    }
-  };
-
   // Add paste and drop event listeners
   useEffect(() => {
     if (!editor) return;
 
     const editorElement = editor.view.dom;
+
+    const handlePaste = (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          event.preventDefault();
+          const file = items[i].getAsFile();
+          if (file) {
+            insertImage(file);
+          }
+          break;
+        }
+      }
+    };
+
+    const handleDrop = (event: DragEvent) => {
+      const files = event.dataTransfer?.files;
+      if (!files || files.length === 0) return;
+
+      for (let i = 0; i < files.length; i++) {
+        if (files[i].type.startsWith('image/')) {
+          event.preventDefault();
+          insertImage(files[i]);
+          break; // Only insert first image
+        }
+      }
+    };
 
     editorElement.addEventListener('paste', handlePaste as any);
     editorElement.addEventListener('drop', handleDrop as any);
@@ -342,7 +344,7 @@ export function TiptapEditor({ content, onChange, placeholder = 'Write your mess
       editorElement.removeEventListener('paste', handlePaste as any);
       editorElement.removeEventListener('drop', handleDrop as any);
     };
-  }, [editor]);
+  }, [editor, insertImage]);
 
   return (
     <div className="border rounded-lg overflow-hidden bg-background">
