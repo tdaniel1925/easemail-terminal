@@ -12,10 +12,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all user's email accounts
-    const { data: accounts } = await supabase
+    const { data: accounts } = (await supabase
       .from('email_accounts')
       .select('grant_id')
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)) as { data: { grant_id: string }[] | null };
 
     if (!accounts || accounts.length === 0) {
       return NextResponse.json({ recipients: [] });
