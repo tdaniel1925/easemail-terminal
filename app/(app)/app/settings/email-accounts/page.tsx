@@ -128,16 +128,16 @@ export default function EmailAccountsSettingsPage() {
     switch (syncState?.toLowerCase()) {
       case 'synced':
       case 'active':
-        return { icon: CheckCircle2, color: 'text-green-500', label: 'Synced' };
+        return { icon: CheckCircle2, color: 'text-green-600 dark:text-green-500', label: 'Synced' };
       case 'syncing':
-        return { icon: RefreshCw, color: 'text-blue-500 animate-spin', label: 'Syncing...' };
+        return { icon: RefreshCw, color: 'text-blue-600 dark:text-blue-500 animate-spin', label: 'Syncing...' };
       case 'error':
       case 'failed':
-        return { icon: XCircle, color: 'text-red-500', label: 'Sync Failed' };
+        return { icon: XCircle, color: 'text-red-600 dark:text-red-500', label: 'Sync Failed' };
       case 'paused':
-        return { icon: AlertCircle, color: 'text-orange-500', label: 'Paused' };
+        return { icon: AlertCircle, color: 'text-orange-600 dark:text-orange-500', label: 'Paused' };
       default:
-        return { icon: CheckCircle2, color: 'text-green-500', label: 'Connected' };
+        return { icon: CheckCircle2, color: 'text-green-600 dark:text-green-500', label: 'Connected' };
     }
   };
 
@@ -191,7 +191,7 @@ export default function EmailAccountsSettingsPage() {
               <CardContent className="flex items-center justify-between p-6">
                 <div className="flex items-center gap-4">
                   <Avatar className={getProviderColor(account.provider)}>
-                    <AvatarFallback className="text-white">
+                    <AvatarFallback className="text-white dark:text-white">
                       {account.email.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
