@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { refreshAccessToken } from '@/lib/msgraph';
 
 /**
  * GET /api/teams/status
- * Check if MS Graph is connected
+ * Check if MS Graph is connected and refresh token if expired
  */
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   try {
     const { data: tokenData, error} = await (supabase
       .from('ms_graph_tokens') as any)
-      .select('expires_at, created_at')
+      .select('*')
       .eq('user_id', user.id)
       .single();
 
@@ -30,10 +31,47 @@ export async function GET(request: NextRequest) {
     const expiresAt = new Date(tokenRecord.expires_at);
     const now = new Date();
 
+    // If token is expired, try to refresh it
+    if (expiresAt <= now) {
+      try {
+        console.log('Token expired, attempting refresh for user:', user.id);
+        const newTokens = await refreshAccessToken(tokenRecord.refresh_token);
+
+        // Update in database
+        await (supabase
+          .from('ms_graph_tokens') as any)
+          .update({
+            access_token: newTokens.accessToken,
+            refresh_token: newTokens.refreshToken!,
+            expires_at: newTokens.expiresOn!.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user.id);
+
+        console.log('Token refreshed successfully for user:', user.id);
+
+        return NextResponse.json({
+          connected: true,
+          expiresAt: newTokens.expiresOn!.toISOString(),
+          isExpired: false,
+          connectedSince: tokenRecord.created_at,
+          refreshed: true,
+        });
+      } catch (refreshError: any) {
+        console.error('Token refresh failed:', refreshError);
+        // If refresh fails, user needs to reconnect
+        return NextResponse.json({
+          connected: false,
+          error: 'Token expired and refresh failed. Please reconnect.',
+          needsReauth: true,
+        });
+      }
+    }
+
     return NextResponse.json({
       connected: true,
       expiresAt: expiresAt.toISOString(),
-      isExpired: expiresAt <= now,
+      isExpired: false,
       connectedSince: tokenRecord.created_at,
     });
   } catch (error) {

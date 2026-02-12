@@ -154,6 +154,42 @@ export function AttachmentUploader({
     }
   }, [attachments]);
 
+  const handlePaste = useCallback((e: ClipboardEvent) => {
+    // Only process paste if we have clipboard items
+    if (!e.clipboardData || !e.clipboardData.items) {
+      return;
+    }
+
+    const items = Array.from(e.clipboardData.items);
+    const files: File[] = [];
+
+    // Extract files from clipboard
+    items.forEach((item) => {
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) {
+          files.push(file);
+        }
+      }
+    });
+
+    // If we found files, add them and prevent default paste behavior
+    if (files.length > 0) {
+      e.preventDefault();
+      addFiles(files);
+    }
+  }, [attachments]);
+
+  // Add paste event listener
+  useEffect(() => {
+    // Listen for paste events on the document
+    document.addEventListener('paste', handlePaste);
+
+    return () => {
+      document.removeEventListener('paste', handlePaste);
+    };
+  }, [handlePaste]);
+
   const removeAttachment = (id: string) => {
     onAttachmentsChange(attachments.filter(a => a.id !== id));
     toast.success('Attachment removed');
@@ -234,7 +270,7 @@ export function AttachmentUploader({
             </Button>
           </label>
           <span className="text-xs text-muted-foreground">
-            or drag and drop files here (max {maxSize}MB per file)
+            drag and drop, or paste files (max {maxSize}MB per file)
           </span>
         </div>
       </div>

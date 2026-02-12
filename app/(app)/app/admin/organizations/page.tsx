@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { CreateOrganizationWizard } from '@/components/admin/create-organization-wizard';
+import { AddUserModal } from '@/components/admin/add-user-modal';
 import { toast } from 'sonner';
 import {
   Building2,
@@ -46,6 +47,8 @@ export default function AdminOrganizationsPage() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState<Organization | null>(null);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [selectedOrgForAddUser, setSelectedOrgForAddUser] = useState<Organization | null>(null);
 
   // Quick create form state
   const [showQuickCreate, setShowQuickCreate] = useState(false);
@@ -457,7 +460,8 @@ export default function AdminOrganizationsPage() {
                   className="flex-1"
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/app/organization/${org.id}?action=invite`);
+                    setSelectedOrgForAddUser(org);
+                    setShowAddUserModal(true);
                   }}
                 >
                   <UserPlus className="mr-2 h-4 w-4" />
@@ -590,6 +594,20 @@ export default function AdminOrganizationsPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Add User Modal */}
+      {selectedOrgForAddUser && (
+        <AddUserModal
+          open={showAddUserModal}
+          onOpenChange={setShowAddUserModal}
+          organizationId={selectedOrgForAddUser.id}
+          organizationName={selectedOrgForAddUser.name}
+          onSuccess={() => {
+            fetchOrganizations();
+            setSelectedOrgForAddUser(null);
+          }}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>

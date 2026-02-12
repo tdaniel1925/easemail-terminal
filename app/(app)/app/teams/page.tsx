@@ -93,10 +93,16 @@ export default function TeamsPage() {
 
       if (data.connected) {
         setConnected(true);
+        if (data.refreshed) {
+          toast.success('Token refreshed successfully');
+        }
         fetchMeetings();
       } else {
         setConnected(false);
         setLoading(false);
+        if (data.needsReauth) {
+          toast.error('Your MS Teams connection expired. Please reconnect.', { duration: 5000 });
+        }
       }
     } catch (error) {
       console.error('Status check error:', error);

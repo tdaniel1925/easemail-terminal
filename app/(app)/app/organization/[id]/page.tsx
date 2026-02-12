@@ -17,6 +17,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { AddUserModal } from '@/components/admin/add-user-modal';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
@@ -81,6 +82,7 @@ export default function OrganizationDetailPage() {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [transferTargetUserId, setTransferTargetUserId] = useState('');
   const [transferring, setTransferring] = useState(false);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
 
   useEffect(() => {
     if (orgId) {
@@ -446,10 +448,16 @@ export default function OrganizationDetailPage() {
             </Button>
           )}
           {canInvite && (
-            <Button onClick={() => setShowInviteDialog(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Invite Member
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => setShowAddUserModal(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add User
+              </Button>
+              <Button onClick={() => setShowInviteDialog(true)}>
+                <Mail className="mr-2 h-4 w-4" />
+                Invite Member
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -792,6 +800,19 @@ export default function OrganizationDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add User Modal */}
+      {organization && (
+        <AddUserModal
+          open={showAddUserModal}
+          onOpenChange={setShowAddUserModal}
+          organizationId={organization.id}
+          organizationName={organization.name}
+          onSuccess={() => {
+            fetchOrganization();
+          }}
+        />
+      )}
 
       {/* Invite Member Dialog */}
       <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
