@@ -5,7 +5,7 @@ import { getWelcomeEmailHtml } from '@/lib/email-templates';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userName, userEmail } = await request.json();
+    const { userName, userEmail, initialPassword } = await request.json();
 
     if (!userName || !userEmail) {
       return NextResponse.json(
@@ -14,8 +14,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!initialPassword) {
+      return NextResponse.json(
+        { error: 'initialPassword is required - all users must receive a password' },
+        { status: 400 }
+      );
+    }
+
     // Generate email HTML
-    const html = getWelcomeEmailHtml({ userName, userEmail });
+    const html = getWelcomeEmailHtml({ userName, userEmail, initialPassword });
 
     // Send email
     const result = await sendEmail({

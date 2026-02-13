@@ -223,66 +223,68 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send appropriate welcome email
-    try {
-      let html: string;
-      let subject: string;
+    // Send welcome email ONLY to new users (with login credentials)
+    // Existing users being added to an org don't need a welcome email
+    if (isNewUser) {
+      try {
+        let html: string;
+        let subject: string;
 
-      console.log(`Preparing welcome email for ${email} with role ${role}`);
+        console.log(`Preparing welcome email for NEW user ${email} with role ${role}`);
 
-      if (role === 'OWNER') {
-        html = getOrgOwnerWelcomeEmailHtml({
-          userName: name,
-          userEmail: email,
-          organizationName: org.name,
-          organizationId: orgId,
-          plan: org.plan,
-          seats: org.seats,
-          temporaryPassword: isNewUser ? temporaryPassword : undefined,
-        });
-        subject = `Welcome to ${org.name} on EaseMail!`;
-      } else if (role === 'ADMIN') {
-        html = getOrgAdminWelcomeEmailHtml({
-          userName: name,
-          userEmail: email,
-          organizationName: org.name,
-          organizationId: orgId,
-          inviterName: 'System Administrator',
-          temporaryPassword: isNewUser ? temporaryPassword : undefined,
-        });
-        subject = `You're Now an Admin of ${org.name}`;
-      } else {
-        // MEMBER role
-        const memberEmailParams: any = {
-          userName: name,
-          userEmail: email,
-          organizationName: org.name,
-          organizationId: orgId,
-          inviterName: 'System Administrator',
-        };
-        if (isNewUser && temporaryPassword) {
-          memberEmailParams.temporaryPassword = temporaryPassword;
+        if (role === 'OWNER') {
+          html = getOrgOwnerWelcomeEmailHtml({
+            userName: name,
+            userEmail: email,
+            organizationName: org.name,
+            organizationId: orgId,
+            plan: org.plan,
+            seats: org.seats,
+            temporaryPassword,
+          });
+          subject = `Welcome to ${org.name} on EaseMail!`;
+        } else if (role === 'ADMIN') {
+          html = getOrgAdminWelcomeEmailHtml({
+            userName: name,
+            userEmail: email,
+            organizationName: org.name,
+            organizationId: orgId,
+            inviterName: 'System Administrator',
+            temporaryPassword,
+          });
+          subject = `You're Now an Admin of ${org.name}`;
+        } else {
+          // MEMBER role
+          html = getOrgMemberWelcomeEmailHtml({
+            userName: name,
+            userEmail: email,
+            organizationName: org.name,
+            organizationId: orgId,
+            inviterName: 'System Administrator',
+            temporaryPassword,
+          });
+          subject = `Welcome to ${org.name} on EaseMail!`;
         }
-        html = getOrgMemberWelcomeEmailHtml(memberEmailParams);
-        subject = `Welcome to ${org.name} on EaseMail!`;
+
+        await sendEmail({
+          to: email,
+          subject,
+          html,
+        });
+
+        console.log(`✓ Welcome email sent successfully to ${email} as ${role}`);
+      } catch (emailError: any) {
+        console.error('Failed to send welcome email:', {
+          error: emailError,
+          message: emailError?.message,
+          email,
+          role,
+          isNewUser,
+        });
+        // Don't fail the request if email fails - user is already successfully added
       }
-
-      await sendEmail({
-        to: email,
-        subject,
-        html,
-      });
-
-      console.log(`✓ Welcome email sent successfully to ${email} as ${role}`);
-    } catch (emailError: any) {
-      console.error('Failed to send welcome email:', {
-        error: emailError,
-        message: emailError?.message,
-        email,
-        role,
-        isNewUser,
-      });
-      // Don't fail the request if email fails - user is already successfully added
+    } else {
+      console.log(`Skipping welcome email for existing user ${email} (already has account)`);
     }
 
     return NextResponse.json({

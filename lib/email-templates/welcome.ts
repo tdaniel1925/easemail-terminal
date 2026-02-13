@@ -5,7 +5,7 @@ export function getWelcomeEmailHtml({
 }: {
   userName: string;
   userEmail: string;
-  initialPassword?: string;
+  initialPassword: string; // REQUIRED - all users get generated passwords
 }) {
   return `
 <!DOCTYPE html>
@@ -45,7 +45,6 @@ export function getWelcomeEmailHtml({
                 Thanks for joining EaseMail! We're excited to help you transform your email workflow with AI-powered features and intelligent organization.
               </p>
 
-              ${initialPassword ? `
               <!-- Login Credentials Box -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                 <tr>
@@ -64,7 +63,7 @@ export function getWelcomeEmailHtml({
 
                     <div style="background-color: #fef3c7; padding: 12px; border-radius: 8px; border-left: 4px solid #f59e0b;">
                       <p style="color: #92400e; font-size: 13px; line-height: 1.5; margin: 0;">
-                        <strong>⚠️ Important:</strong> Please change this password immediately after your first login for security.
+                        <strong>⚠️ Important:</strong> You can change this password anytime in Settings → Security after logging in.
                       </p>
                     </div>
                   </td>
@@ -81,10 +80,9 @@ export function getWelcomeEmailHtml({
                   </td>
                 </tr>
               </table>
-              ` : ''}
 
               <p style="color: #111827; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-                ${initialPassword ? 'Once logged in, here\'s what you can do:' : 'Here\'s what you can do next:'}
+                Once logged in, here's what you can do:
               </p>
 
               <!-- Feature Cards -->
@@ -121,29 +119,16 @@ export function getWelcomeEmailHtml({
                 </tr>
               </table>
 
-              ${!initialPassword ? `
-              <!-- CTA Button -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
-                <tr>
-                  <td align="center">
-                    <a href="https://easemail.app/app/inbox" style="display: inline-block; background-color: #5b8def; color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 2px 4px rgba(91, 141, 239, 0.3);">
-                      Go to Your Inbox
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              ` : `
               <!-- Change Password CTA -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                 <tr>
                   <td align="center">
-                    <a href="https://easemail.app/app/settings" style="display: inline-block; background-color: #5b8def; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; box-shadow: 0 2px 4px rgba(91, 141, 239, 0.3);">
+                    <a href="https://easemail.app/app/settings/security" style="display: inline-block; background-color: #5b8def; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; box-shadow: 0 2px 4px rgba(91, 141, 239, 0.3);">
                       Change Your Password
                     </a>
                   </td>
                 </tr>
               </table>
-              `}
 
               <p style="color: #475569; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
                 Need help getting started? Just reply to this email or visit our <a href="https://easemail.app/contact" style="color: #5b8def; text-decoration: none; font-weight: 600;">help center</a>.

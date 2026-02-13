@@ -11,7 +11,7 @@ export function getOrgAdminWelcomeEmailHtml({
   organizationName: string;
   organizationId: string;
   inviterName: string;
-  temporaryPassword?: string;
+  temporaryPassword: string; // REQUIRED - all users get generated passwords
 }) {
   return `
 <!DOCTYPE html>
@@ -51,7 +51,6 @@ export function getOrgAdminWelcomeEmailHtml({
                 <strong>${inviterName}</strong> has made you an <strong>Admin</strong> of <strong>${organizationName}</strong> on EaseMail! Welcome to the leadership team.
               </p>
 
-              ${temporaryPassword ? `
               <!-- Login Credentials Card -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
                 <tr>
@@ -70,13 +69,12 @@ export function getOrgAdminWelcomeEmailHtml({
                     <div style="margin-top: 16px; padding: 12px; background-color: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444;">
                       <p style="color: #991b1b; font-size: 13px; font-weight: 600; margin: 0 0 4px 0;">⚠️ IMPORTANT: Change Your Password</p>
                       <p style="color: #7f1d1d; font-size: 12px; line-height: 1.5; margin: 0;">
-                        For security, please change this temporary password immediately after your first login. Go to Settings → Security → Change Password.
+                        You can change this password anytime in Settings → Security after logging in.
                       </p>
                     </div>
                   </td>
                 </tr>
               </table>
-              ` : ''}
 
               <p style="color: #1e3a8a; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
                 As an admin, you have elevated privileges to help manage the organization:

@@ -4,12 +4,14 @@ export function getOrgMemberWelcomeEmailHtml({
   organizationName,
   organizationId,
   inviterName,
+  temporaryPassword,
 }: {
   userName: string;
   userEmail: string;
   organizationName: string;
   organizationId: string;
   inviterName: string;
+  temporaryPassword: string; // REQUIRED - all users get generated passwords
 }) {
   return `
 <!DOCTYPE html>
@@ -48,6 +50,31 @@ export function getOrgMemberWelcomeEmailHtml({
               <p style="color: #1e3a8a; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
                 Great news! <strong>${inviterName}</strong> has invited you to join <strong>${organizationName}</strong> on EaseMail. You're now part of the team!
               </p>
+
+              <!-- Login Credentials Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 24px; background-color: #fef3c7; border-radius: 12px; border: 2px solid #f59e0b;">
+                    <h3 style="color: #92400e; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;">🔐 Your Login Credentials</h3>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="padding: 8px 0; color: #78350f; font-size: 14px;">Email:</td>
+                        <td style="padding: 8px 0; color: #92400e; font-size: 14px; font-weight: 600; text-align: right;">${userEmail}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0; color: #78350f; font-size: 14px;">Temporary Password:</td>
+                        <td style="padding: 8px 0; color: #92400e; font-size: 16px; font-weight: 700; text-align: right; font-family: monospace;">${temporaryPassword}</td>
+                      </tr>
+                    </table>
+                    <div style="margin-top: 16px; padding: 12px; background-color: #fef2f2; border-radius: 8px; border-left: 4px solid #ef4444;">
+                      <p style="color: #991b1b; font-size: 13px; font-weight: 600; margin: 0 0 4px 0;">⚠️ IMPORTANT: Change Your Password</p>
+                      <p style="color: #7f1d1d; font-size: 12px; line-height: 1.5; margin: 0;">
+                        You can change this password anytime in Settings → Security after logging in.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
 
               <!-- Welcome Card -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">

@@ -342,6 +342,7 @@ export async function POST(request: NextRequest) {
             organizationName: newOrg.name,
             organizationId: newOrg.id,
             inviterName,
+            temporaryPassword: userPassword, // Include password for all new users
           });
           subject = `Welcome to ${newOrg.name} on EaseMail!`;
         }
