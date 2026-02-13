@@ -23,10 +23,16 @@ export async function POST(request: NextRequest) {
     const nylasProvider = providerMap[provider] || 'google';
 
     // Define scopes based on provider
-    // Microsoft has different scope requirements than Google
+    // Microsoft requires full Graph API scope URIs for proper access
     const scopeMap: { [key: string]: string[] } = {
       google: ['email', 'calendar', 'contacts'],
-      microsoft: ['email'], // Microsoft calendar requires separate consent
+      microsoft: [
+        'https://graph.microsoft.com/Mail.ReadWrite',
+        'https://graph.microsoft.com/Mail.Send',
+        'https://graph.microsoft.com/Calendars.ReadWrite',
+        'https://graph.microsoft.com/Contacts.Read',
+        'https://graph.microsoft.com/User.Read'
+      ],
       imap: ['email'],
     };
 
