@@ -3,39 +3,49 @@
 > next build
 
 ▲ Next.js 16.1.6 (Turbopack)
-- Environments: .env.local
+- Environments: .env.production.local, .env.local
 - Experiments (use with caution):
   · serverActions
 
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
   Creating an optimized production build ...
-✓ Compiled successfully in 16.9s
+✓ Compiled successfully in 14.8s
   Running TypeScript ...
   Collecting page data using 7 workers ...
 PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
 PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
 PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
 PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
+PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
+PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
+PayPal credentials not configured. Set PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET.
 ⚠ Using edge runtime on a page currently disables static generation for that page
-  Generating static pages using 7 workers (0/128) ...
-  Generating static pages using 7 workers (32/128) 
-  Generating static pages using 7 workers (64/128) 
-  Generating static pages using 7 workers (96/128) 
-✓ Generating static pages using 7 workers (128/128) in 504.6ms
+  Generating static pages using 7 workers (0/157) ...
+  Generating static pages using 7 workers (39/157) 
+  Generating static pages using 7 workers (78/157) 
+  Generating static pages using 7 workers (117/157) 
+✓ Generating static pages using 7 workers (157/157) in 791.4ms
   Finalizing page optimization ...
 
 Route (app)
 ┌ ○ /
 ├ ○ /_not-found
+├ ƒ /api/admin/cache
 ├ ƒ /api/admin/impersonate
 ├ ƒ /api/admin/invoices
 ├ ƒ /api/admin/notifications
 ├ ƒ /api/admin/organizations
+├ ƒ /api/admin/organizations/add-user
+├ ƒ /api/admin/organizations/create
 ├ ƒ /api/admin/organizations/wizard
 ├ ƒ /api/admin/payment-methods
 ├ ƒ /api/admin/revenue-snapshot
 ├ ƒ /api/admin/system-settings
 ├ ƒ /api/admin/users
+├ ƒ /api/admin/users/[userId]/resend-welcome
+├ ƒ /api/admin/users/[userId]/reset-password
+├ ƒ /api/admin/users/create-individual
+├ ƒ /api/admin/verify-user-preferences
 ├ ƒ /api/admin/webhooks
 ├ ƒ /api/ai/dictate
 ├ ƒ /api/ai/extract-event
@@ -49,7 +59,9 @@ Route (app)
 ├ ƒ /api/auth/2fa/setup
 ├ ƒ /api/auth/2fa/status
 ├ ƒ /api/auth/2fa/verify
+├ ƒ /api/auth/callback
 ├ ƒ /api/auth/logout
+├ ƒ /api/auth/reset-password
 ├ ƒ /api/auth/track-login
 ├ ƒ /api/billing
 ├ ƒ /api/billing/individual/approve
@@ -61,9 +73,12 @@ Route (app)
 ├ ƒ /api/billing/organization/status
 ├ ƒ /api/billing/organization/update-seats
 ├ ƒ /api/calendar
+├ ƒ /api/calendar/[id]
+├ ƒ /api/calendar/[id]/rsvp
 ├ ƒ /api/chatbot
 ├ ƒ /api/contacts
 ├ ƒ /api/contacts/[id]
+├ ƒ /api/debug/check-accounts
 ├ ƒ /api/drafts
 ├ ƒ /api/drafts/[id]
 ├ ƒ /api/email-accounts
@@ -72,13 +87,20 @@ Route (app)
 ├ ƒ /api/email-rules
 ├ ƒ /api/email-rules/[id]
 ├ ƒ /api/email-rules/process
+├ ƒ /api/emails/billing-setup
 ├ ƒ /api/emails/notification
+├ ƒ /api/emails/org-owner-welcome
+├ ƒ /api/emails/org-role-welcome
 ├ ƒ /api/emails/organization-invite
+├ ƒ /api/emails/super-admin-welcome
 ├ ƒ /api/emails/welcome
 ├ ƒ /api/enterprise-leads
 ├ ƒ /api/focus-time
 ├ ƒ /api/folders
 ├ ƒ /api/folders/counts
+├ ƒ /api/folders/sync
+├ ƒ /api/guides/admin
+├ ƒ /api/guides/user
 ├ ƒ /api/invites/accept
 ├ ƒ /api/invoices
 ├ ƒ /api/labels
@@ -95,6 +117,9 @@ Route (app)
 ├ ƒ /api/oauth/callback
 ├ ƒ /api/onboarding
 ├ ƒ /api/organization
+├ ƒ /api/organization/invitations
+├ ƒ /api/organization/invitations/[invitationId]
+├ ƒ /api/organization/invitations/[invitationId]/accept
 ├ ƒ /api/organization/seats
 ├ ƒ /api/organizations
 ├ ƒ /api/organizations/[id]
@@ -111,6 +136,7 @@ Route (app)
 ├ ƒ /api/organizations/[id]/webhooks/[webhookId]/deliveries
 ├ ƒ /api/organizations/[id]/webhooks/[webhookId]/deliveries/[deliveryId]/retry
 ├ ƒ /api/payment-methods
+├ ƒ /api/recipients/recent
 ├ ƒ /api/scheduled-emails
 ├ ƒ /api/scheduled-emails/[id]
 ├ ƒ /api/scheduled-emails/process
@@ -138,17 +164,25 @@ Route (app)
 ├ ƒ /api/test/send-emails
 ├ ƒ /api/threads/[id]
 ├ ƒ /api/user
+├ ƒ /api/user/organization
 ├ ƒ /api/webhooks/events
 ├ ƒ /api/webhooks/nylas
 ├ ƒ /api/webhooks/paypal
 ├ ƒ /app
 ├ ƒ /app/admin/analytics
 ├ ƒ /app/admin/billing
+├ ƒ /app/admin/invoices
 ├ ƒ /app/admin/organizations
+├ ƒ /app/admin/organizations/add-user
+├ ƒ /app/admin/organizations/create
+├ ƒ /app/admin/payment-methods
 ├ ƒ /app/admin/revenue
+├ ƒ /app/admin/revenue-snapshot
 ├ ƒ /app/admin/sales
+├ ƒ /app/admin/settings
 ├ ƒ /app/admin/system
 ├ ƒ /app/admin/users
+├ ƒ /app/admin/users/create-individual
 ├ ƒ /app/attachments
 ├ ƒ /app/calendar
 ├ ƒ /app/connect
@@ -163,6 +197,7 @@ Route (app)
 ├ ƒ /app/organization/[id]/dashboard
 ├ ƒ /app/organization/[id]/webhooks
 ├ ƒ /app/organization/[id]/webhooks/[webhookId]/deliveries
+├ ƒ /app/organization/invitations
 ├ ƒ /app/pricing
 ├ ƒ /app/settings
 ├ ƒ /app/settings/account
@@ -170,12 +205,14 @@ Route (app)
 ├ ƒ /app/settings/appearance
 ├ ƒ /app/settings/billing
 ├ ƒ /app/settings/email-accounts
+├ ƒ /app/settings/help
 ├ ƒ /app/settings/notifications
 ├ ƒ /app/settings/rules
 ├ ƒ /app/settings/security
 ├ ƒ /app/settings/signatures
 ├ ƒ /app/sms
 ├ ƒ /app/teams
+├ ○ /auth/update-password
 ├ ○ /auth/verify
 ├ ○ /contact
 ├ ○ /features
@@ -183,6 +220,7 @@ Route (app)
 ├ ƒ /invite/[token]
 ├ ○ /login
 ├ ○ /onboarding
+├ ○ /reset-password
 └ ○ /signup
 
 

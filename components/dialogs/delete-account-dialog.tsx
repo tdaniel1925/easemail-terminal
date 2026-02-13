@@ -31,11 +31,19 @@ export function DeleteAccountDialog({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleConfirm = async () => {
-    if (emailInput !== accountEmail) return;
+    console.log('Delete confirm clicked');
+    if (emailInput !== accountEmail) {
+      console.log('Email input does not match:', emailInput, 'vs', accountEmail);
+      return;
+    }
 
+    console.log('Starting deletion...');
     setIsDeleting(true);
     try {
       await onConfirm();
+      console.log('Deletion completed');
+    } catch (error) {
+      console.error('Error during deletion:', error);
     } finally {
       setIsDeleting(false);
       setEmailInput('');
@@ -43,6 +51,7 @@ export function DeleteAccountDialog({
   };
 
   const handleCancel = () => {
+    console.log('Delete cancelled');
     setEmailInput('');
     onOpenChange(false);
   };
@@ -102,6 +111,7 @@ export function DeleteAccountDialog({
 
         <DialogFooter>
           <Button
+            type="button"
             variant="outline"
             onClick={handleCancel}
             disabled={isDeleting}
@@ -109,6 +119,7 @@ export function DeleteAccountDialog({
             Cancel
           </Button>
           <Button
+            type="button"
             variant="destructive"
             onClick={handleConfirm}
             disabled={!isValid || isDeleting}

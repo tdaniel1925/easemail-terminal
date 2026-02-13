@@ -62,17 +62,6 @@ async function testDavidAccess() {
 
     console.log('');
 
-    // Test 3: Try to get account info
-    console.log('👤 Test 3: Getting account info...');
-    try {
-      const accountInfo = await nylasClient.connectors.detectProvider({
-        email: account.email,
-      });
-      console.log(`✓ Provider detection: ${JSON.stringify(accountInfo)}`);
-    } catch (detectError: any) {
-      console.error(`❌ Failed to detect provider: ${detectError.message}`);
-    }
-
   } catch (error: any) {
     console.error('❌ Script error:', error.message);
   }

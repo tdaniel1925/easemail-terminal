@@ -80,19 +80,29 @@ export default function EmailAccountsSettingsPage() {
   };
 
   const handleRemoveClick = (account: EmailAccount) => {
+    console.log('Delete button clicked for account:', account.email);
     setAccountToDelete(account);
     setDeleteDialogOpen(true);
+    console.log('Dialog should now open');
   };
 
   const handleRemoveConfirm = async () => {
-    if (!accountToDelete) return;
+    if (!accountToDelete) {
+      console.error('No account to delete');
+      return;
+    }
+
+    console.log('Removing account:', accountToDelete.id, accountToDelete.email);
 
     try {
       const response = await fetch(`/api/email-accounts/${accountToDelete.id}`, {
         method: 'DELETE',
       });
 
+      console.log('Delete response status:', response.status);
+
       const data = await response.json();
+      console.log('Delete response data:', data);
 
       if (response.ok) {
         toast.success('Email account and associated data deleted successfully');
@@ -103,6 +113,7 @@ export default function EmailAccountsSettingsPage() {
         // Notify other components (like sidebar) that accounts have changed
         window.dispatchEvent(new CustomEvent('email-accounts-changed'));
       } else {
+        console.error('Delete failed with error:', data.error);
         toast.error(data.error || 'Failed to remove account');
       }
     } catch (error) {
@@ -161,7 +172,7 @@ export default function EmailAccountsSettingsPage() {
               <CardTitle>Email Accounts</CardTitle>
               <CardDescription>Manage your connected email accounts</CardDescription>
             </div>
-            <Button onClick={handleConnectNew}>
+            <Button type="button" onClick={handleConnectNew}>
               <Plus className="mr-2 h-4 w-4" />
               Connect Account
             </Button>
@@ -178,7 +189,7 @@ export default function EmailAccountsSettingsPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Connect your first email account to get started
             </p>
-            <Button onClick={handleConnectNew}>
+            <Button type="button" onClick={handleConnectNew}>
               <Plus className="mr-2 h-4 w-4" />
               Connect Account
             </Button>
@@ -227,6 +238,7 @@ export default function EmailAccountsSettingsPage() {
 
                 <div className="flex items-center gap-2">
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => {
@@ -239,6 +251,7 @@ export default function EmailAccountsSettingsPage() {
                   </Button>
                   {!account.is_primary && (
                     <Button
+                      type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => handleSetPrimary(account.id)}
@@ -247,10 +260,12 @@ export default function EmailAccountsSettingsPage() {
                     </Button>
                   )}
                   <Button
+                    type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => handleRemoveClick(account)}
                     className="text-destructive hover:text-destructive"
+                    title="Delete account"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -275,7 +290,7 @@ export default function EmailAccountsSettingsPage() {
                 Automatically sync emails in the background
               </p>
             </div>
-            <Button variant="outline" size="sm">
+            <Button type="button" variant="outline" size="sm">
               Enabled
             </Button>
           </div>
@@ -285,7 +300,7 @@ export default function EmailAccountsSettingsPage() {
               <h4 className="font-medium">Sync Frequency</h4>
               <p className="text-sm text-muted-foreground">How often to check for new emails</p>
             </div>
-            <Button variant="outline" size="sm">
+            <Button type="button" variant="outline" size="sm">
               Every 5 minutes
             </Button>
           </div>
@@ -297,7 +312,7 @@ export default function EmailAccountsSettingsPage() {
                 How far back to sync your email history
               </p>
             </div>
-            <Button variant="outline" size="sm">
+            <Button type="button" variant="outline" size="sm">
               Last 6 months
             </Button>
           </div>
