@@ -155,28 +155,48 @@ export async function POST(request: NextRequest) {
 
       userId = newAuthUser.user.id;
 
-      // Create user profile
-      await (supabase as any).from('users').insert({
-        id: userId,
-        email,
-        name,
-        preferences: {},
-      });
+      // Create user profile using service client to bypass RLS
+      const { error: userError } = await serviceClient
+        .from('users')
+        .insert({
+          id: userId,
+          email,
+          name,
+          preferences: {},
+        });
+
+      if (userError) {
+        console.error('Failed to create user profile:', userError);
+        return NextResponse.json(
+          { error: 'Failed to create user profile' },
+          { status: 500 }
+        );
+      }
 
       // Create user_preferences with onboarding completed (admin-created users skip onboarding)
-      await (supabase as any).from('user_preferences').insert({
-        user_id: userId,
-        onboarding_completed: true,
-        onboarding_completed_at: new Date().toISOString(),
-        ai_features_enabled: true,
-        auto_categorize: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+      const { error: prefsError } = await serviceClient
+        .from('user_preferences')
+        .insert({
+          user_id: userId,
+          onboarding_completed: true,
+          onboarding_completed_at: new Date().toISOString(),
+          ai_features_enabled: true,
+          auto_categorize: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+      if (prefsError) {
+        console.error('Failed to create user preferences:', prefsError);
+        return NextResponse.json(
+          { error: 'Failed to create user preferences' },
+          { status: 500 }
+        );
+      }
     }
 
-    // Add user to organization
-    const { error: memberError } = await (supabase as any)
+    // Add user to organization using service client
+    const { error: memberError } = await serviceClient
       .from('organization_members')
       .insert({
         organization_id: orgId,
@@ -191,10 +211,15 @@ export async function POST(request: NextRequest) {
 
     // Increment seats_used only for MEMBER role
     if (role === 'MEMBER') {
-      await (supabase as any)
+      const { error: updateError } = await serviceClient
         .from('organizations')
         .update({ seats_used: org.seats_used + 1 })
         .eq('id', orgId);
+
+      if (updateError) {
+        console.error('Failed to update seats_used:', updateError);
+        // Don't fail the request if seat update fails - user is already added
+      }
     }
 
     // Send appropriate welcome email
