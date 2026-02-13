@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 import { AddUserModal } from '@/components/admin/add-user-modal';
 import { toast } from 'sonner';
 import {
@@ -36,6 +37,7 @@ import {
   BarChart3,
   Clock,
   HelpCircle,
+  Download,
 } from 'lucide-react';
 
 interface Member {
@@ -101,6 +103,8 @@ export default function OrganizationDetailPage() {
   const [impersonating, setImpersonating] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+  const [bulkRemoving, setBulkRemoving] = useState(false);
 
   useEffect(() => {
     if (orgId) {
@@ -276,6 +280,123 @@ export default function OrganizationDetailPage() {
       console.error('Remove member error:', error);
       toast.error('Failed to remove member');
     }
+  };
+
+  const handleToggleMemberSelection = (userId: string) => {
+    setSelectedMembers((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleToggleAll = () => {
+    const filteredMembers = members.filter((member) => {
+      const matchesSearch = member.users.email
+        .toLowerCase()
+        .includes(memberSearchQuery.toLowerCase());
+      const matchesRole =
+        memberRoleFilter === 'all' || member.role === memberRoleFilter;
+      // Can't select owners
+      return matchesSearch && matchesRole && member.role !== 'OWNER';
+    });
+
+    if (selectedMembers.size === filteredMembers.length) {
+      // Deselect all
+      setSelectedMembers(new Set());
+    } else {
+      // Select all
+      setSelectedMembers(new Set(filteredMembers.map(m => m.user_id)));
+    }
+  };
+
+  const handleBulkRemove = async () => {
+    if (selectedMembers.size === 0) return;
+
+    if (!confirm(`Are you sure you want to remove ${selectedMembers.size} member(s)?`)) {
+      return;
+    }
+
+    try {
+      setBulkRemoving(true);
+      const promises = Array.from(selectedMembers).map((userId) =>
+        fetch(`/api/organizations/${orgId}/members?userId=${userId}`, {
+          method: 'DELETE',
+        })
+      );
+
+      const results = await Promise.all(promises);
+      const successCount = results.filter((r) => r.ok).length;
+      const failCount = results.length - successCount;
+
+      if (successCount > 0) {
+        toast.success(`Successfully removed ${successCount} member(s)`);
+      }
+      if (failCount > 0) {
+        toast.error(`Failed to remove ${failCount} member(s)`);
+      }
+
+      setSelectedMembers(new Set());
+      fetchOrganization();
+    } catch (error) {
+      console.error('Bulk remove error:', error);
+      toast.error('Failed to remove members');
+    } finally {
+      setBulkRemoving(false);
+    }
+  };
+
+  const handleExportCSV = () => {
+    const filteredMembers = members.filter((member) => {
+      const matchesSearch = member.users.email
+        .toLowerCase()
+        .includes(memberSearchQuery.toLowerCase());
+      const matchesRole =
+        memberRoleFilter === 'all' || member.role === memberRoleFilter;
+      return matchesSearch && matchesRole;
+    });
+
+    // Create CSV content
+    const headers = ['Email', 'Name', 'Role', 'Joined Date', 'Last Login', 'Login Count'];
+    const rows = filteredMembers.map((member) => {
+      const loginData = member.user_login_tracking?.[0];
+      const lastLogin = loginData?.last_login_at
+        ? new Date(loginData.last_login_at).toLocaleDateString()
+        : 'Never';
+      const loginCount = loginData?.login_count || 0;
+      const joinedDate = new Date(member.created_at).toLocaleDateString();
+
+      return [
+        member.users.email,
+        member.users.name || '',
+        member.role,
+        joinedDate,
+        lastLogin,
+        loginCount.toString()
+      ];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${organization?.name || 'organization'}_members_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success(`Exported ${filteredMembers.length} member(s) to CSV`);
   };
 
   const handleUpdateOrgSettings = async () => {
@@ -810,6 +931,14 @@ export default function OrganizationDetailPage() {
             </div>
             {members.length > 0 && (
               <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportCSV}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export CSV
+                </Button>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -834,6 +963,39 @@ export default function OrganizationDetailPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {/* Bulk Action Bar */}
+          {selectedMembers.size > 0 && canInvite && (
+            <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-950/20 px-4 py-3 rounded-lg mb-4 border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  checked={true}
+                  onCheckedChange={() => setSelectedMembers(new Set())}
+                />
+                <span className="font-medium text-sm">
+                  {selectedMembers.size} member(s) selected
+                </span>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkRemove}
+                disabled={bulkRemoving}
+              >
+                {bulkRemoving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Removing...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Remove Selected
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+
           {members.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
               <User className="h-12 w-12 text-muted-foreground mb-4" />
@@ -897,6 +1059,13 @@ export default function OrganizationDetailPage() {
                     {index > 0 && <Separator />}
                     <div className="flex items-center justify-between py-3">
                       <div className="flex items-center gap-3">
+                        {/* Checkbox for bulk selection (can't select owners) */}
+                        {canInvite && member.role !== 'OWNER' && (
+                          <Checkbox
+                            checked={selectedMembers.has(member.user_id)}
+                            onCheckedChange={() => handleToggleMemberSelection(member.user_id)}
+                          />
+                        )}
                         <Avatar>
                           <AvatarFallback>
                             {member.users.email.charAt(0).toUpperCase()}

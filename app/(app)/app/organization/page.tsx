@@ -145,6 +145,48 @@ export default function OrganizationPage() {
         </Button>
       </div>
 
+      {/* Seat Usage Summary */}
+      {organizations.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Seat Usage Overview</CardTitle>
+            <CardDescription>Track seat utilization across your organizations</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              {(() => {
+                const totalSeats = organizations.reduce((sum, org) => sum + (org.seats || 0), 0);
+                const usedSeats = organizations.reduce((sum, org) => sum + (org.seats_used || 0), 0);
+                const availableSeats = totalSeats - usedSeats;
+                const usagePercentage = totalSeats > 0 ? Math.round((usedSeats / totalSeats) * 100) : 0;
+
+                return (
+                  <>
+                    <div className="flex flex-col space-y-2 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                      <div className="text-sm font-medium text-blue-700 dark:text-blue-300">Total Seats</div>
+                      <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">{totalSeats}</div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400">Across {organizations.length} {organizations.length === 1 ? 'org' : 'orgs'}</div>
+                    </div>
+
+                    <div className="flex flex-col space-y-2 p-4 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+                      <div className="text-sm font-medium text-green-700 dark:text-green-300">Used Seats</div>
+                      <div className="text-3xl font-bold text-green-900 dark:text-green-100">{usedSeats}</div>
+                      <div className="text-xs text-green-600 dark:text-green-400">{usagePercentage}% utilization</div>
+                    </div>
+
+                    <div className="flex flex-col space-y-2 p-4 rounded-lg bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+                      <div className="text-sm font-medium text-purple-700 dark:text-purple-300">Available Seats</div>
+                      <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">{availableSeats}</div>
+                      <div className="text-xs text-purple-600 dark:text-purple-400">Ready to assign</div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Search and Filters */}
       {organizations.length > 0 && (
         <Card className="mb-6">
