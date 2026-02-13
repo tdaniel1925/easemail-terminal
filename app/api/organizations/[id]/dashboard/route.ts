@@ -16,24 +16,35 @@ export async function GET(
     const { id } = await params;
     const orgId = id;
 
-    // Check if user is a member and has appropriate role
-    const { data: membership } = (await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', orgId)
-      .eq('user_id', user.id)
-      .single()) as { data: any };
+    // Check if user is super admin OR a member with appropriate role
+    const { data: userData } = (await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: { is_super_admin: boolean } | null };
 
-    if (!membership) {
-      return NextResponse.json({ error: 'Not a member of this organization' }, { status: 403 });
-    }
+    const isSuperAdmin = userData?.is_super_admin || false;
 
-    // Only OWNER and ADMIN roles can access organization dashboard
-    if (membership.role === 'MEMBER') {
-      return NextResponse.json(
-        { error: 'Insufficient permissions. Only organization admins can access the dashboard.' },
-        { status: 403 }
-      );
+    // If not super admin, check membership and role
+    if (!isSuperAdmin) {
+      const { data: membership } = (await supabase
+        .from('organization_members')
+        .select('role')
+        .eq('organization_id', orgId)
+        .eq('user_id', user.id)
+        .single()) as { data: any };
+
+      if (!membership) {
+        return NextResponse.json({ error: 'Not a member of this organization' }, { status: 403 });
+      }
+
+      // Only OWNER and ADMIN roles can access organization dashboard
+      if (membership.role === 'MEMBER') {
+        return NextResponse.json(
+          { error: 'Insufficient permissions. Only organization admins can access the dashboard.' },
+          { status: 403 }
+        );
+      }
     }
 
     // Get organization details

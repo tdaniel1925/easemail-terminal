@@ -20,19 +20,30 @@ export async function GET(
     const action = searchParams.get('action');
     const userId = searchParams.get('userId');
 
-    // Check if user is owner or admin
-    const { data: membership } = (await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', orgId)
-      .eq('user_id', user.id)
-      .single()) as { data: any };
+    // Check if user is super admin OR owner/admin of organization
+    const { data: userData } = (await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: { is_super_admin: boolean } | null };
 
-    if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
+    const isSuperAdmin = userData?.is_super_admin || false;
+
+    // If not super admin, check if owner or admin
+    if (!isSuperAdmin) {
+      const { data: membership } = (await supabase
+        .from('organization_members')
+        .select('role')
+        .eq('organization_id', orgId)
+        .eq('user_id', user.id)
+        .single()) as { data: any };
+
+      if (!membership || !['OWNER', 'ADMIN'].includes(membership.role)) {
+        return NextResponse.json(
+          { error: 'Insufficient permissions' },
+          { status: 403 }
+        );
+      }
     }
 
     // Build query

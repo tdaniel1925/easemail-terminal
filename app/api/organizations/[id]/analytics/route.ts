@@ -17,19 +17,30 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get('days') || '30');
 
-    // Check if user is a member
-    const { data: membership } = (await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', orgId)
-      .eq('user_id', user.id)
-      .single()) as { data: any };
+    // Check if user is super admin OR a member of the organization
+    const { data: userData } = (await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single()) as { data: { is_super_admin: boolean } | null };
 
-    if (!membership) {
-      return NextResponse.json(
-        { error: 'Not a member of this organization' },
-        { status: 403 }
-      );
+    const isSuperAdmin = userData?.is_super_admin || false;
+
+    // If not super admin, check membership
+    if (!isSuperAdmin) {
+      const { data: membership } = (await supabase
+        .from('organization_members')
+        .select('role')
+        .eq('organization_id', orgId)
+        .eq('user_id', user.id)
+        .single()) as { data: any };
+
+      if (!membership) {
+        return NextResponse.json(
+          { error: 'Not a member of this organization' },
+          { status: 403 }
+        );
+      }
     }
 
     const startDate = new Date();
