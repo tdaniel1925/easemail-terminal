@@ -59,10 +59,19 @@ export async function GET(
       .eq('id', orgId)
       .single()) as { data: any };
 
-    // Get all members
-    const { data: members } = (await supabase
+    // Get all members with login tracking
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: members } = (await serviceClient
       .from('organization_members')
-      .select('*, users:user_id(email)')
+      .select(`
+        *,
+        users:user_id(email, name),
+        user_login_tracking!left(last_login_at, login_count)
+      `)
       .eq('organization_id', orgId)
       .order('created_at', { ascending: true })) as { data: any };
 

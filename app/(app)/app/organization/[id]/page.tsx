@@ -32,13 +32,19 @@ import {
   Loader2,
   Settings,
   Search,
+  BarChart3,
+  Clock,
 } from 'lucide-react';
 
 interface Member {
   user_id: string;
   role: string;
   created_at: string;
-  users: { email: string };
+  users: { email: string; name?: string };
+  user_login_tracking?: {
+    last_login_at: string | null;
+    login_count: number;
+  }[];
 }
 
 interface PendingInvite {
@@ -576,6 +582,69 @@ export default function OrganizationDetailPage() {
         </Card>
       </div>
 
+      {/* Super Admin Actions Panel */}
+      {isSuperAdmin && (
+        <Card className="mb-6 border-purple-200 bg-purple-50 dark:bg-purple-950/20 dark:border-purple-900">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-purple-900 dark:text-purple-100 flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Super Admin Panel
+                </CardTitle>
+                <CardDescription className="text-purple-700 dark:text-purple-300">
+                  Administrative controls and organization insights
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Total Members</div>
+                <div className="text-2xl font-bold">{members.length}</div>
+                <p className="text-xs text-muted-foreground mt-1">Active users</p>
+              </div>
+              <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Pending Invites</div>
+                <div className="text-2xl font-bold">{pendingInvites.length}</div>
+                <p className="text-xs text-muted-foreground mt-1">Awaiting acceptance</p>
+              </div>
+              <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Organization ID</div>
+                <div className="text-xs font-mono break-all">{organization.id}</div>
+                <p className="text-xs text-muted-foreground mt-1">For API/Database</p>
+              </div>
+              <div className="bg-white dark:bg-gray-900 p-4 rounded-lg border">
+                <div className="text-sm font-medium text-muted-foreground mb-1">Seat Utilization</div>
+                <div className="text-2xl font-bold">
+                  {organization.seats > 0 ? Math.round((organization.seats_used / organization.seats) * 100) : 0}%
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Capacity usage</p>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(`/app/organization/${orgId}/audit-logs`)}
+              >
+                <Shield className="mr-2 h-4 w-4" />
+                View Audit Logs
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(`/app/organization/${orgId}/analytics`)}
+              >
+                <BarChart3 className="mr-2 h-4 w-4" />
+                View Analytics
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Pending Invites */}
       {pendingInvites.length > 0 && (
         <Card>
@@ -765,6 +834,47 @@ export default function OrganizationDetailPage() {
                             <RoleIcon className="h-3 w-3" />
                             {member.role}
                           </div>
+                          {(() => {
+                            const loginData = member.user_login_tracking?.[0];
+                            if (!loginData?.last_login_at) {
+                              return (
+                                <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                  <Clock className="h-3 w-3" />
+                                  Never logged in
+                                </div>
+                              );
+                            }
+                            const lastLogin = new Date(loginData.last_login_at);
+                            const now = new Date();
+                            const diffMs = now.getTime() - lastLogin.getTime();
+                            const diffMins = Math.floor(diffMs / 60000);
+                            const diffHours = Math.floor(diffMs / 3600000);
+                            const diffDays = Math.floor(diffMs / 86400000);
+
+                            let timeAgo = '';
+                            let isActive = false;
+                            if (diffMins < 5) {
+                              timeAgo = 'Active now';
+                              isActive = true;
+                            } else if (diffMins < 60) {
+                              timeAgo = `${diffMins}m ago`;
+                              isActive = diffMins < 30;
+                            } else if (diffHours < 24) {
+                              timeAgo = `${diffHours}h ago`;
+                            } else if (diffDays < 7) {
+                              timeAgo = `${diffDays}d ago`;
+                            } else {
+                              timeAgo = lastLogin.toLocaleDateString();
+                            }
+
+                            return (
+                              <div className={`text-xs flex items-center gap-1 mt-1 ${isActive ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                                <Clock className="h-3 w-3" />
+                                {timeAgo}
+                                {loginData.login_count && ` • ${loginData.login_count} logins`}
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
 
