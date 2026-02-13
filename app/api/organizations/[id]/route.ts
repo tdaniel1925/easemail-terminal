@@ -65,12 +65,11 @@ export async function GET(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: members, error: membersError } = (await serviceClient
+    const { data: members, error: membersError} = (await serviceClient
       .from('organization_members')
       .select(`
         *,
-        users:user_id(email, name),
-        user_login_tracking!left(last_login_at, login_count)
+        users:user_id(email, name)
       `)
       .eq('organization_id', orgId)
       .order('joined_at', { ascending: true })) as { data: any; error: any };
@@ -82,6 +81,22 @@ export async function GET(
         hint: membersError.hint,
         code: membersError.code,
       });
+    }
+
+    // Get login tracking separately for each member if we have members
+    if (members && members.length > 0) {
+      const memberIds = members.map((m: any) => m.user_id);
+      const { data: loginData } = await serviceClient
+        .from('user_login_tracking')
+        .select('user_id, last_login_at, login_count')
+        .in('user_id', memberIds);
+
+      // Attach login tracking to members
+      if (loginData) {
+        members.forEach((member: any) => {
+          member.user_login_tracking = loginData.filter((l: any) => l.user_id === member.user_id);
+        });
+      }
     }
 
     // Get pending invites
