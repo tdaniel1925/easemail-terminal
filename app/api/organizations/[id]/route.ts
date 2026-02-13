@@ -73,7 +73,7 @@ export async function GET(
         user_login_tracking!left(last_login_at, login_count)
       `)
       .eq('organization_id', orgId)
-      .order('created_at', { ascending: true })) as { data: any };
+      .order('joined_at', { ascending: true })) as { data: any };
 
     // Get pending invites
     const { data: pendingInvites } = (await supabase

@@ -43,7 +43,7 @@ import {
 interface Member {
   user_id: string;
   role: string;
-  created_at: string;
+  joined_at: string;
   users: { email: string; name?: string };
   user_login_tracking?: {
     last_login_at: string | null;
@@ -368,7 +368,7 @@ export default function OrganizationDetailPage() {
         ? new Date(loginData.last_login_at).toLocaleDateString()
         : 'Never';
       const loginCount = loginData?.login_count || 0;
-      const joinedDate = new Date(member.created_at).toLocaleDateString();
+      const joinedDate = new Date(member.joined_at).toLocaleDateString();
 
       return [
         member.users.email,
