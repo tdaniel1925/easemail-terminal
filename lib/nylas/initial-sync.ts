@@ -32,8 +32,8 @@ export async function performInitialSync(
     result.folders = folderResult;
     console.log(`Folders synced: ${folderResult.synced}, errors: ${folderResult.errors.length}`);
 
-    // Step 2: Backfill recent messages (last 30 days)
-    console.log('Backfilling recent messages...');
+    // Step 2: Backfill ALL messages from all folders with pagination
+    console.log('Backfilling all messages from all folders...');
     const messageResult = await backfillRecentMessages(emailAccountId, userId, grantId);
     result.messages = messageResult;
     console.log(`Messages synced: ${messageResult.synced}, errors: ${messageResult.errors.length}`);
@@ -55,7 +55,7 @@ export async function performInitialSync(
 }
 
 /**
- * Backfill recent messages from Nylas (last 30 days)
+ * Backfill ALL messages from Nylas (complete mailbox sync with pagination)
  */
 async function backfillRecentMessages(
   emailAccountId: string,
@@ -76,76 +76,100 @@ async function backfillRecentMessages(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get folder IDs for inbox (we'll sync inbox messages only for initial load)
-    const { data: inboxFolders } = await serviceClient
+    // Get ALL folders to sync (not just inbox)
+    const { data: allFolders } = await serviceClient
       .from('folder_mappings')
-      .select('nylas_folder_id')
+      .select('nylas_folder_id, folder_name, folder_type')
       .eq('email_account_id', emailAccountId)
-      .eq('folder_type', 'inbox')
       .eq('is_active', true);
 
-    if (!inboxFolders || inboxFolders.length === 0) {
-      errors.push('No inbox folder found for backfill');
+    if (!allFolders || allFolders.length === 0) {
+      errors.push('No folders found for backfill');
       return { synced: 0, errors };
     }
 
-    const inboxFolderId = inboxFolders[0].nylas_folder_id;
+    console.log(`Syncing messages from ${allFolders.length} folders...`);
 
-    // Calculate timestamp for 30 days ago
-    const thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
+    // Sync messages from each folder with pagination
+    for (const folder of allFolders) {
+      console.log(`Syncing folder: ${folder.folder_name} (${folder.folder_type})`);
 
-    // Fetch recent messages from Nylas
-    const response = await nylasClient.messages.list({
-      identifier: grantId,
-      queryParams: {
-        in: [inboxFolderId],
-        limit: 100, // Limit initial backfill to 100 messages
-        receivedAfter: thirtyDaysAgo,
-      },
-    });
+      let pageToken: string | undefined = undefined;
+      let folderSyncedCount = 0;
 
-    const messages = response.data || [];
-    console.log(`Found ${messages.length} recent messages to backfill`);
+      do {
+        try {
+          // Fetch messages with pagination (200 per page)
+          const response = await nylasClient.messages.list({
+            identifier: grantId,
+            queryParams: {
+              in: [folder.nylas_folder_id],
+              limit: 200,
+              ...(pageToken && { pageToken }),
+            },
+          });
 
-    // Insert messages into database
-    for (const msg of messages) {
-      try {
-        const fromEmail = Array.isArray(msg.from) && msg.from.length > 0
-          ? msg.from[0].email
-          : '';
+          const messages = response.data || [];
+          pageToken = response.nextCursor;
 
-        const folderIds = msg.folders || [];
+          console.log(`  Retrieved ${messages.length} messages (page token: ${pageToken ? 'more pages' : 'last page'})`);
 
-        await (serviceClient as any).from('messages').upsert({
-          nylas_message_id: msg.id,
-          nylas_thread_id: msg.threadId,
-          nylas_grant_id: grantId,
-          user_id: userId,
-          email_account_id: emailAccountId,
-          subject: msg.subject || '(No Subject)',
-          from_email: fromEmail,
-          to_recipients: msg.to || [],
-          cc_recipients: msg.cc || [],
-          bcc_recipients: msg.bcc || [],
-          body: msg.body || msg.snippet || '',
-          snippet: msg.snippet || '',
-          folder_ids: folderIds,
-          labels: [],
-          is_unread: msg.unread || false,
-          is_starred: msg.starred || false,
-          is_draft: false,
-          date: new Date(msg.date * 1000).toISOString(),
-          has_attachments: (msg.attachments || []).length > 0,
-          attachments: msg.attachments || [],
-        }, {
-          onConflict: 'nylas_message_id',
-        });
+          // Batch insert messages
+          for (const msg of messages) {
+            try {
+              const fromEmail = Array.isArray(msg.from) && msg.from.length > 0
+                ? msg.from[0].email
+                : '';
 
-        syncedCount++;
-      } catch (msgError: any) {
-        errors.push(`Failed to sync message ${msg.id}: ${msgError.message}`);
-      }
+              const folderIds = msg.folders || [];
+
+              await (serviceClient as any).from('messages').upsert({
+                nylas_message_id: msg.id,
+                nylas_thread_id: msg.threadId,
+                nylas_grant_id: grantId,
+                user_id: userId,
+                email_account_id: emailAccountId,
+                subject: msg.subject || '(No Subject)',
+                from_email: fromEmail,
+                to_recipients: msg.to || [],
+                cc_recipients: msg.cc || [],
+                bcc_recipients: msg.bcc || [],
+                body: msg.body || msg.snippet || '',
+                snippet: msg.snippet || '',
+                folder_ids: folderIds,
+                labels: [],
+                is_unread: msg.unread || false,
+                is_starred: msg.starred || false,
+                is_draft: false,
+                date: new Date(msg.date * 1000).toISOString(),
+                has_attachments: (msg.attachments || []).length > 0,
+                attachments: msg.attachments || [],
+              }, {
+                onConflict: 'nylas_message_id',
+              });
+
+              syncedCount++;
+              folderSyncedCount++;
+            } catch (msgError: any) {
+              errors.push(`Failed to sync message ${msg.id}: ${msgError.message}`);
+            }
+          }
+
+          // If we have more pages, continue
+          if (pageToken) {
+            console.log(`  Synced ${folderSyncedCount} messages from ${folder.folder_name} so far...`);
+          }
+
+        } catch (pageError: any) {
+          errors.push(`Failed to fetch page for folder ${folder.folder_name}: ${pageError.message}`);
+          break; // Stop pagination for this folder on error
+        }
+      } while (pageToken); // Continue until no more pages
+
+      console.log(`  ✓ Completed ${folder.folder_name}: ${folderSyncedCount} messages`);
     }
+
+    console.log(`Total messages synced: ${syncedCount}`);
   } catch (error: any) {
     errors.push(`Message backfill failed: ${error.message}`);
   }
