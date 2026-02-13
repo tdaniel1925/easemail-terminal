@@ -45,6 +45,9 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState(false);
+  const [editUserData, setEditUserData] = useState({ name: '', email: '' });
+  const [savingUserEdit, setSavingUserEdit] = useState(false);
 
   // Create user form
   const [newUserEmail, setNewUserEmail] = useState('');
@@ -253,6 +256,50 @@ export default function AdminUsersPage() {
     } finally {
       setResettingPasswordUserId(null);
     }
+  };
+
+  const handleEditUser = () => {
+    if (selectedUser) {
+      setEditUserData({
+        name: selectedUser.name || '',
+        email: selectedUser.email,
+      });
+      setEditingUser(true);
+    }
+  };
+
+  const handleSaveUserEdit = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setSavingUserEdit(true);
+      const response = await fetch(`/api/admin/users/${selectedUser.id}/edit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editUserData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('User updated successfully');
+        setEditingUser(false);
+        setSelectedUser(null);
+        fetchUsers(); // Refresh user list
+      } else {
+        toast.error(data.error || 'Failed to update user');
+      }
+    } catch (error) {
+      console.error('Save user edit error:', error);
+      toast.error('Failed to update user');
+    } finally {
+      setSavingUserEdit(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUser(false);
+    setEditUserData({ name: '', email: '' });
   };
 
   if (loading) {
@@ -582,59 +629,140 @@ export default function AdminUsersPage() {
 
       {/* User Details Dialog */}
       {selectedUser && (
-        <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
+        <Dialog open={!!selectedUser} onOpenChange={() => {
+          setSelectedUser(null);
+          setEditingUser(false);
+        }}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>User Details</DialogTitle>
+              <DialogTitle>{editingUser ? 'Edit User' : 'User Details'}</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-4 pt-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarFallback className="text-2xl">
-                    {selectedUser.email.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="text-xl font-bold">{selectedUser.name || 'No name set'}</div>
-                  <div className="text-sm text-muted-foreground">{selectedUser.email}</div>
-                </div>
-              </div>
+              {editingUser ? (
+                <>
+                  {/* Edit Mode */}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-name">Name</Label>
+                      <Input
+                        id="edit-name"
+                        placeholder="User name"
+                        value={editUserData.name}
+                        onChange={(e) => setEditUserData({ ...editUserData, name: e.target.value })}
+                      />
+                    </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-4">
-                <div>
-                  <div className="text-sm text-muted-foreground">User ID</div>
-                  <div className="font-mono text-xs">{selectedUser.id}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Created</div>
-                  <div className="text-sm">{new Date(selectedUser.created_at).toLocaleDateString()}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Organizations</div>
-                  <div className="text-sm">{selectedUser.organization_count}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Email Accounts</div>
-                  <div className="text-sm">{selectedUser.email_account_count}</div>
-                </div>
-              </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-email">Email *</Label>
+                      <Input
+                        id="edit-email"
+                        type="email"
+                        placeholder="user@example.com"
+                        value={editUserData.email}
+                        onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+                        required
+                      />
+                    </div>
 
-              <div className="pt-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Two-Factor Authentication</div>
-                    <div className="text-sm text-muted-foreground">
-                      {selectedUser.two_factor_enabled ? 'Enabled' : 'Disabled'}
+                    <div className="p-3 bg-muted/50 rounded-md text-sm text-muted-foreground">
+                      <strong>Note:</strong> Changing the email will update both the user profile and authentication email.
                     </div>
                   </div>
-                  {selectedUser.two_factor_enabled ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <Ban className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={savingUserEdit}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleSaveUserEdit}
+                      disabled={savingUserEdit || !editUserData.email}
+                    >
+                      {savingUserEdit ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* View Mode */}
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarFallback className="text-2xl">
+                        {selectedUser.email.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="text-xl font-bold">{selectedUser.name || 'No name set'}</div>
+                      <div className="text-sm text-muted-foreground">{selectedUser.email}</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground">User ID</div>
+                      <div className="font-mono text-xs">{selectedUser.id}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Created</div>
+                      <div className="text-sm">{new Date(selectedUser.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Organizations</div>
+                      <div className="text-sm">{selectedUser.organization_count}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Email Accounts</div>
+                      <div className="text-sm">{selectedUser.email_account_count}</div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">Two-Factor Authentication</div>
+                        <div className="text-sm text-muted-foreground">
+                          {selectedUser.two_factor_enabled ? 'Enabled' : 'Disabled'}
+                        </div>
+                      </div>
+                      {selectedUser.two_factor_enabled ? (
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <Ban className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setSelectedUser(null)}
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleEditUser}
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Edit User
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </DialogContent>
         </Dialog>

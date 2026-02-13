@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { deleteCache } from '@/lib/redis/client';
+import { revalidatePath } from 'next/cache';
 
 interface AccountToDelete {
   email: string;
@@ -150,6 +151,11 @@ export async function DELETE(
     }
 
     console.log(`Successfully deleted account ${accountId} and all associated data`);
+
+    // Revalidate all relevant paths to refresh server components
+    revalidatePath('/app', 'layout'); // Revalidate entire app layout and all nested pages
+    revalidatePath('/app/inbox');
+    revalidatePath('/app/settings/email-accounts');
 
     return NextResponse.json({
       success: true,

@@ -5,11 +5,13 @@ import { syncFoldersForAccount } from './folder-utils';
 /**
  * Performs initial sync of all data from Nylas after account connection
  * This includes: folders, initial message backfill, and calendar setup
+ * @param fullSync If false, only syncs recent messages (faster). If true, syncs all messages (slower).
  */
 export async function performInitialSync(
   emailAccountId: string,
   userId: string,
-  grantId: string
+  grantId: string,
+  fullSync: boolean = false
 ): Promise<{
   success: boolean;
   folders: { synced: number; errors: string[] };
@@ -32,9 +34,13 @@ export async function performInitialSync(
     result.folders = folderResult;
     console.log(`Folders synced: ${folderResult.synced}, errors: ${folderResult.errors.length}`);
 
-    // Step 2: Backfill ALL messages from all folders with pagination
-    console.log('Backfilling all messages from all folders...');
-    const messageResult = await backfillRecentMessages(emailAccountId, userId, grantId);
+    // Step 2: Backfill messages (quick or full sync based on parameter)
+    if (fullSync) {
+      console.log('Backfilling ALL messages from all folders (this may take a while)...');
+    } else {
+      console.log('Backfilling recent messages (quick sync)...');
+    }
+    const messageResult = await backfillRecentMessages(emailAccountId, userId, grantId, fullSync);
     result.messages = messageResult;
     console.log(`Messages synced: ${messageResult.synced}, errors: ${messageResult.errors.length}`);
 
@@ -55,12 +61,14 @@ export async function performInitialSync(
 }
 
 /**
- * Backfill ALL messages from Nylas (complete mailbox sync with pagination)
+ * Backfill messages from Nylas
+ * @param fullSync If false, only syncs recent messages from inbox (fast). If true, syncs all messages from all folders (slow).
  */
 async function backfillRecentMessages(
   emailAccountId: string,
   userId: string,
-  grantId: string
+  grantId: string,
+  fullSync: boolean = false
 ): Promise<{ synced: number; errors: string[] }> {
   const errors: string[] = [];
   let syncedCount = 0;
@@ -76,26 +84,38 @@ async function backfillRecentMessages(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get ALL folders to sync (not just inbox)
-    const { data: allFolders } = await serviceClient
+    // Get folders to sync (all folders for full sync, or just inbox for quick sync)
+    const folderQuery = serviceClient
       .from('folder_mappings')
       .select('nylas_folder_id, folder_name, folder_type')
       .eq('email_account_id', emailAccountId)
       .eq('is_active', true);
+
+    // For quick sync, only sync inbox
+    if (!fullSync) {
+      folderQuery.eq('folder_type', 'inbox');
+    }
+
+    const { data: allFolders } = await folderQuery;
 
     if (!allFolders || allFolders.length === 0) {
       errors.push('No folders found for backfill');
       return { synced: 0, errors };
     }
 
-    console.log(`Syncing messages from ${allFolders.length} folders...`);
+    console.log(`Syncing messages from ${allFolders.length} folder(s)...`);
 
     // Sync messages from each folder with pagination
+    // For quick sync: max 2 pages (400 messages) per folder
+    // For full sync: all pages (unlimited)
+    const maxPages = fullSync ? Infinity : 2;
+
     for (const folder of allFolders) {
       console.log(`Syncing folder: ${folder.folder_name} (${folder.folder_type})`);
 
       let pageToken: string | undefined = undefined;
       let folderSyncedCount = 0;
+      let pageCount = 0;
 
       do {
         try {
@@ -111,8 +131,9 @@ async function backfillRecentMessages(
 
           const messages = response.data || [];
           pageToken = response.nextCursor;
+          pageCount++;
 
-          console.log(`  Retrieved ${messages.length} messages (page token: ${pageToken ? 'more pages' : 'last page'})`);
+          console.log(`  Retrieved ${messages.length} messages (page ${pageCount}/${fullSync ? 'unlimited' : maxPages})`);
 
           // Batch insert messages
           for (const msg of messages) {
@@ -164,9 +185,13 @@ async function backfillRecentMessages(
           errors.push(`Failed to fetch page for folder ${folder.folder_name}: ${pageError.message}`);
           break; // Stop pagination for this folder on error
         }
-      } while (pageToken); // Continue until no more pages
+      } while (pageToken && pageCount < maxPages); // Continue until no more pages or max pages reached
 
-      console.log(`  ✓ Completed ${folder.folder_name}: ${folderSyncedCount} messages`);
+      if (pageToken && !fullSync) {
+        console.log(`  ⚡ Quick sync complete for ${folder.folder_name} (${folderSyncedCount} messages, more available)`);
+      } else {
+        console.log(`  ✓ Completed ${folder.folder_name}: ${folderSyncedCount} messages`);
+      }
     }
 
     console.log(`Total messages synced: ${syncedCount}`);

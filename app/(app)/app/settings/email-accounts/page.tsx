@@ -108,10 +108,15 @@ export default function EmailAccountsSettingsPage() {
         toast.success('Email account and associated data deleted successfully');
         setDeleteDialogOpen(false);
         setAccountToDelete(null);
-        fetchAccounts();
 
         // Notify other components (like sidebar) that accounts have changed
         window.dispatchEvent(new CustomEvent('email-accounts-changed'));
+
+        // Force a full refresh of all server components and cached data
+        router.refresh();
+
+        // Also refetch accounts for this component
+        fetchAccounts();
       } else {
         console.error('Delete failed with error:', data.error);
         toast.error(data.error || 'Failed to remove account');

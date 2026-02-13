@@ -52,15 +52,38 @@ export async function POST(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Check if current user is super admin
+    // Check if current user is super admin OR an admin/owner of an organization that the target user belongs to
     const { data: currentUserData } = (await serviceClient
       .from('users')
       .select('is_super_admin')
       .eq('id', user.id)
       .single()) as { data: any; error: any };
 
-    if (!currentUserData?.is_super_admin) {
-      return ApiErrors.forbidden('Super admin access required');
+    const isSuperAdmin = currentUserData?.is_super_admin || false;
+
+    // If not super admin, check if they're an admin/owner of a shared organization
+    if (!isSuperAdmin) {
+      // Get organizations where current user is ADMIN or OWNER
+      const { data: adminOrgs } = (await serviceClient
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', user.id)
+        .in('role', ['ADMIN', 'OWNER'])) as { data: { organization_id: string }[] | null };
+
+      if (!adminOrgs || adminOrgs.length === 0) {
+        return ApiErrors.forbidden('Admin or Super admin access required');
+      }
+
+      // Check if target user is in any of these organizations
+      const { data: targetOrgMemberships } = (await serviceClient
+        .from('organization_members')
+        .select('organization_id')
+        .eq('user_id', userId)
+        .in('organization_id', adminOrgs.map(o => o.organization_id))) as { data: { organization_id: string }[] | null };
+
+      if (!targetOrgMemberships || targetOrgMemberships.length === 0) {
+        return ApiErrors.forbidden('You can only manage users in organizations you admin');
+      }
     }
 
     // Get target user details

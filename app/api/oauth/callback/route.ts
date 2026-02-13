@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger';
 import { safeExternalCall } from '@/lib/api-helpers';
 import { isString } from '@/lib/guards';
 import { performInitialSync } from '@/lib/nylas/initial-sync';
+import { revalidatePath } from 'next/cache';
 
 interface NylasTokenResponse {
   grantId: string;
@@ -137,32 +138,32 @@ export async function GET(request: NextRequest) {
       provider,
     });
 
-    // Get the account ID for folder sync
+    // Get the account ID and trigger sync in background
     const { data: savedAccount } = await serviceClient
       .from('email_accounts')
       .select('id')
       .eq('grant_id', grantId)
       .single();
 
-    // Automatically perform initial sync for the newly connected account
-    // This syncs: folders, recent messages, and calendar metadata
+    // Perform quick initial sync (inbox only, recent messages)
+    // This is fast and gets the user started quickly
     if (savedAccount?.id) {
-      console.log('Triggering automatic initial sync for new account:', savedAccount.id);
+      console.log('Performing quick initial sync for new account:', savedAccount.id);
       try {
         const syncResult = await performInitialSync(
           savedAccount.id,
           state,
-          grantId
+          grantId,
+          false // Quick sync: inbox only, recent messages (fast)
         );
-        console.log('Automatic initial sync completed:', {
+        console.log('Quick sync completed:', {
           success: syncResult.success,
-          folders: `${syncResult.folders.synced} synced, ${syncResult.folders.errors.length} errors`,
-          messages: `${syncResult.messages.synced} synced, ${syncResult.messages.errors.length} errors`,
-          calendars: `${syncResult.calendars.synced} synced, ${syncResult.calendars.errors.length} errors`,
+          folders: `${syncResult.folders.synced} synced`,
+          messages: `${syncResult.messages.synced} synced`,
+          calendars: `${syncResult.calendars.synced} synced`,
         });
       } catch (syncError) {
-        // Log error but don't fail the OAuth flow
-        console.error('Failed to auto-sync (non-fatal):', syncError);
+        console.error('Quick sync failed (non-fatal):', syncError);
       }
     }
 
@@ -172,6 +173,12 @@ export async function GET(request: NextRequest) {
       .select('onboarding_completed')
       .eq('user_id', state)
       .single();
+
+    // Revalidate all relevant paths to refresh server components
+    revalidatePath('/app', 'layout'); // Revalidate entire app layout and all nested pages
+    revalidatePath('/app/inbox');
+    revalidatePath('/app/settings/email-accounts');
+    revalidatePath('/onboarding');
 
     // Redirect based on onboarding status
     if (preferences?.onboarding_completed) {

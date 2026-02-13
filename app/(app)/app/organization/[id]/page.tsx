@@ -38,6 +38,9 @@ import {
   Clock,
   HelpCircle,
   Download,
+  Send,
+  Key,
+  UserCog,
 } from 'lucide-react';
 
 interface Member {
@@ -105,6 +108,12 @@ export default function OrganizationDetailPage() {
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [bulkRemoving, setBulkRemoving] = useState(false);
+  const [resendingUserId, setResendingUserId] = useState<string | null>(null);
+  const [resettingPasswordUserId, setResettingPasswordUserId] = useState<string | null>(null);
+  const [viewingUser, setViewingUser] = useState<Member | null>(null);
+  const [editingMemberUser, setEditingMemberUser] = useState(false);
+  const [editMemberUserData, setEditMemberUserData] = useState({ name: '', email: '' });
+  const [savingMemberUserEdit, setSavingMemberUserEdit] = useState(false);
 
   useEffect(() => {
     if (orgId) {
@@ -224,6 +233,111 @@ export default function OrganizationDetailPage() {
       toast.error('Failed to impersonate user');
       setImpersonating(false);
     }
+  };
+
+  const handleResendWelcomeEmail = async (userId: string, userEmail: string) => {
+    try {
+      setResendingUserId(userId);
+      const response = await fetch(`/api/admin/users/${userId}/resend-welcome`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`Welcome email sent to ${userEmail}`);
+      } else {
+        toast.error(data.error || 'Failed to send email');
+      }
+    } catch (error) {
+      console.error('Resend welcome email error:', error);
+      toast.error('Failed to send email');
+    } finally {
+      setResendingUserId(null);
+    }
+  };
+
+  const handleResetPassword = async (userId: string, userEmail: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to reset the password for ${userEmail}?\n\nA new temporary password will be generated and emailed to the user.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setResettingPasswordUserId(userId);
+      const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.warning) {
+          toast.warning(`Password reset but ${data.warning}`);
+        } else {
+          toast.success(`Password reset and email sent to ${userEmail}`);
+        }
+      } else {
+        toast.error(data.error || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Reset password error:', error);
+      toast.error('Failed to reset password');
+    } finally {
+      setResettingPasswordUserId(null);
+    }
+  };
+
+  const handleViewUser = (member: Member) => {
+    setViewingUser(member);
+    setEditingMemberUser(false);
+  };
+
+  const handleEditMemberUser = () => {
+    if (viewingUser) {
+      setEditMemberUserData({
+        name: viewingUser.users.name || '',
+        email: viewingUser.users.email,
+      });
+      setEditingMemberUser(true);
+    }
+  };
+
+  const handleSaveMemberUserEdit = async () => {
+    if (!viewingUser) return;
+
+    try {
+      setSavingMemberUserEdit(true);
+      const response = await fetch(`/api/admin/users/${viewingUser.user_id}/edit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editMemberUserData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('User updated successfully');
+        setEditingMemberUser(false);
+        setViewingUser(null);
+        fetchOrganization(); // Refresh member list
+      } else {
+        toast.error(data.error || 'Failed to update user');
+      }
+    } catch (error) {
+      console.error('Save member user edit error:', error);
+      toast.error('Failed to update user');
+    } finally {
+      setSavingMemberUserEdit(false);
+    }
+  };
+
+  const handleCancelMemberUserEdit = () => {
+    setEditingMemberUser(false);
+    setEditMemberUserData({ name: '', email: '' });
   };
 
   const handleInviteMember = async () => {
@@ -1122,43 +1236,122 @@ export default function OrganizationDetailPage() {
                       </div>
 
                       <div className="flex gap-2">
+                        {/* View User Details (Super Admin or Org Admin) */}
+                        {(isSuperAdmin || canEditSettings) && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewUser(member)}
+                                  title="View user details"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View user details</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
+                        {/* Resend Welcome Email (Super Admin or Org Admin) */}
+                        {(isSuperAdmin || canEditSettings) && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleResendWelcomeEmail(member.user_id, member.users.email)}
+                                  disabled={resendingUserId === member.user_id}
+                                  title="Resend welcome email"
+                                >
+                                  {resendingUserId === member.user_id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Send className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Resend welcome email</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
+                        {/* Reset Password (Super Admin or Org Admin) */}
+                        {(isSuperAdmin || canEditSettings) && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleResetPassword(member.user_id, member.users.email)}
+                                  disabled={resettingPasswordUserId === member.user_id}
+                                  title="Reset password"
+                                >
+                                  {resettingPasswordUserId === member.user_id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Key className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Reset password</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
+                        {/* Impersonate (Super Admin only) */}
                         {isSuperAdmin && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setImpersonateUserId(member.user_id);
+                                    setShowImpersonateDialog(true);
+                                  }}
+                                  className="text-purple-600 hover:text-purple-700"
+                                  title="Impersonate user"
+                                >
+                                  <UserCog className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Impersonate user</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
+                        {/* Edit Role */}
+                        {canRemove && member.role !== 'OWNER' && (
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              setImpersonateUserId(member.user_id);
-                              setShowImpersonateDialog(true);
+                              setSelectedMember(member);
+                              setNewRole(member.role);
+                              setShowRoleDialog(true);
                             }}
-                            className="text-purple-600 hover:text-purple-700"
+                            className="text-blue-600 hover:text-blue-700"
                           >
-                            <Eye className="h-4 w-4 mr-1" />
-                            Impersonate
+                            Edit Role
                           </Button>
                         )}
+
+                        {/* Remove Member */}
                         {canRemove && member.role !== 'OWNER' && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedMember(member);
-                                setNewRole(member.role);
-                                setShowRoleDialog(true);
-                              }}
-                              className="text-blue-600 hover:text-blue-700"
-                            >
-                              Edit Role
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveMember(member.user_id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveMember(member.user_id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -1562,6 +1755,142 @@ export default function OrganizationDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* View/Edit Member User Dialog */}
+      {viewingUser && (
+        <Dialog open={!!viewingUser} onOpenChange={() => {
+          setViewingUser(null);
+          setEditingMemberUser(false);
+        }}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{editingMemberUser ? 'Edit User' : 'User Details'}</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 pt-4">
+              {editingMemberUser ? (
+                <>
+                  {/* Edit Mode */}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="member-edit-name">Name</Label>
+                      <Input
+                        id="member-edit-name"
+                        placeholder="User name"
+                        value={editMemberUserData.name}
+                        onChange={(e) => setEditMemberUserData({ ...editMemberUserData, name: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="member-edit-email">Email *</Label>
+                      <Input
+                        id="member-edit-email"
+                        type="email"
+                        placeholder="user@example.com"
+                        value={editMemberUserData.email}
+                        onChange={(e) => setEditMemberUserData({ ...editMemberUserData, email: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div className="p-3 bg-muted/50 rounded-md text-sm text-muted-foreground">
+                      <strong>Note:</strong> Changing the email will update both the user profile and authentication email.
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancelMemberUserEdit}
+                      disabled={savingMemberUserEdit}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleSaveMemberUserEdit}
+                      disabled={savingMemberUserEdit || !editMemberUserData.email}
+                    >
+                      {savingMemberUserEdit ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* View Mode */}
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarFallback className="text-2xl">
+                        {viewingUser.users.email.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="text-xl font-bold">{viewingUser.users.name || 'No name set'}</div>
+                      <div className="text-sm text-muted-foreground">{viewingUser.users.email}</div>
+                      <Badge className={`mt-2 ${getRoleBadgeColor(viewingUser.role)}`}>
+                        {viewingUser.role}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground">User ID</div>
+                      <div className="font-mono text-xs">{viewingUser.user_id}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Joined</div>
+                      <div className="text-sm">{new Date(viewingUser.joined_at).toLocaleDateString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Last Login</div>
+                      <div className="text-sm">
+                        {viewingUser.user_login_tracking?.[0]?.last_login_at
+                          ? new Date(viewingUser.user_login_tracking[0].last_login_at).toLocaleDateString()
+                          : 'Never'}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Login Count</div>
+                      <div className="text-sm">
+                        {viewingUser.user_login_tracking?.[0]?.login_count || 0}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setViewingUser(null)}
+                    >
+                      Close
+                    </Button>
+                    {(isSuperAdmin || canEditSettings) && (
+                      <Button
+                        type="button"
+                        onClick={handleEditMemberUser}
+                      >
+                        <Settings className="mr-2 h-4 w-4" />
+                        Edit User
+                      </Button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

@@ -4,7 +4,8 @@ import { performInitialSync } from '@/lib/nylas/initial-sync';
 
 /**
  * Trigger manual sync for a specific email account
- * POST /api/email-accounts/[id]/sync
+ * POST /api/email-accounts/[id]/sync?fullSync=true (for full sync)
+ * POST /api/email-accounts/[id]/sync (for quick sync - default)
  */
 export async function POST(
   request: NextRequest,
@@ -20,6 +21,10 @@ export async function POST(
 
     const { id } = await params;
     const accountId = id;
+
+    // Check if full sync is requested (default: false for quick sync)
+    const searchParams = request.nextUrl.searchParams;
+    const fullSync = searchParams.get('fullSync') === 'true';
 
     // Get the email account
     const { data: account } = (await supabase
@@ -43,13 +48,14 @@ export async function POST(
       );
     }
 
-    console.log(`Starting manual sync for account: ${accountId}`);
+    console.log(`Starting manual ${fullSync ? 'full' : 'quick'} sync for account: ${accountId}`);
 
-    // Perform initial sync
+    // Perform sync (quick or full based on parameter)
     const result = await performInitialSync(
       accountId,
       user.id,
-      account.grant_id
+      account.grant_id,
+      fullSync
     );
 
     if (result.success) {
