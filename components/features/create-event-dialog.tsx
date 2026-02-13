@@ -265,15 +265,19 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
 
       // If Teams meeting, create via Teams API
       if (isTeamsMeeting) {
-        // CRITICAL: Convert datetime-local to ISO UTC for Teams API
-        // datetime-local gives "2026-02-18T15:00" in local time
-        // Teams API expects ISO UTC: "2026-02-18T21:00:00.000Z"
-        const startUTC = new Date(startTime).toISOString();
-        const endUTC = new Date(endTime).toISOString();
+        // Get user's timezone for proper meeting scheduling
+        // datetime-local gives "2026-02-18T15:00" in user's local time
+        // We need to preserve this time and send with user's timezone
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        // Keep datetime-local format (don't convert to UTC!)
+        // Teams API will handle timezone conversion
+        const startDateTime = startTime; // "2026-02-18T15:00"
+        const endDateTime = endTime;     // "2026-02-18T16:00"
 
         console.log('Creating Teams meeting:', {
-          local: { start: startTime, end: endTime },
-          utc: { start: startUTC, end: endUTC }
+          dateTime: { start: startDateTime, end: endDateTime },
+          timezone: userTimezone
         });
 
         const response = await fetch('/api/teams/meetings', {
@@ -281,8 +285,9 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             subject: title,
-            startDateTime: startUTC,
-            endDateTime: endUTC,
+            startDateTime,
+            endDateTime,
+            timezone: userTimezone, // Pass user's actual timezone
             content: description,
             attendees: attendees,
           }),

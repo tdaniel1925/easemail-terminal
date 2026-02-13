@@ -88,14 +88,19 @@ export async function POST(
       // Don't fail the request if we can't update the invitation
     }
 
-    // Increment seats_used
-    const { error: seatsError } = await (supabase as any).rpc('increment_seats', {
-      org_id: (invitation as any).organization_id
-    });
+    // Increment seats_used ONLY for MEMBER role
+    // ADMIN and OWNER roles do not occupy paid seats
+    if ((invitation as any).role === 'MEMBER') {
+      const { error: seatsError } = await (supabase as any).rpc('increment_seats', {
+        org_id: (invitation as any).organization_id
+      });
 
-    if (seatsError) {
-      console.error('Failed to increment seats:', seatsError);
-      // Don't fail the request
+      if (seatsError) {
+        console.error('Failed to increment seats:', seatsError);
+        // Don't fail the request - user is already added to org
+      }
+    } else {
+      console.log(`Skipping seat increment for ${(invitation as any).role} role (free admin slot)`);
     }
 
     return NextResponse.json({ success: true, organization_id: (invitation as any).organization_id });

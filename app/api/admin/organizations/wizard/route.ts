@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { sendEmail } from '@/lib/resend';
 import { getOrgOwnerWelcomeEmailHtml, getOrgAdminWelcomeEmailHtml, getOrgMemberWelcomeEmailHtml, getBillingSetupEmailHtml } from '@/lib/email-templates';
+import { encryptApiKey } from '@/lib/encryption/api-keys';
 
 export async function POST(request: NextRequest) {
   try {
@@ -247,29 +248,39 @@ export async function POST(request: NextRequest) {
     // Step 4: Handle API key setup using service client
     if (!api_key?.uses_master_key && api_key?.key_value) {
       // Organization is providing their own API key
-      const { data: apiKeyRecord, error: apiKeyError } = await serviceClient
-        .from('api_keys')
-        .insert({
-          organization_id: newOrg.id,
-          key_name: api_key.key_name || 'Primary OpenAI Key',
-          key_value: api_key.key_value, // TODO: Encrypt this in production
-          is_active: true,
-          created_by: user.id,
-        })
-        .select()
-        .single();
+      try {
+        // Encrypt the API key before storing
+        const encryptedKey = await encryptApiKey(api_key.key_value);
 
-      if (apiKeyError) {
-        console.error('Error creating API key:', apiKeyError);
-      } else {
-        // Update organization to reference this API key
-        await serviceClient
-          .from('organizations')
-          .update({
-            api_key_id: apiKeyRecord.id,
-            uses_master_api_key: false,
+        const { data: apiKeyRecord, error: apiKeyError } = await serviceClient
+          .from('api_keys')
+          .insert({
+            organization_id: newOrg.id,
+            key_name: api_key.key_name || 'Primary OpenAI Key',
+            key_value: encryptedKey, // Encrypted using AES-256
+            is_active: true,
+            created_by: user.id,
           })
-          .eq('id', newOrg.id);
+          .select()
+          .single();
+
+        if (apiKeyError) {
+          console.error('Error creating API key:', apiKeyError);
+        } else {
+          console.log('✅ API key encrypted and stored securely');
+
+          // Update organization to reference this API key
+          await serviceClient
+            .from('organizations')
+            .update({
+              api_key_id: apiKeyRecord.id,
+              uses_master_api_key: false,
+            })
+            .eq('id', newOrg.id);
+        }
+      } catch (encryptError) {
+        console.error('Failed to encrypt API key:', encryptError);
+        // Continue without API key - org will use master key
       }
     }
 

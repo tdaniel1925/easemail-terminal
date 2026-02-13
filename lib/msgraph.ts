@@ -145,21 +145,25 @@ export async function createTeamsMeeting(
     subject: string;
     startDateTime: string;
     endDateTime: string;
+    timezone?: string; // User's IANA timezone (e.g., "America/Chicago")
     attendees?: string[];
     content?: string;
   }
 ) {
   const client = await getGraphClient(accessToken);
 
+  // Use provided timezone or fallback to UTC
+  const timeZone = meetingDetails.timezone || 'UTC';
+
   const event = {
     subject: meetingDetails.subject,
     start: {
-      dateTime: meetingDetails.startDateTime,
-      timeZone: 'UTC',
+      dateTime: meetingDetails.startDateTime, // "2026-02-18T15:00:00" in user's timezone
+      timeZone: timeZone, // User's actual timezone (e.g., "America/Chicago")
     },
     end: {
-      dateTime: meetingDetails.endDateTime,
-      timeZone: 'UTC',
+      dateTime: meetingDetails.endDateTime, // "2026-02-18T16:00:00" in user's timezone
+      timeZone: timeZone, // Same timezone as start
     },
     isOnlineMeeting: true,
     onlineMeetingProvider: 'teamsForBusiness',

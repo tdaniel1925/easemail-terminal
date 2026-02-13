@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nylas } from '@/lib/nylas/client';
 import { createClient } from '@/lib/supabase/server';
+import { getUserEmailAccount } from '@/lib/utils/account-utils';
 
 // DELETE - Delete or trash a message
 export async function DELETE(
@@ -18,17 +19,16 @@ export async function DELETE(
     const { id } = await params;
     const searchParams = request.nextUrl.searchParams;
     const permanent = searchParams.get('permanent') === 'true';
+    const accountId = searchParams.get('accountId'); // Support multi-account
 
-    // Get user's email account
-    const { data: account } = (await supabase
-      .from('email_accounts')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_primary', true)
-      .single()) as { data: any };
+    // Get user's email account (specific account or primary as fallback)
+    const account = await getUserEmailAccount(user.id, accountId);
 
     if (!account) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+      return NextResponse.json(
+        { error: accountId ? 'Email account not found or unauthorized' : 'No email account connected' },
+        { status: accountId ? 403 : 400 }
+      );
     }
 
     const nylasClient = nylas();
@@ -96,18 +96,16 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { unread, starred, folders } = await request.json();
+    const { unread, starred, folders, accountId } = await request.json();
 
-    // Get user's email account
-    const { data: account } = (await supabase
-      .from('email_accounts')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_primary', true)
-      .single()) as { data: any };
+    // Get user's email account (specific account or primary as fallback)
+    const account = await getUserEmailAccount(user.id, accountId);
 
     if (!account) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+      return NextResponse.json(
+        { error: accountId ? 'Email account not found or unauthorized' : 'No email account connected' },
+        { status: accountId ? 403 : 400 }
+      );
     }
 
     const nylasClient = nylas();
@@ -173,17 +171,17 @@ export async function GET(
     }
 
     const { id } = await params;
+    const searchParams = request.nextUrl.searchParams;
+    const accountId = searchParams.get('accountId'); // Support multi-account
 
-    // Get user's email account
-    const { data: account } = (await supabase
-      .from('email_accounts')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_primary', true)
-      .single()) as { data: any };
+    // Get user's email account (specific account or primary as fallback)
+    const account = await getUserEmailAccount(user.id, accountId);
 
     if (!account) {
-      return NextResponse.json({ error: 'No email account connected' }, { status: 400 });
+      return NextResponse.json(
+        { error: accountId ? 'Email account not found or unauthorized' : 'No email account connected' },
+        { status: accountId ? 403 : 400 }
+      );
     }
 
     const nylasClient = nylas();

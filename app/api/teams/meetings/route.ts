@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { subject, startDateTime, endDateTime, attendees, content } = body;
+    const { subject, startDateTime, endDateTime, timezone, attendees, content } = body;
 
     if (!subject || !startDateTime || !endDateTime) {
       return NextResponse.json(
@@ -115,9 +115,12 @@ export async function POST(request: NextRequest) {
       subject,
       startDateTime,
       endDateTime,
+      timezone, // Pass user's timezone to Teams API
       attendees,
       content,
     });
+
+    console.log(`✅ Teams meeting created with timezone: ${timezone || 'UTC (default)'}`);
 
     return NextResponse.json({ meeting }, { status: 201 });
   } catch (error: any) {

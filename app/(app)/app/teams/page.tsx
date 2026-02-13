@@ -180,14 +180,20 @@ export default function TeamsPage() {
     try {
       const now = new Date();
       const endTime = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour from now
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      // For instant meetings, format as local datetime string (not ISO UTC)
+      const startDateTime = now.toISOString().slice(0, 16); // "2026-02-18T15:00"
+      const endDateTime = endTime.toISOString().slice(0, 16);   // "2026-02-18T16:00"
 
       const response = await fetch('/api/teams/meetings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject: 'Instant Meeting',
-          startDateTime: now.toISOString(),
-          endDateTime: endTime.toISOString(),
+          startDateTime,
+          endDateTime,
+          timezone: userTimezone, // Include user's timezone
         }),
       });
 
