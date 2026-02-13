@@ -5,7 +5,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { safeExternalCall } from '@/lib/api-helpers';
 import { isString } from '@/lib/guards';
-import { syncFoldersForAccount } from '@/lib/nylas/folder-utils';
+import { performInitialSync } from '@/lib/nylas/initial-sync';
 
 interface NylasTokenResponse {
   grantId: string;
@@ -144,23 +144,25 @@ export async function GET(request: NextRequest) {
       .eq('grant_id', grantId)
       .single();
 
-    // Automatically sync folders for the newly connected account
+    // Automatically perform initial sync for the newly connected account
+    // This syncs: folders, recent messages, and calendar metadata
     if (savedAccount?.id) {
-      console.log('Triggering automatic folder sync for new account:', savedAccount.id);
+      console.log('Triggering automatic initial sync for new account:', savedAccount.id);
       try {
-        const syncResult = await syncFoldersForAccount(
+        const syncResult = await performInitialSync(
           savedAccount.id,
           state,
           grantId
         );
-        console.log('Automatic folder sync completed:', {
+        console.log('Automatic initial sync completed:', {
           success: syncResult.success,
-          synced: syncResult.synced,
-          errors: syncResult.errors,
+          folders: `${syncResult.folders.synced} synced, ${syncResult.folders.errors.length} errors`,
+          messages: `${syncResult.messages.synced} synced, ${syncResult.messages.errors.length} errors`,
+          calendars: `${syncResult.calendars.synced} synced, ${syncResult.calendars.errors.length} errors`,
         });
       } catch (syncError) {
         // Log error but don't fail the OAuth flow
-        console.error('Failed to auto-sync folders (non-fatal):', syncError);
+        console.error('Failed to auto-sync (non-fatal):', syncError);
       }
     }
 
