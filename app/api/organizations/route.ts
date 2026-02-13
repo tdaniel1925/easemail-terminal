@@ -12,16 +12,52 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's organizations
-    const { data: memberships } = (await supabase
-      .from('organization_members')
-      .select('*, organizations(*)')
-      .eq('user_id', user.id)) as { data: any };
+    // Check if user is super admin
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_super_admin')
+      .eq('id', user.id)
+      .single() as { data: { is_super_admin: boolean } | null };
 
-    const organizations = memberships?.map((m: any) => ({
-      ...m.organizations,
-      role: m.role,
-    })) || [];
+    const isSuperAdmin = userData?.is_super_admin || false;
+
+    let organizations: any[] = [];
+
+    if (isSuperAdmin) {
+      // Super admins can see ALL organizations
+      const { data: allOrgs } = (await supabase
+        .from('organizations')
+        .select('*')
+        .order('created_at', { ascending: false })) as { data: any };
+
+      // For each org, check if super admin is a member to get their role
+      const orgsWithRoles = await Promise.all((allOrgs || []).map(async (org: any) => {
+        const { data: membership } = (await supabase
+          .from('organization_members')
+          .select('role')
+          .eq('organization_id', org.id)
+          .eq('user_id', user.id)
+          .single()) as { data: any };
+
+        return {
+          ...org,
+          role: membership?.role || 'SUPER_ADMIN',
+        };
+      }));
+
+      organizations = orgsWithRoles;
+    } else {
+      // Regular users only see organizations they're members of
+      const { data: memberships } = (await supabase
+        .from('organization_members')
+        .select('*, organizations(*)')
+        .eq('user_id', user.id)) as { data: any };
+
+      organizations = memberships?.map((m: any) => ({
+        ...m.organizations,
+        role: m.role,
+      })) || [];
+    }
 
     return NextResponse.json({ organizations });
   } catch (error) {

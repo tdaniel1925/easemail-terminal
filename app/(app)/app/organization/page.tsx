@@ -91,6 +91,7 @@ export default function OrganizationPage() {
       OWNER: 'bg-purple-500',
       ADMIN: 'bg-blue-500',
       MEMBER: 'bg-green-500',
+      SUPER_ADMIN: 'bg-red-500',
     };
     return colors[role as keyof typeof colors] || 'bg-gray-500';
   };
@@ -210,6 +211,7 @@ export default function OrganizationPage() {
                 <option value="OWNER">Owner</option>
                 <option value="ADMIN">Admin</option>
                 <option value="MEMBER">Member</option>
+                <option value="SUPER_ADMIN">Super Admin</option>
               </select>
               <select
                 value={filterPlan}
