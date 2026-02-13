@@ -8,3 +8,7 @@ export { getOrgOwnerWelcomeEmailHtml } from './org-owner-welcome';
 export { getOrgAdminWelcomeEmailHtml } from './org-admin-welcome';
 export { getOrgMemberWelcomeEmailHtml } from './org-member-welcome';
 export { getBillingSetupEmailHtml } from './billing-setup';
+export { getOrgRoleChangeEmailHtml } from './org-role-change';
+export { getOrgMemberRemovalEmailHtml } from './org-member-removal';
+export { getOrgOwnershipTransferNewOwnerEmailHtml } from './org-ownership-transfer-new-owner';
+export { getOrgOwnershipTransferPreviousOwnerEmailHtml } from './org-ownership-transfer-previous-owner';

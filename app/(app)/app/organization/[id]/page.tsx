@@ -100,11 +100,13 @@ export default function OrganizationDetailPage() {
   const [impersonateReason, setImpersonateReason] = useState('');
   const [impersonating, setImpersonating] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
 
   useEffect(() => {
     if (orgId) {
       fetchOrganization();
       checkSuperAdminStatus();
+      fetchRecentActivity();
     }
   }, [orgId]);
 
@@ -167,6 +169,18 @@ export default function OrganizationDetailPage() {
       }
     } catch (error) {
       console.error('Failed to check super admin status:', error);
+    }
+  };
+
+  const fetchRecentActivity = async () => {
+    try {
+      const response = await fetch(`/api/organizations/${orgId}/audit-logs?limit=10`);
+      const data = await response.json();
+      if (response.ok && data.logs) {
+        setRecentActivity(data.logs);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent activity:', error);
     }
   };
 
@@ -646,6 +660,64 @@ export default function OrganizationDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Recent Activity */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>
+            Latest organization changes and actions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentActivity.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>No recent activity</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentActivity.map((activity, index) => {
+                const timeDiff = Date.now() - new Date(activity.timestamp).getTime();
+                const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+                const days = Math.floor(hours / 24);
+                const timeAgo = days > 0
+                  ? `${days} ${days === 1 ? 'day' : 'days'} ago`
+                  : hours > 0
+                  ? `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`
+                  : 'Just now';
+
+                return (
+                  <div key={activity.id}>
+                    {index > 0 && <Separator className="my-3" />}
+                    <div className="flex items-start gap-3">
+                      <div className="h-2 w-2 rounded-full bg-blue-500 mt-2" />
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm">
+                            {activity.users?.email || 'System'}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {timeAgo}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {activity.action.replace(/_/g, ' ').toLowerCase().replace(/^\w/, (c: string) => c.toUpperCase())}
+                          {activity.details?.target_email && (
+                            <span className="ml-1">
+                              for <span className="font-medium">{activity.details.target_email}</span>
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Pending Invites */}
       {pendingInvites.length > 0 && (

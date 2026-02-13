@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { sendOrganizationInviteEmail } from '@/lib/resend/client';
+import { sendEmail } from '@/lib/resend';
+import { getOrgMemberRemovalEmailHtml } from '@/lib/email-templates';
 import { randomBytes } from 'crypto';
 
 export async function POST(
@@ -187,12 +189,26 @@ export async function DELETE(
       }
     }
 
-    // Get member role before deletion to check if we need to decrement seats
+    // Get member details before deletion (including email and name for notification)
     const { data: memberToRemove } = (await supabase
       .from('organization_members')
-      .select('role')
+      .select('role, users:user_id(email, name)')
       .eq('organization_id', orgId)
       .eq('user_id', memberUserId)
+      .single()) as { data: any };
+
+    // Get organization details
+    const { data: organization } = (await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', orgId)
+      .single()) as { data: any };
+
+    // Get remover's details
+    const { data: removerData } = (await supabase
+      .from('users')
+      .select('name, email')
+      .eq('id', user.id)
       .single()) as { data: any };
 
     // Remove member
@@ -219,6 +235,27 @@ export async function DELETE(
           .from('organizations')
           .update({ seats_used: currentOrg.seats_used - 1 })
           .eq('id', orgId);
+      }
+    }
+
+    // Send removal notification email
+    if (memberToRemove?.users?.email) {
+      try {
+        const html = getOrgMemberRemovalEmailHtml({
+          userName: memberToRemove.users.name || memberToRemove.users.email.split('@')[0],
+          organizationName: organization?.name || 'Organization',
+          removedByName: removerData?.name || removerData?.email || 'Admin',
+          role: memberToRemove.role,
+        });
+
+        await sendEmail({
+          to: memberToRemove.users.email,
+          subject: `You've been removed from ${organization?.name || 'Organization'}`,
+          html,
+        });
+      } catch (emailError) {
+        // Log email error but don't fail the request
+        console.error('Failed to send removal email:', emailError);
       }
     }
 
