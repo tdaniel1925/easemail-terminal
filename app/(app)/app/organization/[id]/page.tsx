@@ -31,6 +31,7 @@ import {
   Eye,
   Loader2,
   Settings,
+  Search,
 } from 'lucide-react';
 
 interface Member {
@@ -84,6 +85,8 @@ export default function OrganizationDetailPage() {
   const [transferTargetUserId, setTransferTargetUserId] = useState('');
   const [transferring, setTransferring] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [memberSearchQuery, setMemberSearchQuery] = useState('');
+  const [memberRoleFilter, setMemberRoleFilter] = useState<string>('all');
 
   useEffect(() => {
     if (orgId) {
@@ -579,10 +582,49 @@ export default function OrganizationDetailPage() {
       {/* Members List */}
       <Card>
         <CardHeader>
-          <CardTitle>Team Members</CardTitle>
-          <CardDescription>
-            {members.length} {members.length === 1 ? 'member' : 'members'}
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Team Members</CardTitle>
+              <CardDescription>
+                {(() => {
+                  const filteredMembers = members.filter((member) => {
+                    const matchesSearch = member.users.email
+                      .toLowerCase()
+                      .includes(memberSearchQuery.toLowerCase());
+                    const matchesRole =
+                      memberRoleFilter === 'all' || member.role === memberRoleFilter;
+                    return matchesSearch && matchesRole;
+                  });
+                  return filteredMembers.length === members.length
+                    ? `${members.length} ${members.length === 1 ? 'member' : 'members'}`
+                    : `${filteredMembers.length} of ${members.length} ${members.length === 1 ? 'member' : 'members'}`;
+                })()}
+              </CardDescription>
+            </div>
+            {members.length > 0 && (
+              <div className="flex gap-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search members..."
+                    value={memberSearchQuery}
+                    onChange={(e) => setMemberSearchQuery(e.target.value)}
+                    className="pl-10 w-64"
+                  />
+                </div>
+                <select
+                  value={memberRoleFilter}
+                  onChange={(e) => setMemberRoleFilter(e.target.value)}
+                  className="h-10 px-3 rounded-md border border-input bg-background"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="OWNER">Owner</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="MEMBER">Member</option>
+                </select>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {members.length === 0 ? (
@@ -610,9 +652,40 @@ export default function OrganizationDetailPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {members.map((member, index) => {
-                const RoleIcon = getRoleIcon(member.role);
-                return (
+              {(() => {
+                const filteredMembers = members.filter((member) => {
+                  const matchesSearch = member.users.email
+                    .toLowerCase()
+                    .includes(memberSearchQuery.toLowerCase());
+                  const matchesRole =
+                    memberRoleFilter === 'all' || member.role === memberRoleFilter;
+                  return matchesSearch && matchesRole;
+                });
+
+                if (filteredMembers.length === 0) {
+                  return (
+                    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                      <Search className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="font-semibold text-lg mb-2">No members found</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        No members match your search criteria. Try adjusting your filters.
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setMemberSearchQuery('');
+                          setMemberRoleFilter('all');
+                        }}
+                      >
+                        Clear filters
+                      </Button>
+                    </div>
+                  );
+                }
+
+                return filteredMembers.map((member, index) => {
+                  const RoleIcon = getRoleIcon(member.role);
+                  return (
                   <div key={member.user_id}>
                     {index > 0 && <Separator />}
                     <div className="flex items-center justify-between py-3">
@@ -660,7 +733,8 @@ export default function OrganizationDetailPage() {
                     </div>
                   </div>
                 );
-              })}
+                });
+              })()}
             </div>
           )}
         </CardContent>
