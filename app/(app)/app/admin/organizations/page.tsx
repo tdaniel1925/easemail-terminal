@@ -22,6 +22,7 @@ import {
   Trash2,
   Edit,
   UserPlus,
+  RefreshCw,
 } from 'lucide-react';
 
 interface Organization {
@@ -60,6 +61,27 @@ export default function AdminOrganizationsPage() {
 
   useEffect(() => {
     fetchOrganizations();
+
+    // Auto-refresh when page becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchOrganizations();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Refresh every 30 seconds
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchOrganizations();
+      }
+    }, 30000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -249,9 +271,10 @@ export default function AdminOrganizationsPage() {
       {/* Action Bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {selectedOrgs.size > 0 && (
+          {selectedOrgs.size > 0 ? (
             <>
               <Button
+                type="button"
                 variant="destructive"
                 onClick={handleDeleteBulk}
                 disabled={deleting}
@@ -264,24 +287,35 @@ export default function AdminOrganizationsPage() {
                 Delete Selected ({selectedOrgs.size})
               </Button>
               <Button
+                type="button"
                 variant="outline"
                 onClick={() => setSelectedOrgs(new Set())}
               >
                 Clear Selection
               </Button>
             </>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fetchOrganizations()}
+              disabled={loading}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
           )}
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => router.push('/app/admin/organizations/create')}>
+          <Button type="button" onClick={() => router.push('/app/admin/organizations/create')}>
             <Building2 className="mr-2 h-4 w-4" />
             Create Organization
           </Button>
-          <Button variant="outline" onClick={() => router.push('/app/admin/organizations/add-user')}>
+          <Button type="button" variant="outline" onClick={() => router.push('/app/admin/organizations/add-user')}>
             <UserPlus className="mr-2 h-4 w-4" />
             Add User to Org
           </Button>
-          <Button variant="outline" onClick={() => router.push('/app/admin/users/create-individual')}>
+          <Button type="button" variant="outline" onClick={() => router.push('/app/admin/users/create-individual')}>
             <Plus className="mr-2 h-4 w-4" />
             Create Individual User
           </Button>
@@ -387,6 +421,7 @@ export default function AdminOrganizationsPage() {
                 <div className="flex items-center gap-2">
                   <Badge className={getPlanBadgeColor(org.plan)}>{org.plan}</Badge>
                   <Button
+                    type="button"
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -443,6 +478,7 @@ export default function AdminOrganizationsPage() {
 
               <div className="mt-4 pt-4 border-t flex gap-2">
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   className="flex-1"
@@ -455,6 +491,7 @@ export default function AdminOrganizationsPage() {
                   Edit
                 </Button>
                 <Button
+                  type="button"
                   variant="outline"
                   size="sm"
                   className="flex-1"
@@ -561,13 +598,14 @@ export default function AdminOrganizationsPage() {
 
             <div className="flex justify-end gap-3">
               <Button
+                type="button"
                 variant="outline"
                 onClick={() => setShowQuickCreate(false)}
                 disabled={creating}
               >
                 Cancel
               </Button>
-              <Button onClick={handleQuickCreate} disabled={creating}>
+              <Button type="button" onClick={handleQuickCreate} disabled={creating}>
                 {creating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -647,6 +685,7 @@ export default function AdminOrganizationsPage() {
 
             <div className="flex items-center gap-3 justify-end">
               <Button
+                type="button"
                 variant="outline"
                 onClick={() => {
                   setShowDeleteConfirm(false);
@@ -657,6 +696,7 @@ export default function AdminOrganizationsPage() {
                 Cancel
               </Button>
               <Button
+                type="button"
                 variant="destructive"
                 onClick={confirmDelete}
                 disabled={deleting}

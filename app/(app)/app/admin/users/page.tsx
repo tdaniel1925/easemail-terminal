@@ -25,6 +25,7 @@ import {
   UserCog,
   Send,
   Key,
+  RefreshCw,
 } from 'lucide-react';
 
 interface User {
@@ -65,6 +66,27 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     fetchUsers();
+
+    // Auto-refresh when page becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUsers();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Refresh every 30 seconds
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchUsers();
+      }
+    }, 30000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -244,8 +266,17 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       {/* Action Bar */}
-      <div className="flex items-center justify-end">
-        <Button onClick={() => setShowCreateDialog(true)}>
+      <div className="flex items-center justify-between">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => fetchUsers()}
+          disabled={loading}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+        <Button type="button" onClick={() => setShowCreateDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Create User
         </Button>
@@ -356,6 +387,7 @@ export default function AdminUsersPage() {
 
                 <div className="flex gap-2">
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setSelectedUser(user)}
@@ -364,6 +396,7 @@ export default function AdminUsersPage() {
                     <Eye className="h-4 w-4" />
                   </Button>
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => handleResendWelcomeEmail(user.id, user.email)}
@@ -377,6 +410,7 @@ export default function AdminUsersPage() {
                     )}
                   </Button>
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => handleResetPassword(user.id, user.email)}
@@ -390,6 +424,7 @@ export default function AdminUsersPage() {
                     )}
                   </Button>
                   <Button
+                    type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => {
@@ -458,12 +493,13 @@ export default function AdminUsersPage() {
 
             <div className="flex justify-end gap-2 pt-4">
               <Button
+                type="button"
                 variant="ghost"
                 onClick={() => setShowCreateDialog(false)}
               >
                 Cancel
               </Button>
-              <Button onClick={handleCreateUser} disabled={creating}>
+              <Button type="button" onClick={handleCreateUser} disabled={creating}>
                 {creating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -511,6 +547,7 @@ export default function AdminUsersPage() {
 
             <div className="flex justify-end gap-2 pt-4">
               <Button
+                type="button"
                 variant="ghost"
                 onClick={() => {
                   setShowImpersonateDialog(false);
@@ -521,6 +558,7 @@ export default function AdminUsersPage() {
                 Cancel
               </Button>
               <Button
+                type="button"
                 onClick={handleImpersonate}
                 disabled={impersonating || !impersonateReason.trim()}
                 variant="destructive"
