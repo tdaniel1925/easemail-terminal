@@ -65,7 +65,7 @@ export async function GET(
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: members } = (await serviceClient
+    const { data: members, error: membersError } = (await serviceClient
       .from('organization_members')
       .select(`
         *,
@@ -73,7 +73,16 @@ export async function GET(
         user_login_tracking!left(last_login_at, login_count)
       `)
       .eq('organization_id', orgId)
-      .order('joined_at', { ascending: true })) as { data: any };
+      .order('joined_at', { ascending: true })) as { data: any; error: any };
+
+    if (membersError) {
+      console.error('Members query error:', {
+        message: membersError.message,
+        details: membersError.details,
+        hint: membersError.hint,
+        code: membersError.code,
+      });
+    }
 
     // Get pending invites
     const { data: pendingInvites } = (await supabase
