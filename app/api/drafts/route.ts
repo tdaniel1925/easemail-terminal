@@ -64,6 +64,20 @@ export async function POST(request: NextRequest) {
       email_account_id,
     } = await request.json();
 
+    // Validate draft has some content - prevent empty/invalid drafts
+    const hasRecipients = (to_recipients && to_recipients.length > 0) ||
+                          (cc_recipients && cc_recipients.length > 0) ||
+                          (bcc_recipients && bcc_recipients.length > 0);
+    const hasSubject = subject && subject.trim().length > 0;
+    const hasBody = body && body.trim().length > 0;
+
+    if (!hasRecipients && !hasSubject && !hasBody) {
+      return NextResponse.json(
+        { error: 'Cannot save empty draft. Please add recipients, subject, or body content.' },
+        { status: 400 }
+      );
+    }
+
     // Get user's email account (with grant_id for Nylas)
     let account: EmailAccount | null;
     let accountError: any = null;

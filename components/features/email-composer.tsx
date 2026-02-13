@@ -140,18 +140,25 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
 
   // Save draft function (memoized to prevent useEffect issues)
   const saveDraft = useCallback(async (showToast: boolean = false) => {
-    // Don't save empty drafts
+    // Don't save completely empty drafts
     if (!to && !subject && !body) {
+      return;
+    }
+
+    // Don't save drafts with no recipients AND no subject AND no body content
+    // This prevents saving invalid drafts that could cause issues
+    const hasAnyContent = to || subject || (body && body.trim().length > 0);
+    if (!hasAnyContent) {
       return;
     }
 
     try {
       setSaving(true);
 
-      // Parse recipients
-      const toArray = to ? to.split(',').map(e => e.trim()).filter(e => e) : [];
-      const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e) : [];
-      const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e) : [];
+      // Parse recipients and filter out empty strings
+      const toArray = to ? to.split(',').map(e => e.trim()).filter(e => e && e.length > 0) : [];
+      const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e && e.length > 0) : [];
+      const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e && e.length > 0) : [];
 
       const draftData = {
         to_recipients: toArray,

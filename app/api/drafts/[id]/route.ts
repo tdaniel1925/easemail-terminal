@@ -52,6 +52,20 @@ export async function PATCH(
     const { id} = await params;
     const updateData: any = await request.json();
 
+    // Validate draft has some content - prevent empty/invalid drafts
+    const hasRecipients = (updateData.to_recipients && updateData.to_recipients.length > 0) ||
+                          (updateData.cc_recipients && updateData.cc_recipients.length > 0) ||
+                          (updateData.bcc_recipients && updateData.bcc_recipients.length > 0);
+    const hasSubject = updateData.subject && updateData.subject.trim().length > 0;
+    const hasBody = updateData.body && updateData.body.trim().length > 0;
+
+    if (!hasRecipients && !hasSubject && !hasBody) {
+      return NextResponse.json(
+        { error: 'Cannot save empty draft. Please add recipients, subject, or body content.' },
+        { status: 400 }
+      );
+    }
+
     // Get existing draft with email account info
     const { data: existingDraft } = (await supabase
       .from('drafts')
