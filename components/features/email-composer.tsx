@@ -138,8 +138,8 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
   // Settings dialog state
   const [showSettings, setShowSettings] = useState(false);
 
-  // Save draft function
-  const saveDraft = async (showToast: boolean = false) => {
+  // Save draft function (memoized to prevent useEffect issues)
+  const saveDraft = useCallback(async (showToast: boolean = false) => {
     // Don't save empty drafts
     if (!to && !subject && !body) {
       return;
@@ -197,7 +197,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
     } finally {
       setSaving(false);
     }
-  };
+  }, [to, cc, bcc, subject, body, draftId, replyTo?.messageId, replyTo?.isForward]);
 
   // Delete draft function
   const deleteDraft = async () => {
@@ -490,7 +490,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [to, cc, bcc, subject, body]); // Re-run when any field changes
+  }, [to, cc, bcc, subject, body, saveDraft]); // Re-run when any field changes
 
   // Cleanup undo send timer on unmount
   useEffect(() => {
@@ -790,6 +790,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
         <DialogHeader className="shrink-0 pb-3">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl sm:text-2xl">New Message</DialogTitle>
+            <DialogDescription className="sr-only">Compose and send a new email message</DialogDescription>
             {/* Auto-save indicator */}
             <div className="text-xs text-muted-foreground">
               {saving ? (
