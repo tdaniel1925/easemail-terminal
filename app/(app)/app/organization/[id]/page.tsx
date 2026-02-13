@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AddUserModal } from '@/components/admin/add-user-modal';
 import { toast } from 'sonner';
 import {
@@ -34,6 +35,7 @@ import {
   Search,
   BarChart3,
   Clock,
+  HelpCircle,
 } from 'lucide-react';
 
 interface Member {
@@ -1039,7 +1041,24 @@ export default function OrganizationDetailPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="newRole">New Role</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="newRole">New Role</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <div className="space-y-2">
+                        <p className="font-semibold">Admin</p>
+                        <p className="text-xs">Can invite members, manage roles, and edit organization settings</p>
+                        <p className="font-semibold mt-2">Member</p>
+                        <p className="text-xs">Can use the organization's resources but cannot manage members or settings</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Select value={newRole} onValueChange={setNewRole}>
                 <SelectTrigger>
                   <SelectValue />
@@ -1183,7 +1202,24 @@ export default function OrganizationDetailPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="role">Role</Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <div className="space-y-2">
+                        <p className="font-semibold">Admin</p>
+                        <p className="text-xs">Can invite members, manage roles, and edit organization settings</p>
+                        <p className="font-semibold mt-2">Member</p>
+                        <p className="text-xs">Can use the organization's resources but cannot manage members or settings</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Select value={inviteRole} onValueChange={setInviteRole}>
                 <SelectTrigger>
                   <SelectValue />
