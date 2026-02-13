@@ -8,7 +8,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   PenSquare, Inbox, Send, Star, Trash2, Archive, Clock,
-  Tag, Settings, BarChart3, HelpCircle, ChevronDown, Mail
+  Tag, Settings, BarChart3, HelpCircle, ChevronDown, Mail, Building2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -462,6 +462,18 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               <span className="text-sm">Settings</span>
             </button>
           </Link>
+          {(isSuperAdmin || orgAdminOfOrg) && (
+            <Link href={isSuperAdmin ? "/app/organization" : `/app/organization/${orgAdminOfOrg}`}>
+              <button
+                className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                  pathname?.includes('/app/organization') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+                }`}
+              >
+                <Building2 className="h-5 w-5" />
+                <span className="text-sm">Organizations</span>
+              </button>
+            </Link>
+          )}
           {(isSuperAdmin || orgAdminOfOrg) && (
             <Link href={isSuperAdmin ? "/app/admin/analytics" : `/app/organization/${orgAdminOfOrg}`}>
               <button

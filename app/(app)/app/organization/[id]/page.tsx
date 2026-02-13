@@ -17,6 +17,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { AddUserModal } from '@/components/admin/add-user-modal';
 import { toast } from 'sonner';
 import {
@@ -410,6 +411,15 @@ export default function OrganizationDetailPage() {
 
   return (
     <div className="container max-w-6xl mx-auto py-8 px-4">
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: 'Home', href: '/app/inbox' },
+          { label: 'Organizations', href: '/app/organization' },
+          { label: organization.name },
+        ]}
+      />
+
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="icon" onClick={() => router.push('/app/organization')}>
@@ -575,59 +585,84 @@ export default function OrganizationDetailPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {members.map((member, index) => {
-              const RoleIcon = getRoleIcon(member.role);
-              return (
-                <div key={member.user_id}>
-                  {index > 0 && <Separator />}
-                  <div className="flex items-center justify-between py-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback>
-                          {member.users.email.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{member.users.email}</div>
-                        <div className="text-sm text-muted-foreground flex items-center gap-1">
-                          <RoleIcon className="h-3 w-3" />
-                          {member.role}
+          {members.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+              <User className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="font-semibold text-lg mb-2">No team members yet</h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-md">
+                {canInvite
+                  ? "Get started by adding team members to your organization. You can invite existing users or create new accounts."
+                  : "There are no members in this organization yet. Contact your organization admin to add team members."
+                }
+              </p>
+              {canInvite && (
+                <div className="flex gap-2">
+                  <Button onClick={() => setShowAddUserModal(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add User
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowInviteDialog(true)}>
+                    <Mail className="mr-2 h-4 w-4" />
+                    Invite Member
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {members.map((member, index) => {
+                const RoleIcon = getRoleIcon(member.role);
+                return (
+                  <div key={member.user_id}>
+                    {index > 0 && <Separator />}
+                    <div className="flex items-center justify-between py-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarFallback>
+                            {member.users.email.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">{member.users.email}</div>
+                          <div className="text-sm text-muted-foreground flex items-center gap-1">
+                            <RoleIcon className="h-3 w-3" />
+                            {member.role}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex gap-2">
-                      {canRemove && member.role !== 'OWNER' && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedMember(member);
-                              setNewRole(member.role);
-                              setShowRoleDialog(true);
-                            }}
-                            className="text-blue-600 hover:text-blue-700"
-                          >
-                            Edit Role
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveMember(member.user_id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
+                      <div className="flex gap-2">
+                        {canRemove && member.role !== 'OWNER' && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedMember(member);
+                                setNewRole(member.role);
+                                setShowRoleDialog(true);
+                              }}
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              Edit Role
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveMember(member.user_id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 

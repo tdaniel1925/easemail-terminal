@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { toast } from 'sonner';
 import { Plus, Users, Settings, Crown, Loader2, Building2, Search, Filter } from 'lucide-react';
 
@@ -124,6 +125,14 @@ export default function OrganizationPage() {
 
   return (
     <div className="container max-w-6xl mx-auto py-6 px-4">
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: 'Home', href: '/app/inbox' },
+          { label: 'Organizations' },
+        ]}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
