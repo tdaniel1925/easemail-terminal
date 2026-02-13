@@ -5,6 +5,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { logger } from '@/lib/logger';
 import { safeExternalCall } from '@/lib/api-helpers';
 import { isString } from '@/lib/guards';
+import { syncFoldersForAccount } from '@/lib/nylas/folder-utils';
 
 interface NylasTokenResponse {
   grantId: string;
@@ -135,6 +136,33 @@ export async function GET(request: NextRequest) {
       email,
       provider,
     });
+
+    // Get the account ID for folder sync
+    const { data: savedAccount } = await serviceClient
+      .from('email_accounts')
+      .select('id')
+      .eq('grant_id', grantId)
+      .single();
+
+    // Automatically sync folders for the newly connected account
+    if (savedAccount?.id) {
+      console.log('Triggering automatic folder sync for new account:', savedAccount.id);
+      try {
+        const syncResult = await syncFoldersForAccount(
+          savedAccount.id,
+          state,
+          grantId
+        );
+        console.log('Automatic folder sync completed:', {
+          success: syncResult.success,
+          synced: syncResult.synced,
+          errors: syncResult.errors,
+        });
+      } catch (syncError) {
+        // Log error but don't fail the OAuth flow
+        console.error('Failed to auto-sync folders (non-fatal):', syncError);
+      }
+    }
 
     // Check if user has completed onboarding
     const { data: preferences } = await serviceClient
