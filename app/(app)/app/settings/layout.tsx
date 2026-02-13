@@ -80,12 +80,18 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       if (!user) return;
 
       // Get user's organization role from organization_members table
-      const { data: orgMembership } = await supabase
+      const { data: orgMembership, error } = await supabase
         .from('organization_members')
         .select('role')
         .eq('user_id', user.id)
         .eq('status', 'ACTIVE')
-        .maybeSingle() as { data: { role: string } | null };
+        .maybeSingle() as { data: { role: string } | null; error: any };
+
+      if (error) {
+        // Silently handle error - user might not be in an organization
+        console.log('User not in organization (or RLS policy blocking):', error.message);
+        return;
+      }
 
       if (orgMembership) {
         setUserRole(orgMembership.role);
