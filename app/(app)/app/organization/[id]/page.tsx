@@ -87,10 +87,16 @@ export default function OrganizationDetailPage() {
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [memberSearchQuery, setMemberSearchQuery] = useState('');
   const [memberRoleFilter, setMemberRoleFilter] = useState<string>('all');
+  const [showImpersonateDialog, setShowImpersonateDialog] = useState(false);
+  const [impersonateUserId, setImpersonateUserId] = useState<string | null>(null);
+  const [impersonateReason, setImpersonateReason] = useState('');
+  const [impersonating, setImpersonating] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
     if (orgId) {
       fetchOrganization();
+      checkSuperAdminStatus();
     }
   }, [orgId]);
 
@@ -133,6 +139,64 @@ export default function OrganizationDetailPage() {
       router.push('/app/organization');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkSuperAdminStatus = async () => {
+    try {
+      const supabase = (await import('@/lib/supabase/client')).createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userData } = (await supabase
+        .from('users')
+        .select('is_super_admin')
+        .eq('id', user.id)
+        .single()) as { data: { is_super_admin: boolean } | null };
+
+      if (userData) {
+        setIsSuperAdmin(userData.is_super_admin || false);
+      }
+    } catch (error) {
+      console.error('Failed to check super admin status:', error);
+    }
+  };
+
+  const handleImpersonate = async () => {
+    if (!impersonateUserId) {
+      toast.error('User ID required');
+      return;
+    }
+
+    if (!impersonateReason.trim()) {
+      toast.error('Please provide a reason for impersonation');
+      return;
+    }
+
+    try {
+      setImpersonating(true);
+      const response = await fetch('/api/admin/impersonate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetUserId: impersonateUserId,
+          reason: impersonateReason,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Impersonating user...');
+        // Redirect to verify the magic link token
+        window.location.href = `/api/auth/callback?token_hash=${data.impersonateToken}&type=magiclink&next=/app/inbox`;
+      } else {
+        toast.error(data.error || 'Failed to impersonate user');
+      }
+    } catch (error) {
+      console.error('Impersonate error:', error);
+      toast.error('Failed to impersonate user');
+      setImpersonating(false);
     }
   };
 
@@ -705,6 +769,20 @@ export default function OrganizationDetailPage() {
                       </div>
 
                       <div className="flex gap-2">
+                        {isSuperAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setImpersonateUserId(member.user_id);
+                              setShowImpersonateDialog(true);
+                            }}
+                            className="text-purple-600 hover:text-purple-700"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Impersonate
+                          </Button>
+                        )}
                         {canRemove && member.role !== 'OWNER' && (
                           <>
                             <Button
@@ -904,6 +982,58 @@ export default function OrganizationDetailPage() {
               </Button>
               <Button variant="destructive" onClick={handleDeleteOrganization}>
                 Delete Organization
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Impersonate Dialog */}
+      <Dialog open={showImpersonateDialog} onOpenChange={setShowImpersonateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Impersonate User</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-4">
+            <p className="text-sm text-muted-foreground">
+              You are about to impersonate this user. This will log you in as them and all actions
+              will be recorded. Please provide a reason for impersonation.
+            </p>
+
+            <div className="space-y-2">
+              <Label htmlFor="impersonateReason">Reason for Impersonation</Label>
+              <Input
+                id="impersonateReason"
+                placeholder="e.g., Troubleshooting user issue..."
+                value={impersonateReason}
+                onChange={(e) => setImpersonateReason(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleImpersonate()}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowImpersonateDialog(false);
+                  setImpersonateReason('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleImpersonate} disabled={impersonating}>
+                {impersonating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Impersonating...
+                  </>
+                ) : (
+                  <>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Impersonate
+                  </>
+                )}
               </Button>
             </div>
           </div>
