@@ -89,14 +89,15 @@ export async function POST(request: NextRequest) {
       orgId = organization_id;
     }
 
-    // Get organization details
-    const { data: org } = (await supabase
+    // Get organization details using service client to ensure access
+    const { data: org, error: orgError } = (await serviceClient
       .from('organizations')
       .select('name, seats, seats_used, plan')
       .eq('id', orgId)
-      .single()) as { data: any };
+      .single()) as { data: any; error: any };
 
-    if (!org) {
+    if (orgError || !org) {
+      console.error('Failed to fetch organization:', orgError);
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
 
@@ -117,8 +118,8 @@ export async function POST(request: NextRequest) {
       // User exists, just add to organization
       userId = existingUser.id;
 
-      // Check if already a member
-      const { data: existingMember } = await supabase
+      // Check if already a member using service client
+      const { data: existingMember } = await serviceClient
         .from('organization_members')
         .select('id')
         .eq('organization_id', orgId)
@@ -227,6 +228,8 @@ export async function POST(request: NextRequest) {
       let html: string;
       let subject: string;
 
+      console.log(`Preparing welcome email for ${email} with role ${role}`);
+
       if (role === 'OWNER') {
         html = getOrgOwnerWelcomeEmailHtml({
           userName: name,
@@ -270,10 +273,16 @@ export async function POST(request: NextRequest) {
         html,
       });
 
-      console.log(`Welcome email sent to ${email} as ${role}`);
-    } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError);
-      // Don't fail the request if email fails
+      console.log(`✓ Welcome email sent successfully to ${email} as ${role}`);
+    } catch (emailError: any) {
+      console.error('Failed to send welcome email:', {
+        error: emailError,
+        message: emailError?.message,
+        email,
+        role,
+        isNewUser,
+      });
+      // Don't fail the request if email fails - user is already successfully added
     }
 
     return NextResponse.json({
