@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,19 +14,40 @@ import { TiptapEditor } from '@/components/ui/tiptap-editor';
 import { Plus, Pencil, Trash2, Star, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+// Validation schema for signature
+const signatureSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
+  content: z.string().min(1, 'Signature content is required'),
+  isDefault: z.boolean(),
+  emailAccountId: z.string().optional(),
+});
+
+type SignatureFormData = z.infer<typeof signatureSchema>;
+
 export default function SignaturesPage() {
   const [signatures, setSignatures] = useState<any[]>([]);
   const [emailAccounts, setEmailAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDialog, setShowDialog] = useState(false);
   const [editingSignature, setEditingSignature] = useState<any>(null);
-  const [saving, setSaving] = useState(false);
 
-  // Form state
-  const [name, setName] = useState('');
-  const [content, setContent] = useState('');
-  const [isDefault, setIsDefault] = useState(false);
-  const [emailAccountId, setEmailAccountId] = useState<string>('');
+  // Form with validation
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+  } = useForm<SignatureFormData>({
+    resolver: zodResolver(signatureSchema),
+    defaultValues: {
+      name: '',
+      content: '',
+      isDefault: false,
+      emailAccountId: '',
+    },
+  });
 
   useEffect(() => {
     fetchSignatures();
@@ -61,16 +85,20 @@ export default function SignaturesPage() {
   const openDialog = (signature?: any) => {
     if (signature) {
       setEditingSignature(signature);
-      setName(signature.name);
-      setContent(signature.content);
-      setIsDefault(signature.is_default);
-      setEmailAccountId(signature.email_account_id || '');
+      reset({
+        name: signature.name,
+        content: signature.content,
+        isDefault: signature.is_default,
+        emailAccountId: signature.email_account_id || '',
+      });
     } else {
       setEditingSignature(null);
-      setName('');
-      setContent('');
-      setIsDefault(false);
-      setEmailAccountId('');
+      reset({
+        name: '',
+        content: '',
+        isDefault: false,
+        emailAccountId: '',
+      });
     }
     setShowDialog(true);
   };
@@ -78,21 +106,11 @@ export default function SignaturesPage() {
   const closeDialog = () => {
     setShowDialog(false);
     setEditingSignature(null);
-    setName('');
-    setContent('');
-    setIsDefault(false);
-    setEmailAccountId('');
+    reset();
   };
 
-  const handleSave = async () => {
-    if (!name.trim() || !content.trim()) {
-      toast.error('Name and content are required');
-      return;
-    }
-
+  const onSubmit = async (data: SignatureFormData) => {
     try {
-      setSaving(true);
-
       const url = editingSignature
         ? `/api/signatures/${editingSignature.id}`
         : '/api/signatures';
@@ -103,27 +121,25 @@ export default function SignaturesPage() {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          content,
-          is_default: isDefault,
-          email_account_id: emailAccountId || null,
+          name: data.name,
+          content: data.content,
+          is_default: data.isDefault,
+          email_account_id: data.emailAccountId || null,
         }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (response.ok) {
         toast.success(editingSignature ? 'Signature updated' : 'Signature created');
         closeDialog();
         fetchSignatures();
       } else {
-        toast.error(data.error || 'Failed to save signature');
+        toast.error(responseData.error || 'Failed to save signature');
       }
     } catch (error) {
       console.error('Save signature error:', error);
       toast.error('Failed to save signature');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -282,76 +298,100 @@ export default function SignaturesPage() {
                 {editingSignature ? 'Edit Signature' : 'Create Signature'}
               </DialogTitle>
             </DialogHeader>
-            <div className="flex-1 overflow-y-auto space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="e.g., Professional, Personal, Work"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
+            <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col">
+              <div className="flex-1 overflow-y-auto space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    placeholder="e.g., Professional, Personal, Work"
+                    {...register('name')}
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-destructive">{errors.name.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email_account">Email Account (Optional)</Label>
+                  <Controller
+                    name="emailAccountId"
+                    control={control}
+                    render={({ field }) => (
+                      <select
+                        id="email_account"
+                        {...field}
+                        className="w-full border rounded px-3 py-2 text-sm"
+                      >
+                        <option value="">All accounts</option>
+                        {emailAccounts.map((account) => (
+                          <option key={account.id} value={account.id}>
+                            {account.email} {account.is_primary ? '(Primary)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Associate this signature with a specific email account, or leave blank for all accounts
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="content">Signature Content *</Label>
+                  <Controller
+                    name="content"
+                    control={control}
+                    render={({ field }) => (
+                      <TiptapEditor
+                        content={field.value}
+                        onChange={field.onChange}
+                        placeholder="Create your email signature..."
+                        minHeight="200px"
+                      />
+                    )}
+                  />
+                  {errors.content && (
+                    <p className="text-sm text-destructive">{errors.content.message}</p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Controller
+                    name="isDefault"
+                    control={control}
+                    render={({ field }) => (
+                      <input
+                        type="checkbox"
+                        id="is_default"
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="h-4 w-4"
+                      />
+                    )}
+                  />
+                  <Label htmlFor="is_default" className="cursor-pointer">
+                    Set as default signature
+                  </Label>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email_account">Email Account (Optional)</Label>
-                <select
-                  id="email_account"
-                  value={emailAccountId}
-                  onChange={(e) => setEmailAccountId(e.target.value)}
-                  className="w-full border rounded px-3 py-2 text-sm"
-                >
-                  <option value="">All accounts</option>
-                  {emailAccounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.email} {account.is_primary ? '(Primary)' : ''}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground">
-                  Associate this signature with a specific email account, or leave blank for all accounts
-                </p>
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={closeDialog}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Signature'
+                  )}
+                </Button>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="content">Signature Content *</Label>
-                <TiptapEditor
-                  content={content}
-                  onChange={setContent}
-                  placeholder="Create your email signature..."
-                  minHeight="200px"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="is_default"
-                  checked={isDefault}
-                  onChange={(e) => setIsDefault(e.target.checked)}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="is_default" className="cursor-pointer">
-                  Set as default signature{emailAccountId ? ' for this account' : ''}
-                </Label>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button variant="outline" onClick={closeDialog}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  'Save Signature'
-                )}
-              </Button>
-            </div>
+            </form>
           </DialogContent>
         </Dialog>
       )}

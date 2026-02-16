@@ -1,136 +1,216 @@
 'use client';
 
-import React from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { logger } from '@/lib/logger';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle, Home, RefreshCw, Copy, Send } from 'lucide-react';
+import { logError, categorizeError, captureErrorContext } from '@/lib/error-logger';
+import { ErrorType, getUserFriendlyMessage } from '@/lib/error-types';
+import { toast } from 'sonner';
 
-interface Props {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-  onReset?: () => void;
+interface ErrorBoundaryProps {
+  error: Error & { digest?: string };
+  reset: () => void;
+  redirectUrl?: string;
+  showStack?: boolean;
 }
 
-interface State {
-  hasError: boolean;
-  error?: Error;
-  errorInfo?: React.ErrorInfo;
-}
+export default function ErrorBoundary({
+  error,
+  reset,
+  redirectUrl = '/app/home',
+  showStack = false,
+}: ErrorBoundaryProps) {
+  const router = useRouter();
+  const isDev = process.env.NODE_ENV === 'development';
+  const [errorCount, setErrorCount] = useState(0);
+  const [isReporting, setIsReporting] = useState(false);
+  const categorizedError = categorizeError(error);
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error('Error boundary caught error', error, {
-      component: 'ErrorBoundary',
-      componentStack: errorInfo.componentStack,
+  useEffect(() => {
+    // Log error when boundary catches it
+    const context = captureErrorContext();
+    logError(categorizedError, {
+      digest: error.digest,
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+      ...context,
     });
-  }
 
-  handleReset = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
-    this.props.onReset?.();
-  };
+    // Track error count
+    setErrorCount((prev) => prev + 1);
 
-  handleReload = () => {
-    window.location.reload();
-  };
-
-  handleGoHome = () => {
-    window.location.href = '/app/home';
-  };
-
-  render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
-      return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
-          <AlertTriangle className="h-16 w-16 text-destructive mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Something went wrong</h2>
-          <p className="text-muted-foreground mb-6 text-center max-w-md">
-            {this.state.error?.message || 'An unexpected error occurred. Please try refreshing the page.'}
-          </p>
-
-          <div className="flex gap-3">
-            <Button onClick={this.handleReset} variant="outline">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Try Again
-            </Button>
-            <Button onClick={this.handleReload} variant="default">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Reload Page
-            </Button>
-            <Button onClick={this.handleGoHome} variant="secondary">
-              <Home className="mr-2 h-4 w-4" />
-              Go Home
-            </Button>
-          </div>
-
-          {process.env.NODE_ENV === 'development' && this.state.error && (
-            <details className="mt-8 p-4 bg-muted rounded-lg max-w-2xl w-full">
-              <summary className="cursor-pointer font-semibold text-sm mb-2">
-                Error Details (Development Only)
-              </summary>
-              <div className="mt-2 space-y-2">
-                <div>
-                  <strong className="text-xs">Error:</strong>
-                  <pre className="mt-1 text-xs overflow-auto bg-background p-2 rounded">
-                    {this.state.error.message}
-                  </pre>
-                </div>
-                {this.state.error.stack && (
-                  <div>
-                    <strong className="text-xs">Stack Trace:</strong>
-                    <pre className="mt-1 text-xs overflow-auto bg-background p-2 rounded max-h-40">
-                      {this.state.error.stack}
-                    </pre>
-                  </div>
-                )}
-                {this.state.errorInfo && (
-                  <div>
-                    <strong className="text-xs">Component Stack:</strong>
-                    <pre className="mt-1 text-xs overflow-auto bg-background p-2 rounded max-h-40">
-                      {this.state.errorInfo.componentStack}
-                    </pre>
-                  </div>
-                )}
-              </div>
-            </details>
-          )}
-        </div>
-      );
+    // Auto-retry for transient errors (max 3 times)
+    if (shouldAutoRetry(categorizedError) && errorCount < 3) {
+      const timeout = Math.min(1000 * Math.pow(2, errorCount), 8000);
+      const timer = setTimeout(() => {
+        reset();
+      }, timeout);
+      return () => clearTimeout(timer);
     }
+  }, [error, categorizedError, errorCount, reset]);
 
-    return this.props.children;
-  }
-}
+  const shouldAutoRetry = (error: { type: ErrorType; recoverable?: boolean }): boolean => {
+    return error.recoverable === true;
+  };
 
-/**
- * Compact error fallback for smaller components
- */
-export function CompactErrorFallback({ error, reset }: { error?: string; reset?: () => void }) {
+  const handleCopyError = async () => {
+    const errorDetails = JSON.stringify({
+      message: error.message,
+      stack: error.stack,
+      digest: error.digest,
+      type: categorizedError.type,
+      url: window.location.href,
+      timestamp: new Date().toISOString(),
+    }, null, 2);
+
+    try {
+      await navigator.clipboard.writeText(errorDetails);
+      toast.success('Error details copied to clipboard');
+    } catch (e) {
+      toast.error('Failed to copy error details');
+    }
+  };
+
+  const handleReportIssue = async () => {
+    setIsReporting(true);
+    try {
+      const context = captureErrorContext();
+      const response = await fetch('/api/errors/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error: {
+            message: error.message,
+            stack: error.stack,
+            digest: error.digest,
+            type: categorizedError.type,
+          },
+          context: {
+            url: window.location.href,
+            userAgent: navigator.userAgent,
+            ...context,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        toast.success('Error report sent successfully');
+      } else {
+        toast.error('Failed to send error report');
+      }
+    } catch (e) {
+      toast.error('Failed to send error report');
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
+  const getErrorTitle = (type: ErrorType) => {
+    switch (type) {
+      case ErrorType.AUTHENTICATION:
+        return 'Authentication Error';
+      case ErrorType.AUTHORIZATION:
+        return 'Permission Denied';
+      case ErrorType.NETWORK:
+        return 'Network Error';
+      case ErrorType.VALIDATION:
+        return 'Validation Error';
+      case ErrorType.DATABASE:
+        return 'Database Error';
+      case ErrorType.RATE_LIMIT:
+        return 'Rate Limit Exceeded';
+      case ErrorType.NOT_FOUND:
+        return 'Not Found';
+      case ErrorType.SERVER:
+        return 'Server Error';
+      case ErrorType.EXTERNAL_SERVICE:
+        return 'Service Unavailable';
+      default:
+        return 'Something went wrong';
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center p-6 border border-destructive/20 rounded-lg bg-destructive/5">
-      <AlertTriangle className="h-8 w-8 text-destructive mb-2" />
-      <p className="text-sm text-destructive text-center mb-3">
-        {error || 'Failed to load this component'}
-      </p>
-      {reset && (
-        <Button size="sm" variant="outline" onClick={reset}>
-          <RefreshCw className="mr-2 h-3 w-3" />
-          Retry
-        </Button>
-      )}
+    <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-gray-800">
+      <Card className="max-w-2xl w-full">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+            <CardTitle>{getErrorTitle(categorizedError.type)}</CardTitle>
+          </div>
+          <CardDescription>
+            {getUserFriendlyMessage(categorizedError.type)}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {errorCount > 1 && errorCount < 3 && shouldAutoRetry(categorizedError) && (
+            <Alert>
+              <AlertDescription>
+                Retrying automatically... (Attempt {errorCount + 1} of 3)
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {isDev && (showStack || true) && (
+            <Alert variant="destructive">
+              <AlertTitle className="flex items-center justify-between">
+                Error Details (Development Only)
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleCopyError}
+                  className="h-6 px-2"
+                >
+                  <Copy className="h-3 w-3 mr-1" />
+                  Copy
+                </Button>
+              </AlertTitle>
+              <AlertDescription className="mt-2">
+                <div className="text-sm font-mono">
+                  <p className="font-semibold">{error.message}</p>
+                  {error.digest && (
+                    <p className="text-xs mt-2 opacity-70">Digest: {error.digest}</p>
+                  )}
+                  {error.stack && (
+                    <pre className="mt-2 text-xs overflow-auto max-h-40 bg-black/10 p-2 rounded">
+                      {error.stack}
+                    </pre>
+                  )}
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="bg-muted p-4 rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              If this problem persists, please contact support with the error details above.
+            </p>
+          </div>
+        </CardContent>
+
+        <CardFooter className="flex gap-3">
+          <Button onClick={() => reset()} variant="default" className="flex-1">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Again
+          </Button>
+          <Button onClick={() => router.push(redirectUrl)} variant="outline" className="flex-1">
+            <Home className="h-4 w-4 mr-2" />
+            Go Home
+          </Button>
+          <Button
+            onClick={handleReportIssue}
+            variant="secondary"
+            disabled={isReporting}
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Report
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

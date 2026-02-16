@@ -1,6 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,13 +13,19 @@ import Link from 'next/link';
 import { Loader2, CheckCircle, ArrowLeft } from 'lucide-react';
 
 export default function ResetPasswordPage() {
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+  });
+
+  const onSubmit = async (data: ResetPasswordInput) => {
     setError('');
     setLoading(true);
 
@@ -24,15 +33,15 @@ export default function ResetPasswordPage() {
       const response = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(data),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
       if (response.ok) {
         setSubmitted(true);
       } else {
-        setError(data.error || 'Failed to send reset link');
+        setError(result.error || 'Failed to send reset link');
       }
     } catch (err) {
       console.error('Reset password error:', err);
@@ -88,7 +97,7 @@ export default function ResetPasswordPage() {
           Enter your email address and we'll send you a reset link
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
           {error && (
             <Alert variant="destructive">
@@ -99,14 +108,15 @@ export default function ResetPasswordPage() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              name="email"
               type="email"
               placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              {...register('email')}
+              aria-invalid={!!errors.email}
               disabled={loading}
             />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">

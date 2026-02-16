@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { EmptyState } from '@/components/ui/empty-state';
 import { toast } from 'sonner';
 import {
   MessageSquare,
@@ -374,10 +375,24 @@ export default function SMSPage() {
                 ))}
 
                 {filteredConversations.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>No conversations found</p>
-                  </div>
+                  <EmptyState
+                    icon={MessageSquare}
+                    title="No conversations found"
+                    description={
+                      searchQuery
+                        ? "Try adjusting your search query"
+                        : "No SMS conversations yet. Send a message to get started."
+                    }
+                    action={
+                      !searchQuery && (
+                        <Button onClick={() => setShowNewMessageDialog(true)}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          New Message
+                        </Button>
+                      )
+                    }
+                    className="min-h-[200px]"
+                  />
                 )}
               </div>
             </ScrollArea>

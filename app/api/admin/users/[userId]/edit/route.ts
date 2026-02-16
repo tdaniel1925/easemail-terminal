@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { ApiErrors } from '@/lib/api-error';
+
+// Validation schema for updating user
+const updateUserSchema = z.object({
+  name: z.string().min(1, 'Name cannot be empty').optional(),
+  email: z.string().email('Invalid email address'),
+});
 
 /**
  * Update user details (super admin only)
@@ -66,16 +74,15 @@ export async function PATCH(
       }
     }
 
-    // Parse request body
-    const { name, email } = await request.json();
+    // Parse and validate request body
+    const requestBody = await request.json();
+    const validation = updateUserSchema.safeParse(requestBody);
 
-    // Validate required fields
-    if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      );
+    if (!validation.success) {
+      return ApiErrors.validationError(validation.error.errors);
     }
+
+    const { name, email } = validation.data;
 
     // Check if email is being changed and if new email already exists
     const { data: existingUser } = (await serviceClient

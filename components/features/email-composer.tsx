@@ -138,6 +138,9 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
   // Settings dialog state
   const [showSettings, setShowSettings] = useState(false);
 
+  // P0-EMAIL-002: Confirmation dialog state for draft discard
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+
   // Save draft function (memoized to prevent useEffect issues)
   const saveDraft = useCallback(async (showToast: boolean = false) => {
     // Don't save completely empty drafts
@@ -499,6 +502,18 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
     };
   }, [to, cc, bcc, subject, body, saveDraft]); // Re-run when any field changes
 
+  // P0-EMAIL-001: Save draft on component unmount if there are unsaved changes
+  useEffect(() => {
+    return () => {
+      // Only save if there's content and we haven't just sent the email
+      const hasContent = to || subject || body;
+      if (hasContent && !sending) {
+        // Call saveDraft synchronously on unmount
+        saveDraft(false);
+      }
+    };
+  }, [to, subject, body, sending, saveDraft]);
+
   // Cleanup undo send timer on unmount
   useEffect(() => {
     return () => {
@@ -545,7 +560,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
     } else if (showPreview) {
       setShowPreview(false);
     } else {
-      onClose();
+      handleClose();
     }
   });
 
@@ -791,8 +806,25 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
     }, 1000);
   };
 
+  // P0-EMAIL-002: Handle close with confirmation if there's unsaved content
+  const handleClose = () => {
+    const hasContent = to || subject || body;
+    if (hasContent) {
+      setShowDiscardConfirm(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const confirmDiscard = async () => {
+    // Delete draft if exists
+    await deleteDraft();
+    setShowDiscardConfirm(false);
+    onClose();
+  };
+
   return (
-    <Dialog open onOpenChange={onClose}>
+    <Dialog open onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl h-[90vh] w-[95vw] sm:w-full flex flex-col px-6 py-4 sm:px-8 sm:py-6 overflow-hidden">
         <DialogHeader className="shrink-0 pb-3">
           <div className="flex items-center justify-between">
@@ -1175,7 +1207,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
                       variant="ghost"
                       size="icon"
                       className="h-9 w-9"
-                      onClick={onClose}
+                      onClick={handleClose}
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -1906,6 +1938,39 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
                   toast.success('Voice message attached!');
                 }}
               />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* P0-EMAIL-002: Discard Draft Confirmation Dialog */}
+      {showDiscardConfirm && (
+        <Dialog open={showDiscardConfirm} onOpenChange={setShowDiscardConfirm}>
+          <DialogContent className="max-w-md px-8 py-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                Discard Draft?
+              </DialogTitle>
+              <DialogDescription>
+                You have unsaved changes. Are you sure you want to discard this draft?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-6 flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDiscardConfirm(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={confirmDiscard}
+              >
+                Discard Draft
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

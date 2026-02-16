@@ -1,19 +1,102 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
+
+// Validation schema for notification preferences
+const notificationSchema = z.object({
+  // Email notifications
+  newEmails: z.boolean(),
+  importantOnly: z.boolean(),
+  dailyDigest: z.boolean(),
+  // Calendar notifications
+  eventReminders: z.boolean(),
+  eventChanges: z.boolean(),
+  // Device notifications
+  desktopNotifications: z.boolean(),
+  pushNotifications: z.boolean(),
+  notificationSound: z.boolean(),
+  // Team notifications
+  teamInvites: z.boolean(),
+  teamUpdates: z.boolean(),
+  // Quiet hours
+  quietHours: z.boolean(),
+});
+
+type NotificationFormData = z.infer<typeof notificationSchema>;
 
 export default function NotificationsSettingsPage() {
-  const handleSave = () => {
-    toast.success('Notification preferences saved');
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+    reset,
+  } = useForm<NotificationFormData>({
+    resolver: zodResolver(notificationSchema),
+    defaultValues: {
+      newEmails: true,
+      importantOnly: false,
+      dailyDigest: true,
+      eventReminders: true,
+      eventChanges: true,
+      desktopNotifications: true,
+      pushNotifications: true,
+      notificationSound: true,
+      teamInvites: true,
+      teamUpdates: true,
+      quietHours: false,
+    },
+  });
+
+  useEffect(() => {
+    // Fetch user's notification preferences
+    fetchPreferences();
+  }, []);
+
+  const fetchPreferences = async () => {
+    try {
+      const response = await fetch('/api/user/preferences');
+      const data = await response.json();
+
+      if (data.preferences?.notifications) {
+        reset(data.preferences.notifications);
+      }
+    } catch (error) {
+      console.error('Failed to fetch preferences:', error);
+    }
+  };
+
+  const onSubmit = async (data: NotificationFormData) => {
+    try {
+      const response = await fetch('/api/user/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notifications: data }),
+      });
+
+      if (response.ok) {
+        toast.success('Notification preferences saved');
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Failed to save preferences');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      toast.error('Failed to save preferences');
+    }
   };
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Email Notifications */}
       <Card>
         <CardHeader>
@@ -28,7 +111,17 @@ export default function NotificationsSettingsPage() {
                 Get notified when you receive new emails
               </p>
             </div>
-            <Switch id="new-emails" defaultChecked />
+            <Controller
+              name="newEmails"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="new-emails"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
 
           <Separator />
@@ -40,7 +133,17 @@ export default function NotificationsSettingsPage() {
                 Only notify for emails marked as important
               </p>
             </div>
-            <Switch id="important-only" />
+            <Controller
+              name="importantOnly"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="important-only"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
 
           <Separator />
@@ -52,7 +155,17 @@ export default function NotificationsSettingsPage() {
                 Receive a daily summary of your emails
               </p>
             </div>
-            <Switch id="digest" defaultChecked />
+            <Controller
+              name="dailyDigest"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="digest"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
         </CardContent>
       </Card>
@@ -71,7 +184,17 @@ export default function NotificationsSettingsPage() {
                 Get notified before events start
               </p>
             </div>
-            <Switch id="event-reminders" defaultChecked />
+            <Controller
+              name="eventReminders"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="event-reminders"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
 
           <Separator />
@@ -83,7 +206,17 @@ export default function NotificationsSettingsPage() {
                 Notify when events are updated or cancelled
               </p>
             </div>
-            <Switch id="event-changes" defaultChecked />
+            <Controller
+              name="eventChanges"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="event-changes"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
 
           <Separator />
@@ -116,7 +249,17 @@ export default function NotificationsSettingsPage() {
                 Show notifications on your desktop
               </p>
             </div>
-            <Switch id="desktop-notifications" defaultChecked />
+            <Controller
+              name="desktopNotifications"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="desktop-notifications"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
 
           <Separator />
@@ -128,7 +271,17 @@ export default function NotificationsSettingsPage() {
                 Receive push notifications on mobile devices
               </p>
             </div>
-            <Switch id="push-notifications" defaultChecked />
+            <Controller
+              name="pushNotifications"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="push-notifications"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
 
           <Separator />
@@ -138,7 +291,17 @@ export default function NotificationsSettingsPage() {
               <Label htmlFor="notification-sound">Notification Sound</Label>
               <p className="text-sm text-muted-foreground">Play sound for notifications</p>
             </div>
-            <Switch id="notification-sound" defaultChecked />
+            <Controller
+              name="notificationSound"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="notification-sound"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
         </CardContent>
       </Card>
@@ -157,7 +320,17 @@ export default function NotificationsSettingsPage() {
                 Notify when you're invited to a team
               </p>
             </div>
-            <Switch id="team-invites" defaultChecked />
+            <Controller
+              name="teamInvites"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="team-invites"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
 
           <Separator />
@@ -169,7 +342,17 @@ export default function NotificationsSettingsPage() {
                 Updates about your organization
               </p>
             </div>
-            <Switch id="team-updates" defaultChecked />
+            <Controller
+              name="teamUpdates"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="team-updates"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
         </CardContent>
       </Card>
@@ -188,7 +371,17 @@ export default function NotificationsSettingsPage() {
                 Silence notifications during set hours
               </p>
             </div>
-            <Switch id="quiet-hours" />
+            <Controller
+              name="quietHours"
+              control={control}
+              render={({ field }) => (
+                <Switch
+                  id="quiet-hours"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
           </div>
 
           <Separator />
@@ -213,8 +406,17 @@ export default function NotificationsSettingsPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave}>Save Preferences</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            'Save Preferences'
+          )}
+        </Button>
       </div>
-    </div>
+    </form>
   );
 }

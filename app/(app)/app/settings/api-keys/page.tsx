@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +12,19 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Key, Plus, Trash2, RefreshCw, Copy, Eye, EyeOff, AlertCircle, Shield, Loader2 } from 'lucide-react';
+
+// Validation schemas
+const createKeySchema = z.object({
+  keyName: z.string().min(1, 'Key name is required').max(50, 'Key name is too long'),
+  keyValue: z.string().min(20, 'API key is too short').startsWith('sk-', 'Invalid OpenAI API key format'),
+});
+
+const rotateKeySchema = z.object({
+  keyValue: z.string().min(20, 'API key is too short').startsWith('sk-', 'Invalid OpenAI API key format'),
+});
+
+type CreateKeyFormData = z.infer<typeof createKeySchema>;
+type RotateKeyFormData = z.infer<typeof rotateKeySchema>;
 
 interface ApiKey {
   id: string;
@@ -25,14 +41,27 @@ export default function ApiKeysPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showRotateDialog, setShowRotateDialog] = useState(false);
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
-  const [newKeyName, setNewKeyName] = useState('');
-  const [newKeyValue, setNewKeyValue] = useState('');
   const [showKeyValue, setShowKeyValue] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [rotating, setRotating] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [generatedKey, setGeneratedKey] = useState('');
   const [showGeneratedKey, setShowGeneratedKey] = useState(false);
+
+  // Create key form
+  const createForm = useForm<CreateKeyFormData>({
+    resolver: zodResolver(createKeySchema),
+    defaultValues: {
+      keyName: '',
+      keyValue: '',
+    },
+  });
+
+  // Rotate key form
+  const rotateForm = useForm<RotateKeyFormData>({
+    resolver: zodResolver(rotateKeySchema),
+    defaultValues: {
+      keyValue: '',
+    },
+  });
 
   useEffect(() => {
     fetchApiKey();
@@ -67,87 +96,63 @@ export default function ApiKeysPage() {
     return key;
   };
 
-  const handleCreateKey = async () => {
-    if (!newKeyName) {
-      toast.error('Please enter a key name');
-      return;
-    }
-
-    if (!newKeyValue) {
-      toast.error('Please enter a key value');
-      return;
-    }
-
+  const onCreateSubmit = async (data: CreateKeyFormData) => {
     try {
-      setCreating(true);
-
       const response = await fetch('/api/api-keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          key_name: newKeyName,
-          key_value: newKeyValue,
+          key_name: data.keyName,
+          key_value: data.keyValue,
         }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (response.ok) {
         toast.success('API key created successfully');
-        setGeneratedKey(newKeyValue);
+        setGeneratedKey(data.keyValue);
         setShowGeneratedKey(true);
         setShowCreateDialog(false);
-        setNewKeyName('');
-        setNewKeyValue('');
+        createForm.reset();
         fetchApiKey();
       } else {
-        toast.error(data.error || 'Failed to create API key');
+        toast.error(responseData.error || 'Failed to create API key');
       }
     } catch (error) {
       console.error('Create API key error:', error);
       toast.error('Failed to create API key');
-    } finally {
-      setCreating(false);
     }
   };
 
-  const handleRotateKey = async () => {
+  const onRotateSubmit = async (data: RotateKeyFormData) => {
     if (!apiKey) return;
 
-    if (!newKeyValue) {
-      toast.error('Please enter a new key value');
-      return;
-    }
-
     try {
-      setRotating(true);
-
       const response = await fetch('/api/api-keys', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           key_id: apiKey.id,
-          key_value: newKeyValue,
+          key_value: data.keyValue,
         }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (response.ok) {
         toast.success('API key rotated successfully');
-        setGeneratedKey(newKeyValue);
+        setGeneratedKey(data.keyValue);
         setShowGeneratedKey(true);
         setShowRotateDialog(false);
-        setNewKeyValue('');
+        rotateForm.reset();
         fetchApiKey();
       } else {
-        toast.error(data.error || 'Failed to rotate API key');
+        toast.error(responseData.error || 'Failed to rotate API key');
       }
     } catch (error) {
       console.error('Rotate API key error:', error);
       toast.error('Failed to rotate API key');
-    } finally {
-      setRotating(false);
     }
   };
 
@@ -313,7 +318,10 @@ export default function ApiKeysPage() {
       </Card>
 
       {/* Create Key Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+      <Dialog open={showCreateDialog} onOpenChange={(open) => {
+        setShowCreateDialog(open);
+        if (!open) createForm.reset();
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Custom API Key</DialogTitle>
@@ -322,84 +330,95 @@ export default function ApiKeysPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="keyName">Key Name</Label>
-              <Input
-                id="keyName"
-                placeholder="e.g., Production Key"
-                value={newKeyName}
-                onChange={(e) => setNewKeyName(e.target.value)}
-                className="mt-1"
-              />
-            </div>
+          <form onSubmit={createForm.handleSubmit(onCreateSubmit)}>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="keyName">Key Name</Label>
+                <Input
+                  id="keyName"
+                  placeholder="e.g., Production Key"
+                  {...createForm.register('keyName')}
+                  className="mt-1"
+                />
+                {createForm.formState.errors.keyName && (
+                  <p className="text-sm text-destructive mt-1">{createForm.formState.errors.keyName.message}</p>
+                )}
+              </div>
 
-            <div>
-              <Label htmlFor="keyValue">API Key Value</Label>
-              <div className="flex gap-2 mt-1">
-                <div className="relative flex-1">
-                  <Input
-                    id="keyValue"
-                    type={showKeyValue ? 'text' : 'password'}
-                    placeholder="sk-..."
-                    value={newKeyValue}
-                    onChange={(e) => setNewKeyValue(e.target.value)}
-                  />
+              <div>
+                <Label htmlFor="keyValue">API Key Value</Label>
+                <div className="flex gap-2 mt-1">
+                  <div className="relative flex-1">
+                    <Input
+                      id="keyValue"
+                      type={showKeyValue ? 'text' : 'password'}
+                      placeholder="sk-..."
+                      {...createForm.register('keyValue')}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full"
+                      onClick={() => setShowKeyValue(!showKeyValue)}
+                    >
+                      {showKeyValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full"
-                    onClick={() => setShowKeyValue(!showKeyValue)}
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const key = generateRandomKey();
+                      createForm.setValue('keyValue', key);
+                      setShowKeyValue(true);
+                    }}
                   >
-                    {showKeyValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    Generate
                   </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    const key = generateRandomKey();
-                    setNewKeyValue(key);
-                    setShowKeyValue(true);
-                  }}
-                >
-                  Generate
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Enter your OpenAI API key or generate a placeholder for testing
-              </p>
-            </div>
-
-            <div className="bg-destructive/10 p-3 rounded-lg border border-destructive/20">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground">
-                  This will replace any existing API key. The old key will be deactivated.
+                {createForm.formState.errors.keyValue && (
+                  <p className="text-sm text-destructive mt-1">{createForm.formState.errors.keyValue.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter your OpenAI API key or generate a placeholder for testing
                 </p>
               </div>
-            </div>
-          </div>
 
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowCreateDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateKey} disabled={creating}>
-              {creating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Create Key'
-              )}
-            </Button>
-          </DialogFooter>
+              <div className="bg-destructive/10 p-3 rounded-lg border border-destructive/20">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">
+                    This will replace any existing API key. The old key will be deactivated.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setShowCreateDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createForm.formState.isSubmitting}>
+                {createForm.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Key'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
       {/* Rotate Key Dialog */}
-      <Dialog open={showRotateDialog} onOpenChange={setShowRotateDialog}>
+      <Dialog open={showRotateDialog} onOpenChange={(open) => {
+        setShowRotateDialog(open);
+        if (!open) rotateForm.reset();
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Rotate API Key</DialogTitle>
@@ -408,65 +427,71 @@ export default function ApiKeysPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="rotateKeyValue">New API Key Value</Label>
-              <div className="flex gap-2 mt-1">
-                <div className="relative flex-1">
-                  <Input
-                    id="rotateKeyValue"
-                    type={showKeyValue ? 'text' : 'password'}
-                    placeholder="sk-..."
-                    value={newKeyValue}
-                    onChange={(e) => setNewKeyValue(e.target.value)}
-                  />
+          <form onSubmit={rotateForm.handleSubmit(onRotateSubmit)}>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="rotateKeyValue">New API Key Value</Label>
+                <div className="flex gap-2 mt-1">
+                  <div className="relative flex-1">
+                    <Input
+                      id="rotateKeyValue"
+                      type={showKeyValue ? 'text' : 'password'}
+                      placeholder="sk-..."
+                      {...rotateForm.register('keyValue')}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full"
+                      onClick={() => setShowKeyValue(!showKeyValue)}
+                    >
+                      {showKeyValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full"
-                    onClick={() => setShowKeyValue(!showKeyValue)}
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const key = generateRandomKey();
+                      rotateForm.setValue('keyValue', key);
+                      setShowKeyValue(true);
+                    }}
                   >
-                    {showKeyValue ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    Generate
                   </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    const key = generateRandomKey();
-                    setNewKeyValue(key);
-                    setShowKeyValue(true);
-                  }}
-                >
-                  Generate
-                </Button>
+                {rotateForm.formState.errors.keyValue && (
+                  <p className="text-sm text-destructive mt-1">{rotateForm.formState.errors.keyValue.message}</p>
+                )}
+              </div>
+
+              <div className="bg-muted p-3 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  The old key will be deactivated immediately after rotation.
+                </p>
               </div>
             </div>
 
-            <div className="bg-muted p-3 rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                The old key will be deactivated immediately after rotation.
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setShowRotateDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleRotateKey} disabled={rotating}>
-              {rotating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Rotating...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Rotate Key
-                </>
-              )}
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setShowRotateDialog(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={rotateForm.formState.isSubmitting}>
+                {rotateForm.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Rotating...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Rotate Key
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

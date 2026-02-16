@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { UserPlus, Loader2 } from 'lucide-react';
+
+// Validation schema
+const addUserSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
+  email: z.string().email('Invalid email address'),
+  role: z.enum(['OWNER', 'ADMIN', 'MEMBER'], {
+    required_error: 'Role is required',
+  }),
+});
+
+type AddUserFormData = z.infer<typeof addUserSchema>;
 
 interface AddUserModalProps {
   open: boolean;
@@ -24,45 +38,51 @@ export function AddUserModal({
   organizationName,
   onSuccess,
 }: AddUserModalProps) {
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: 'MEMBER',
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<AddUserFormData>({
+    resolver: zodResolver(addUserSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      role: 'MEMBER',
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim() || !formData.email.trim()) {
-      toast.error('Name and email are required');
-      return;
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (!open) {
+      reset();
     }
+  }, [open, reset]);
 
-    setLoading(true);
-
+  const onSubmit = async (data: AddUserFormData) => {
     try {
       const response = await fetch('/api/admin/organizations/add-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           organization_id: organizationId,
-          name: formData.name,
-          email: formData.email,
-          role: formData.role,
+          name: data.name,
+          email: data.email,
+          role: data.role,
         }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to add user');
+        throw new Error(responseData.error || 'Failed to add user');
       }
 
-      toast.success(data.message || 'User added successfully!');
+      toast.success(responseData.message || 'User added successfully!');
 
       // Reset form
-      setFormData({ name: '', email: '', role: 'MEMBER' });
+      reset();
 
       // Close modal
       onOpenChange(false);
@@ -74,8 +94,6 @@ export function AddUserModal({
     } catch (error: any) {
       console.error('Add user error:', error);
       toast.error(error.message || 'Failed to add user');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -96,17 +114,18 @@ export function AddUserModal({
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="space-y-2">
             <Label htmlFor="name">Full Name *</Label>
             <Input
               id="name"
               placeholder="John Doe"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              disabled={loading}
-              required
+              {...register('name')}
+              disabled={isSubmitting}
             />
+            {errors.name && (
+              <p className="text-sm text-destructive">{errors.name.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -115,11 +134,12 @@ export function AddUserModal({
               id="email"
               type="email"
               placeholder="john@company.com"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              disabled={loading}
-              required
+              {...register('email')}
+              disabled={isSubmitting}
             />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
             <p className="text-xs text-muted-foreground">
               If user exists, they'll be added to the organization. Otherwise, a new account will be created.
             </p>
@@ -127,20 +147,29 @@ export function AddUserModal({
 
           <div className="space-y-2">
             <Label htmlFor="role">Role *</Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value) => setFormData({ ...formData, role: value })}
-              disabled={loading}
-            >
-              <SelectTrigger id="role">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="OWNER">Owner - Full control</SelectItem>
-                <SelectItem value="ADMIN">Admin - Manage org & users</SelectItem>
-                <SelectItem value="MEMBER">Member - Email access</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="role"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="role">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="OWNER">Owner - Full control</SelectItem>
+                    <SelectItem value="ADMIN">Admin - Manage org & users</SelectItem>
+                    <SelectItem value="MEMBER">Member - Email access</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.role && (
+              <p className="text-sm text-destructive">{errors.role.message}</p>
+            )}
           </div>
 
           <div className="bg-muted/50 rounded-lg p-3 space-y-1">
@@ -157,13 +186,13 @@ export function AddUserModal({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={loading}
+              disabled={isSubmitting}
               className="flex-1"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? (
+            <Button type="submit" disabled={isSubmitting} className="flex-1">
+              {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Adding...

@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import { resetPasswordSchema } from '@/lib/validations/auth';
 import { createClient } from '@/lib/supabase/server';
 import { ApiErrors } from '@/lib/api-error';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
-
-const resetPasswordSchema = z.object({
-  email: z.string().email('Invalid email address'),
-});
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting to prevent abuse

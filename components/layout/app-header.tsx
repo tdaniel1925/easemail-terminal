@@ -34,12 +34,22 @@ export function AppHeader({ sidebarOpen, onToggleSidebar, onCompose, onRefresh }
   const handleLogout = async () => {
     try {
       setLoggingOut(true);
+
+      // Call server-side logout
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
       });
 
       if (response.ok) {
+        // P0-AUTH-001: Clear client-side session data
+        // Clear localStorage
+        localStorage.clear();
+        // Clear sessionStorage
+        sessionStorage.clear();
+
         toast.success('Logged out successfully');
+
+        // Force full page reload to clear all state
         window.location.href = '/login';
       } else {
         toast.error('Failed to logout');

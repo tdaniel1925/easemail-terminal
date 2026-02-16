@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { ApiErrors, handleSupabaseError } from '@/lib/api-error';
+import { withErrorHandler } from '@/lib/middleware/error-handler';
+import { requireAuth } from '@/lib/middleware/auth';
+import { logger } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandler(async (request: NextRequest) => {
+  // Authenticate user
+  const { user, error: authError } = await requireAuth();
+  if (authError) return authError;
+
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
+    // Fetch user's email accounts
     const { data: accounts, error } = await supabase
       .from('email_accounts')
       .select('*')
@@ -17,18 +21,27 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      return NextResponse.json({ error: error.message, accounts: [] }, { status: 400 });
+      logger.error('Failed to fetch email accounts', error, {
+        userId: user.id,
+        component: 'api/email-accounts',
+      });
+      return handleSupabaseError(error, 'Failed to fetch email accounts');
     }
 
+    logger.info('Email accounts fetched successfully', {
+      userId: user.id,
+      accountCount: accounts?.length || 0,
+    });
+
     return NextResponse.json({ accounts: accounts || [] });
-  } catch (error) {
-    console.error('Get email accounts error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to get email accounts',
-        accounts: []
-      },
-      { status: 500 }
+  } catch (error: any) {
+    logger.error('Get email accounts error', error, {
+      userId: user.id,
+      component: 'api/email-accounts',
+    });
+    return ApiErrors.internalError(
+      'Failed to get email accounts',
+      process.env.NODE_ENV === 'development' ? { message: error.message } : undefined
     );
   }
-}
+});

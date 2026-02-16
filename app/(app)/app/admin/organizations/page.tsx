@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { CreateOrganizationWizard } from '@/components/admin/create-organization-wizard';
 import { AddUserModal } from '@/components/admin/add-user-modal';
+import { EmptyState } from '@/components/ui/empty-state';
 import { toast } from 'sonner';
 import {
   Building2,
@@ -510,8 +511,25 @@ export default function AdminOrganizationsPage() {
         ))}
 
         {filteredOrgs.length === 0 && (
-          <div className="col-span-full text-center py-8 text-muted-foreground">
-            No organizations found
+          <div className="col-span-full">
+            <EmptyState
+              icon={Building2}
+              title="No organizations found"
+              description={
+                searchQuery
+                  ? "Try adjusting your search query to find organizations"
+                  : "No organizations have been created yet. Create your first organization to get started."
+              }
+              action={
+                !searchQuery && (
+                  <Button onClick={() => router.push('/app/admin/organizations/create')}>
+                    <Building2 className="mr-2 h-4 w-4" />
+                    Create Organization
+                  </Button>
+                )
+              }
+              className="min-h-[300px]"
+            />
           </div>
         )}
       </div>

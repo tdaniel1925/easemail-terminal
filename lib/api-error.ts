@@ -110,4 +110,64 @@ export const ApiErrors = {
 
   databaseError: (message: string = 'Database operation failed', details?: any) =>
     createErrorResponse(message, 500, ErrorCodes.DATABASE_ERROR, details),
+
+  conflict: (resource: string = 'Resource', details?: any) =>
+    createErrorResponse(
+      `${resource} already exists`,
+      409,
+      ErrorCodes.ALREADY_EXISTS,
+      details
+    ),
+
+  unprocessableEntity: (message: string, details?: any) =>
+    createErrorResponse(message, 422, ErrorCodes.VALIDATION_ERROR, details),
+
+  methodNotAllowed: (allowedMethods: string[]) =>
+    createErrorResponse(
+      `Method not allowed. Allowed methods: ${allowedMethods.join(', ')}`,
+      405,
+      ErrorCodes.BAD_REQUEST,
+      { allowedMethods }
+    ),
+
+  payloadTooLarge: (maxSize: string) =>
+    createErrorResponse(
+      `Payload too large. Maximum size: ${maxSize}`,
+      413,
+      ErrorCodes.BAD_REQUEST,
+      { maxSize }
+    ),
+
+  serviceUnavailable: (message: string = 'Service temporarily unavailable') =>
+    createErrorResponse(message, 503, ErrorCodes.EXTERNAL_SERVICE_ERROR),
+
+  gatewayTimeout: (service: string) =>
+    createErrorResponse(
+      `Request to ${service} timed out`,
+      504,
+      ErrorCodes.EXTERNAL_SERVICE_ERROR
+    ),
 };
+
+/**
+ * Helper to handle Supabase errors
+ */
+export function handleSupabaseError(error: any, fallbackMessage: string = 'Database operation failed') {
+  console.error('Supabase error:', error);
+
+  // Known Supabase error codes
+  if (error.code === 'PGRST116') {
+    return ApiErrors.notFound('Resource');
+  }
+  if (error.code === '23505') {
+    return ApiErrors.conflict('Resource');
+  }
+  if (error.code === '23503') {
+    return ApiErrors.badRequest('Referenced resource does not exist');
+  }
+  if (error.code === '42501') {
+    return ApiErrors.forbidden('Insufficient permissions');
+  }
+
+  return ApiErrors.databaseError(fallbackMessage);
+}

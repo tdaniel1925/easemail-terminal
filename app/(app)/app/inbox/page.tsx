@@ -35,6 +35,7 @@ import {
   loadNotificationPreferences,
   type NotificationPreferences,
 } from '@/lib/notifications';
+import { EmailListSkeleton } from '@/components/skeletons/email-list-skeleton';
 
 type EmailCategory = 'people' | 'newsletters' | 'notifications';
 
@@ -1610,9 +1611,7 @@ export default function InboxPage() {
             )}
             <ScrollArea className="h-full pr-2">
               {loading ? (
-                <div className="flex items-center justify-center h-64">
-                  <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
+                <EmailListSkeleton count={15} />
               ) : filteredMessages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-96 text-center p-12">
                   <Mail className="h-20 w-20 text-muted-foreground mb-6 opacity-50" />

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { EmptyState } from '@/components/ui/empty-state';
 import { toast } from 'sonner';
 import {
   FileText,
@@ -240,17 +241,16 @@ export default function AttachmentsPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : attachments.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center h-64">
-            <Paperclip className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="font-semibold text-lg mb-2">No attachments found</h3>
-            <p className="text-sm text-muted-foreground text-center">
-              {searchQuery || fileTypeFilter !== 'all'
-                ? 'Try adjusting your filters or search query'
-                : 'Email attachments will appear here'}
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Paperclip}
+          title="No attachments found"
+          description={
+            searchQuery || fileTypeFilter !== 'all'
+              ? 'Try adjusting your filters or search query to find attachments'
+              : 'Email attachments will appear here when you receive emails with files'
+          }
+          className="min-h-[400px]"
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {attachments.map((attachment) => {

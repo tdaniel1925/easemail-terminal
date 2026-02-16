@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createOrganizationSchema } from '@/lib/validations/organization';
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,32 +29,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
-    const {
-      name,
-      plan,
-      seats,
-      billing_email,
-    } = await request.json();
+    // Parse and validate request body
+    const body = await request.json();
+    const validation = createOrganizationSchema.safeParse(body);
 
-    // Validate required fields
-    if (!name || !plan || !seats || !billing_email) {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: 'Organization name, plan, seats, and billing email are required' },
+        {
+          error: 'Validation failed',
+          details: validation.error.flatten().fieldErrors,
+        },
         { status: 400 }
       );
     }
 
-    // Validate plan
-    if (!['FREE', 'PRO', 'BUSINESS', 'ENTERPRISE'].includes(plan)) {
-      return NextResponse.json(
-        { error: 'Invalid plan' },
-        { status: 400 }
-      );
-    }
+    const { name, plan, seats, billing_email, slug: providedSlug } = validation.data;
 
-    // Create slug from name
-    const slug = name
+    // Create slug from name or use provided slug
+    const slug = providedSlug || name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');

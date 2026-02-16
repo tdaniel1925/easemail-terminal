@@ -1,17 +1,49 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { signupSchema, type SignupInput } from '@/lib/validations/auth';
 import { signUp } from '@/lib/auth/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 function SignupForm() {
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupInput>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      email: emailParam || '',
+    },
+  });
+
+  const onSubmit = async (data: SignupInput) => {
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      if (data.name) formData.append('name', data.name);
+      formData.append('email', data.email);
+      formData.append('password', data.password);
+
+      await signUp(formData);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create account');
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Card>
@@ -26,46 +58,57 @@ function SignupForm() {
           {emailParam ? 'Complete your signup to accept the invitation' : 'Get started with EaseMail today'}
         </CardDescription>
       </CardHeader>
-      <form action={signUp}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Full Name (Optional)</Label>
             <Input
               id="name"
-              name="name"
               type="text"
               placeholder="John Doe"
-              required
+              {...register('name')}
+              aria-invalid={!!errors.name}
+              disabled={isLoading}
             />
+            {errors.name && (
+              <p className="text-sm text-destructive">{errors.name.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              name="email"
               type="email"
               placeholder="you@example.com"
-              defaultValue={emailParam || ''}
-              required
+              {...register('email')}
+              aria-invalid={!!errors.email}
+              disabled={isLoading}
             />
+            {errors.email && (
+              <p className="text-sm text-destructive">{errors.email.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
-              name="password"
               type="password"
               placeholder="••••••••"
-              minLength={8}
-              required
+              {...register('password')}
+              aria-invalid={!!errors.password}
+              disabled={isLoading}
             />
+            {errors.password && (
+              <p className="text-sm text-destructive">{errors.password.message}</p>
+            )}
             <p className="text-xs text-muted-foreground">
-              Must be at least 8 characters
+              Must contain uppercase, lowercase, number, and special character
             </p>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Account
           </Button>
           <p className="text-sm text-center text-muted-foreground">

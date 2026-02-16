@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { EmptyState } from '@/components/ui/empty-state';
 import { toast } from 'sonner';
 import {
   Users,
@@ -27,6 +28,7 @@ import {
   Key,
   RefreshCw,
 } from 'lucide-react';
+import { UserTableSkeleton } from '@/components/skeletons/table-skeleton';
 
 interface User {
   id: string;
@@ -304,8 +306,12 @@ export default function AdminUsersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-10 w-32" /> {/* Spacer for buttons */}
+          <div className="h-10 w-32" />
+        </div>
+        <UserTableSkeleton rows={15} />
       </div>
     );
   }
@@ -487,9 +493,24 @@ export default function AdminUsersPage() {
             ))}
 
             {filteredUsers.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                No users found
-              </div>
+              <EmptyState
+                icon={Users}
+                title="No users found"
+                description={
+                  searchQuery
+                    ? "Try adjusting your search query to find users"
+                    : "No users have been created yet. Create your first user to get started."
+                }
+                action={
+                  !searchQuery && (
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create User
+                    </Button>
+                  )
+                }
+                className="min-h-[300px]"
+              />
             )}
           </div>
         </CardContent>

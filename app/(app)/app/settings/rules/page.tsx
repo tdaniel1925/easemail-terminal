@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Trash2, Play, Pencil, GripVertical } from 'lucide-react';
+import { Plus, Trash2, Play, Pencil, GripVertical, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Condition {
@@ -33,6 +36,44 @@ interface Rule {
   created_at: string;
 }
 
+// Validation schema
+const conditionSchema = z.object({
+  field: z.enum(['from', 'to', 'subject', 'body', 'has_attachment']),
+  operator: z.enum(['contains', 'equals', 'starts_with', 'ends_with', 'not_contains']),
+  value: z.union([z.string(), z.boolean()]),
+}).refine(
+  (data) => {
+    // has_attachment doesn't need a string value
+    if (data.field === 'has_attachment') return true;
+    // Other fields require a non-empty string value
+    return typeof data.value === 'string' && data.value.trim().length > 0;
+  },
+  { message: 'Value is required for this condition', path: ['value'] }
+);
+
+const actionSchema = z.object({
+  type: z.enum(['move_to_folder', 'apply_label', 'mark_as_read', 'mark_as_starred', 'delete', 'archive']),
+  value: z.string().optional(),
+}).refine(
+  (data) => {
+    // move_to_folder and apply_label require a value
+    if (data.type === 'move_to_folder' || data.type === 'apply_label') {
+      return data.value && data.value.trim().length > 0;
+    }
+    return true;
+  },
+  { message: 'Value is required for this action', path: ['value'] }
+);
+
+const ruleSchema = z.object({
+  name: z.string().min(1, 'Rule name is required').max(100, 'Rule name is too long'),
+  conditions: z.array(conditionSchema).min(1, 'At least one condition is required'),
+  actions: z.array(actionSchema).min(1, 'At least one action is required'),
+  enabled: z.boolean(),
+});
+
+type RuleFormData = z.infer<typeof ruleSchema>;
+
 export default function EmailRulesPage() {
   const [rules, setRules] = useState<Rule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,15 +81,33 @@ export default function EmailRulesPage() {
   const [editingRule, setEditingRule] = useState<Rule | null>(null);
   const [labels, setLabels] = useState<any[]>([]);
 
-  // Form state
-  const [ruleName, setRuleName] = useState('');
-  const [conditions, setConditions] = useState<Condition[]>([
-    { field: 'from', operator: 'contains', value: '' }
-  ]);
-  const [actions, setActions] = useState<Action[]>([
-    { type: 'mark_as_read' }
-  ]);
-  const [enabled, setEnabled] = useState(true);
+  // Form with validation
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<RuleFormData>({
+    resolver: zodResolver(ruleSchema),
+    defaultValues: {
+      name: '',
+      conditions: [{ field: 'from', operator: 'contains', value: '' }],
+      actions: [{ type: 'mark_as_read' }],
+      enabled: true,
+    },
+  });
+
+  // Field arrays for dynamic conditions and actions
+  const { fields: conditionFields, append: appendCondition, remove: removeCondition } = useFieldArray({
+    control,
+    name: 'conditions',
+  });
+
+  const { fields: actionFields, append: appendAction, remove: removeAction } = useFieldArray({
+    control,
+    name: 'actions',
+  });
 
   useEffect(() => {
     fetchRules();
@@ -85,16 +144,20 @@ export default function EmailRulesPage() {
   const openDialog = (rule?: Rule) => {
     if (rule) {
       setEditingRule(rule);
-      setRuleName(rule.name);
-      setConditions(rule.conditions);
-      setActions(rule.actions);
-      setEnabled(rule.enabled);
+      reset({
+        name: rule.name,
+        conditions: rule.conditions,
+        actions: rule.actions,
+        enabled: rule.enabled,
+      });
     } else {
       setEditingRule(null);
-      setRuleName('');
-      setConditions([{ field: 'from', operator: 'contains', value: '' }]);
-      setActions([{ type: 'mark_as_read' }]);
-      setEnabled(true);
+      reset({
+        name: '',
+        conditions: [{ field: 'from', operator: 'contains', value: '' }],
+        actions: [{ type: 'mark_as_read' }],
+        enabled: true,
+      });
     }
     setShowDialog(true);
   };
@@ -102,28 +165,19 @@ export default function EmailRulesPage() {
   const closeDialog = () => {
     setShowDialog(false);
     setEditingRule(null);
+    reset();
   };
 
-  const saveRule = async () => {
-    if (!ruleName.trim()) {
-      toast.error('Please enter a rule name');
-      return;
-    }
-
-    if (conditions.some(c => !c.value && c.field !== 'has_attachment')) {
-      toast.error('Please fill in all condition values');
-      return;
-    }
-
+  const onSubmit = async (data: RuleFormData) => {
     try {
       const payload = {
-        name: ruleName,
-        conditions: conditions.map(c => ({
+        name: data.name,
+        conditions: data.conditions.map(c => ({
           ...c,
           value: c.field === 'has_attachment' ? true : c.value
         })),
-        actions,
-        enabled,
+        actions: data.actions,
+        enabled: data.enabled,
         priority: editingRule?.priority || rules.length,
       };
 
@@ -139,14 +193,14 @@ export default function EmailRulesPage() {
             body: JSON.stringify(payload),
           });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (response.ok) {
         toast.success(editingRule ? 'Rule updated' : 'Rule created');
         fetchRules();
         closeDialog();
       } else {
-        toast.error(data.error || 'Failed to save rule');
+        toast.error(responseData.error || 'Failed to save rule');
       }
     } catch (error) {
       console.error('Failed to save rule:', error);
@@ -214,34 +268,6 @@ export default function EmailRulesPage() {
       console.error('Failed to run rule:', error);
       toast.error('Failed to run rule');
     }
-  };
-
-  const addCondition = () => {
-    setConditions([...conditions, { field: 'from', operator: 'contains', value: '' }]);
-  };
-
-  const removeCondition = (index: number) => {
-    setConditions(conditions.filter((_, i) => i !== index));
-  };
-
-  const updateCondition = (index: number, field: keyof Condition, value: any) => {
-    const updated = [...conditions];
-    updated[index] = { ...updated[index], [field]: value };
-    setConditions(updated);
-  };
-
-  const addAction = () => {
-    setActions([...actions, { type: 'mark_as_read' }]);
-  };
-
-  const removeAction = (index: number) => {
-    setActions(actions.filter((_, i) => i !== index));
-  };
-
-  const updateAction = (index: number, field: keyof Action, value: any) => {
-    const updated = [...actions];
-    updated[index] = { ...updated[index], [field]: value };
-    setActions(updated);
   };
 
   if (loading) {
@@ -365,154 +391,212 @@ export default function EmailRulesPage() {
             <DialogTitle>{editingRule ? 'Edit Rule' : 'Create Rule'}</DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-6 py-4">
-              {/* Rule Name */}
-              <div>
-                <Label htmlFor="rule-name">Rule Name</Label>
-                <Input
-                  id="rule-name"
-                  value={ruleName}
-                  onChange={(e) => setRuleName(e.target.value)}
-                  placeholder="e.g., Archive newsletters"
-                  className="mt-1"
-                />
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
+            <ScrollArea className="flex-1 pr-4">
+              <div className="space-y-6 py-4">
+                {/* Rule Name */}
+                <div>
+                  <Label htmlFor="rule-name">Rule Name *</Label>
+                  <Input
+                    id="rule-name"
+                    {...register('name')}
+                    placeholder="e.g., Archive newsletters"
+                    className="mt-1"
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-destructive mt-1">{errors.name.message}</p>
+                  )}
+                </div>
 
               {/* Conditions */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label>Conditions (all must match)</Label>
-                  <Button variant="outline" size="sm" onClick={addCondition}>
+                  <Label>Conditions (all must match) *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendCondition({ field: 'from', operator: 'contains', value: '' })}
+                  >
                     <Plus className="h-4 w-4 mr-1" />
                     Add Condition
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  {conditions.map((condition, index) => (
-                    <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
-                      <Select
-                        value={condition.field}
-                        onValueChange={(value) => updateCondition(index, 'field', value)}
-                      >
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="from">From</SelectItem>
-                          <SelectItem value="to">To</SelectItem>
-                          <SelectItem value="subject">Subject</SelectItem>
-                          <SelectItem value="body">Body</SelectItem>
-                          <SelectItem value="has_attachment">Has attachment</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      {condition.field !== 'has_attachment' && (
-                        <>
+                  {conditionFields.map((field, index) => (
+                    <div key={field.id} className="flex items-center gap-2 p-3 border rounded-lg">
+                      <Controller
+                        name={`conditions.${index}.field`}
+                        control={control}
+                        render={({ field }) => (
                           <Select
-                            value={condition.operator}
-                            onValueChange={(value) => updateCondition(index, 'operator', value)}
+                            value={field.value}
+                            onValueChange={field.onChange}
                           >
                             <SelectTrigger className="w-[140px]">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="contains">Contains</SelectItem>
-                              <SelectItem value="equals">Equals</SelectItem>
-                              <SelectItem value="starts_with">Starts with</SelectItem>
-                              <SelectItem value="ends_with">Ends with</SelectItem>
-                              <SelectItem value="not_contains">Not contains</SelectItem>
+                              <SelectItem value="from">From</SelectItem>
+                              <SelectItem value="to">To</SelectItem>
+                              <SelectItem value="subject">Subject</SelectItem>
+                              <SelectItem value="body">Body</SelectItem>
+                              <SelectItem value="has_attachment">Has attachment</SelectItem>
                             </SelectContent>
                           </Select>
+                        )}
+                      />
 
-                          <Input
-                            value={condition.value as string}
-                            onChange={(e) => updateCondition(index, 'value', e.target.value)}
-                            placeholder="Value"
-                            className="flex-1"
-                          />
-                        </>
-                      )}
+                      <Controller
+                        name={`conditions.${index}.field`}
+                        control={control}
+                        render={({ field: fieldValue }) => (
+                          fieldValue.value !== 'has_attachment' && (
+                            <>
+                              <Controller
+                                name={`conditions.${index}.operator`}
+                                control={control}
+                                render={({ field }) => (
+                                  <Select
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                  >
+                                    <SelectTrigger className="w-[140px]">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="contains">Contains</SelectItem>
+                                      <SelectItem value="equals">Equals</SelectItem>
+                                      <SelectItem value="starts_with">Starts with</SelectItem>
+                                      <SelectItem value="ends_with">Ends with</SelectItem>
+                                      <SelectItem value="not_contains">Not contains</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                              />
+
+                              <div className="flex-1">
+                                <Input
+                                  {...register(`conditions.${index}.value` as const)}
+                                  placeholder="Value"
+                                />
+                              </div>
+                            </>
+                          )
+                        )}
+                      />
 
                       <Button
+                        type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => removeCondition(index)}
-                        disabled={conditions.length === 1}
+                        disabled={conditionFields.length === 1}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
+                  {errors.conditions && (
+                    <p className="text-sm text-destructive">{errors.conditions.message}</p>
+                  )}
                 </div>
               </div>
 
               {/* Actions */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label>Actions</Label>
-                  <Button variant="outline" size="sm" onClick={addAction}>
+                  <Label>Actions *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendAction({ type: 'mark_as_read' })}
+                  >
                     <Plus className="h-4 w-4 mr-1" />
                     Add Action
                   </Button>
                 </div>
                 <div className="space-y-2">
-                  {actions.map((action, index) => (
-                    <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
-                      <Select
-                        value={action.type}
-                        onValueChange={(value) => updateAction(index, 'type', value)}
-                      >
-                        <SelectTrigger className="flex-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="mark_as_read">Mark as read</SelectItem>
-                          <SelectItem value="mark_as_starred">Mark as starred</SelectItem>
-                          <SelectItem value="archive">Archive</SelectItem>
-                          <SelectItem value="delete">Delete</SelectItem>
-                          <SelectItem value="move_to_folder">Move to folder</SelectItem>
-                          <SelectItem value="apply_label">Apply label</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  {actionFields.map((field, index) => (
+                    <div key={field.id} className="flex items-center gap-2 p-3 border rounded-lg">
+                      <Controller
+                        name={`actions.${index}.type`}
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="flex-1">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="mark_as_read">Mark as read</SelectItem>
+                              <SelectItem value="mark_as_starred">Mark as starred</SelectItem>
+                              <SelectItem value="archive">Archive</SelectItem>
+                              <SelectItem value="delete">Delete</SelectItem>
+                              <SelectItem value="move_to_folder">Move to folder</SelectItem>
+                              <SelectItem value="apply_label">Apply label</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
 
-                      {action.type === 'move_to_folder' && (
-                        <Input
-                          value={action.value || ''}
-                          onChange={(e) => updateAction(index, 'value', e.target.value)}
-                          placeholder="Folder name"
-                          className="flex-1"
-                        />
-                      )}
+                      <Controller
+                        name={`actions.${index}.type`}
+                        control={control}
+                        render={({ field: typeField }) => (
+                          <>
+                            {typeField.value === 'move_to_folder' && (
+                              <Input
+                                {...register(`actions.${index}.value` as const)}
+                                placeholder="Folder name"
+                                className="flex-1"
+                              />
+                            )}
 
-                      {action.type === 'apply_label' && (
-                        <Select
-                          value={action.value}
-                          onValueChange={(value) => updateAction(index, 'value', value)}
-                        >
-                          <SelectTrigger className="flex-1">
-                            <SelectValue placeholder="Select label" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {labels.map(label => (
-                              <SelectItem key={label.id} value={label.name}>
-                                {label.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
+                            {typeField.value === 'apply_label' && (
+                              <Controller
+                                name={`actions.${index}.value`}
+                                control={control}
+                                render={({ field }) => (
+                                  <Select
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                  >
+                                    <SelectTrigger className="flex-1">
+                                      <SelectValue placeholder="Select label" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {labels.map(label => (
+                                        <SelectItem key={label.id} value={label.name}>
+                                          {label.name}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                )}
+                              />
+                            )}
+                          </>
+                        )}
+                      />
 
                       <Button
+                        type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => removeAction(index)}
-                        disabled={actions.length === 1}
+                        disabled={actionFields.length === 1}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
+                  {errors.actions && (
+                    <p className="text-sm text-destructive">{errors.actions.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -524,19 +608,36 @@ export default function EmailRulesPage() {
                     Disabled rules won't run automatically
                   </p>
                 </div>
-                <Switch checked={enabled} onCheckedChange={setEnabled} />
+                <Controller
+                  name="enabled"
+                  control={control}
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
+                />
               </div>
             </div>
           </ScrollArea>
 
           <div className="flex items-center justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={closeDialog}>
+            <Button type="button" variant="outline" onClick={closeDialog} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={saveRule}>
-              {editingRule ? 'Update Rule' : 'Create Rule'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {editingRule ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                editingRule ? 'Update Rule' : 'Create Rule'
+              )}
             </Button>
           </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
