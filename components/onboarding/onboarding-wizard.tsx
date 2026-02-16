@@ -106,20 +106,20 @@ export function OnboardingWizard({ initialStep = 0, emailConnected = false }: On
           toast.success(`You've been added to ${inviteResult.organizationName}!`);
           // Redirect to organization page
           router.push(`/app/organization/${inviteResult.organizationId}`);
+          return; // Exit early to prevent further execution
         } else {
           // Normal flow - redirect to home
           router.push('/app/home');
+          return; // Exit early to prevent further execution
         }
-
-        router.refresh();
       } else {
         const error = await response.json();
         toast.error(error.error || 'Failed to complete onboarding');
+        setSaving(false);
       }
     } catch (error) {
       console.error('Onboarding error:', error);
       toast.error('Failed to complete onboarding');
-    } finally {
       setSaving(false);
     }
   };

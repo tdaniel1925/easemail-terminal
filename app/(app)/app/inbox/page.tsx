@@ -233,7 +233,7 @@ export default function InboxPage() {
 
   const getFilteredMessages = () => {
     // If searching, return search results
-    if (searchQuery && searchResults.length >= 0) {
+    if (searchQuery) {
       return searchResults;
     }
 
