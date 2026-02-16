@@ -78,7 +78,9 @@ export default function AcceptInvitePage() {
   const handleAccept = async () => {
     if (!isAuthenticated) {
       // Store token in localStorage for after signup/login
-      localStorage.setItem('pendingInviteToken', token);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingInviteToken', token);
+      }
       router.push('/login');
       return;
     }

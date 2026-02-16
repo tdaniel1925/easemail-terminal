@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 
 // GET - List all labels for user
 export async function GET(request: NextRequest) {
@@ -23,21 +24,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch labels', labels: [] }, { status: 500 });
     }
 
-    // Get message count for each label
-    const labelsWithCounts = await Promise.all(
-      (labels || []).map(async (label: any) => {
-        const { count } = await supabaseClient
-          .from('message_labels')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('label_id', label.id);
+    // Get message counts for all labels in a single query (avoiding N+1)
+    // First, get all label IDs
+    const labelIds = (labels || []).map((l: any) => l.id);
 
-        return {
-          ...label,
-          messageCount: count || 0,
-        };
-      })
-    );
+    // Fetch all message counts at once if there are labels
+    let labelCounts: Record<string, number> = {};
+    if (labelIds.length > 0) {
+      const { data: countData } = await supabaseClient
+        .from('message_labels')
+        .select('label_id')
+        .eq('user_id', user.id)
+        .in('label_id', labelIds);
+
+      // Count messages per label
+      if (countData) {
+        labelCounts = countData.reduce((acc: Record<string, number>, item: any) => {
+          acc[item.label_id] = (acc[item.label_id] || 0) + 1;
+          return acc;
+        }, {});
+      }
+    }
+
+    // Attach counts to labels
+    const labelsWithCounts = (labels || []).map((label: any) => ({
+      ...label,
+      messageCount: labelCounts[label.id] || 0,
+    }));
 
     return NextResponse.json({ labels: labelsWithCounts });
   } catch (error) {
@@ -82,6 +95,9 @@ export async function POST(request: NextRequest) {
       console.error('Create label error:', error);
       return NextResponse.json({ error: 'Failed to create label' }, { status: 500 });
     }
+
+    // Revalidate inbox and label pages
+    revalidatePath('/app/inbox');
 
     return NextResponse.json({ label, message: 'Label created successfully' });
   } catch (error) {

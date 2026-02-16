@@ -66,12 +66,16 @@ export function EmailConnectionStep({ data, onNext, onBack }: EmailConnectionSte
 
     try {
       // Store onboarding state to return after OAuth
-      sessionStorage.setItem('onboarding_in_progress', 'true');
-      sessionStorage.setItem('onboarding_return_step', 'email-connection');
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('onboarding_in_progress', 'true');
+        sessionStorage.setItem('onboarding_return_step', 'email-connection');
+      }
 
       if (provider === 'imap') {
         // Redirect to email accounts settings for manual IMAP setup
-        window.location.href = '/app/settings/email-accounts?setup=imap&return=onboarding';
+        if (typeof window !== 'undefined') {
+          window.location.href = '/app/settings/email-accounts?setup=imap&return=onboarding';
+        }
       } else {
         // Call Nylas OAuth API
         const response = await fetch('/api/nylas/auth', {
@@ -93,7 +97,9 @@ export function EmailConnectionStep({ data, onNext, onBack }: EmailConnectionSte
         if (responseData.url) {
           console.log('Redirecting to OAuth URL:', responseData.url);
           // Redirect to Nylas OAuth URL
-          window.location.href = responseData.url;
+          if (typeof window !== 'undefined') {
+            window.location.href = responseData.url;
+          }
         } else {
           console.error('No URL in response:', responseData);
           throw new Error(responseData.error || 'Failed to get OAuth URL');

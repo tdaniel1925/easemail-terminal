@@ -7,9 +7,11 @@ function getNylasClient(): Nylas {
     if (!process.env.NYLAS_API_KEY) {
       throw new Error('NYLAS_API_KEY environment variable is not set');
     }
+    // P4-API-004: Add timeout configuration to Nylas client
     const nylasConfig = {
       apiKey: process.env.NYLAS_API_KEY,
       apiUri: process.env.NYLAS_API_URI || 'https://api.us.nylas.com',
+      timeout: 30000, // 30 seconds timeout for Nylas API calls
     };
     nylasInstance = new Nylas(nylasConfig);
   }

@@ -62,6 +62,7 @@ export function PayPalSubscribeButton({
 
   // Render PayPal button once SDK is loaded
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!scriptLoaded || !buttonContainerRef.current || !window.paypal) return;
 
     // Clear previous button

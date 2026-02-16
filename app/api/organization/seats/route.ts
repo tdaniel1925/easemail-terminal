@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(request: NextRequest) {
   try {
@@ -109,6 +110,10 @@ export async function POST(request: NextRequest) {
       amount: newMrr - org.mrr,
       triggered_by: user.id,
     });
+
+    // Revalidate organization pages to reflect updated seat count
+    revalidatePath('/app/organization');
+    revalidatePath('/app/settings/billing');
 
     return NextResponse.json({
       success: true,

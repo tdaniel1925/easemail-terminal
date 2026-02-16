@@ -247,11 +247,11 @@ export function VoiceInput({ onTranscript, tone = 'professional', id, iconOnly =
                   return (
                     <div
                       key={i}
-                      className={`w-1 h-4 rounded-full transition-all duration-75 ${
+                      className={`w-1 rounded-full transition-all duration-75 ${
                         isActive ? color : 'bg-gray-300 dark:bg-gray-700'
                       }`}
                       style={{
-                        height: isActive ? `${12 + (i * 2)}px` : '8px',
+                        height: isActive ? `${0.75 + (i * 0.125)}rem` : '0.5rem',
                       }}
                     />
                   );

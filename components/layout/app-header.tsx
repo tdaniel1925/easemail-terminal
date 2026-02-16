@@ -40,7 +40,9 @@ export function AppHeader({ sidebarOpen, onToggleSidebar, onCompose, onRefresh }
 
       if (response.ok) {
         toast.success('Logged out successfully');
-        window.location.href = '/login';
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
       } else {
         toast.error('Failed to logout');
       }
@@ -76,21 +78,22 @@ export function AppHeader({ sidebarOpen, onToggleSidebar, onCompose, onRefresh }
           </Button>
         )}
 
-        <div className="flex gap-1 flex-1">
+        <div className="flex gap-1 flex-1 overflow-x-auto">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              <button
-                className={cn(
-                  "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                  "hover:bg-accent hover:text-accent-foreground",
-                  isActive(item.href)
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground"
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                <span>{item.label}</span>
-              </button>
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-label={item.label}
+              className={cn(
+                "inline-flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-medium rounded-md transition-colors shrink-0",
+                "hover:bg-accent hover:text-accent-foreground",
+                isActive(item.href)
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground"
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{item.label}</span>
             </Link>
           ))}
         </div>
@@ -112,9 +115,15 @@ export function AppHeader({ sidebarOpen, onToggleSidebar, onCompose, onRefresh }
           </Tooltip>
 
           {onCompose && (
-            <Button onClick={onCompose}>
+            <Button onClick={onCompose} size="sm" className="hidden sm:flex">
               <PenSquare className="mr-2 h-4 w-4" />
               Compose
+            </Button>
+          )}
+
+          {onCompose && (
+            <Button onClick={onCompose} size="icon" className="sm:hidden" aria-label="Compose email">
+              <PenSquare className="h-4 w-4" />
             </Button>
           )}
 

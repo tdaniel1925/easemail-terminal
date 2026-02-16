@@ -262,7 +262,9 @@ export function CommandPalette({ open, onOpenChange, onCompose, onRefresh }: Com
       action: () => {
         onOpenChange(false);
         // Trigger keyboard shortcuts dialog
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }));
+        }
       },
     },
   ];
@@ -307,6 +309,8 @@ export function CommandPalette({ open, onOpenChange, onCompose, onRefresh }: Com
   }, [search]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!open) return;
 
@@ -364,6 +368,7 @@ export function CommandPalette({ open, onOpenChange, onCompose, onRefresh }: Com
                       return (
                         <button
                           key={command.id}
+                          type="button"
                           onClick={() => executeCommand(command)}
                           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left transition-colors ${
                             isSelected

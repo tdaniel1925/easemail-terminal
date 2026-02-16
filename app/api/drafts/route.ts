@@ -24,12 +24,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch user's drafts
+    // Get pagination parameters (drafts are typically limited, but still good practice)
+    const searchParams = request.nextUrl.searchParams;
+    const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 200); // Max 200 drafts per request
+
+    // Fetch user's drafts with limit
     const { data: drafts, error } = await supabase
       .from('drafts')
       .select('*')
       .eq('user_id', user.id)
-      .order('updated_at', { ascending: false });
+      .order('updated_at', { ascending: false })
+      .limit(limit);
 
     if (error) {
       logger.error('Fetch drafts error', error, { userId: user.id });

@@ -53,11 +53,16 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
       console.log('Email accounts changed, refreshing sidebar...');
       fetchAccounts();
     };
-    window.addEventListener('email-accounts-changed', handleAccountsChanged);
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('email-accounts-changed', handleAccountsChanged);
+    }
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener('email-accounts-changed', handleAccountsChanged);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('email-accounts-changed', handleAccountsChanged);
+      }
     };
   }, []);
 
@@ -83,10 +88,12 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
             // Selected account was deleted, switch to primary or first account
             const primary = data.accounts.find((a: any) => a.is_primary) || data.accounts[0];
             setSelectedAccount(primary.id);
-            localStorage.setItem('selectedAccountId', primary.id);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('selectedAccountId', primary.id);
+            }
 
             // Update URL if on inbox
-            if (pathname === '/app/inbox') {
+            if (pathname === '/app/inbox' && typeof window !== 'undefined') {
               const currentParams = new URLSearchParams(window.location.search);
               currentParams.set('accountId', primary.id);
               router.push(`${pathname}?${currentParams.toString()}`);
@@ -97,7 +104,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
         // Set selected account on initial load
         if (!selectedAccount && data.accounts.length > 0) {
           // Try to get from localStorage
-          const stored = localStorage.getItem('selectedAccountId');
+          const stored = typeof window !== 'undefined' ? localStorage.getItem('selectedAccountId') : null;
           const storedAccount = stored ? data.accounts.find((a: any) => a.id === stored) : null;
 
           let accountToSelect: string | null = null;
@@ -111,12 +118,14 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
             if (primary) {
               accountToSelect = primary.id;
               setSelectedAccount(primary.id);
+              if (typeof window !== 'undefined') {
               localStorage.setItem('selectedAccountId', primary.id);
+            }
             }
           }
 
           // If on inbox page without accountId, add it to URL
-          if (accountToSelect && pathname === '/app/inbox') {
+          if (accountToSelect && pathname === '/app/inbox' && typeof window !== 'undefined') {
             const currentParams = new URLSearchParams(window.location.search);
             if (!currentParams.get('accountId')) {
               currentParams.set('accountId', accountToSelect);
@@ -250,7 +259,9 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
 
   const handleAccountSwitch = (accountId: string) => {
     setSelectedAccount(accountId);
-    localStorage.setItem('selectedAccountId', accountId);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('selectedAccountId', accountId);
+    }
 
     // Navigate to inbox with account filter
     router.push(`/app/inbox?accountId=${accountId}`);
@@ -337,22 +348,22 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
                 href = `${href}${hasQuery ? '&' : '?'}accountId=${selectedAccount}`;
               }
               return (
-                <Link key={item.label} href={href}>
-                  <button
-                    className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
-                      isActive(item.href) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <item.icon className="h-5 w-5" />
-                      <span className="text-sm">{item.label}</span>
-                    </div>
-                    {item.countKey && count > 0 && (
-                      <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs shrink-0">
-                        {count > 99 ? '99+' : count}
-                      </Badge>
-                    )}
-                  </button>
+                <Link
+                  key={item.label}
+                  href={href}
+                  className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                    isActive(item.href) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <item.icon className="h-5 w-5" />
+                    <span className="text-sm">{item.label}</span>
+                  </div>
+                  {item.countKey && count > 0 && (
+                    <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs shrink-0">
+                      {count > 99 ? '99+' : count}
+                    </Badge>
+                  )}
                 </Link>
               );
             })}
@@ -373,20 +384,20 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
                   folderHref += `&accountId=${selectedAccount}`;
                 }
                 return (
-                  <Link key={folder.id} href={folderHref}>
-                    <button
-                      className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors text-foreground/80`}
-                    >
-                      <div className="flex items-center gap-4">
-                        <Tag className="h-5 w-5" />
-                        <span className="text-sm truncate">{folder.name}</span>
-                      </div>
-                      {folder.unread_count > 0 && (
-                        <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs shrink-0">
-                          {folder.unread_count}
-                        </Badge>
-                      )}
-                    </button>
+                  <Link
+                    key={folder.id}
+                    href={folderHref}
+                    className={`w-full flex items-center justify-between px-4 py-2 rounded-r-full hover:bg-accent transition-colors text-foreground/80`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Tag className="h-5 w-5" />
+                      <span className="text-sm truncate">{folder.name}</span>
+                    </div>
+                    {folder.unread_count > 0 && (
+                      <Badge variant="secondary" className="ml-2 px-1.5 py-0 text-xs shrink-0">
+                        {folder.unread_count}
+                      </Badge>
+                    )}
                   </Link>
                 );
               })}
@@ -424,6 +435,7 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
               labels.slice(0, 5).map((label) => (
                 <button
                   key={label.id}
+                  type="button"
                   className="w-full flex items-center gap-3 px-4 py-2 rounded-r-full hover:bg-accent transition-colors text-foreground/80"
                 >
                   <div
@@ -442,48 +454,44 @@ export function AppSidebar({ open, onToggle, onCompose }: AppSidebarProps) {
       <div className="border-t border-border flex-shrink-0">
         {/* Bottom Navigation */}
         <div className="p-2 space-y-0.5">
-          <Link href="/app/help">
-            <button
-              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
-                pathname?.startsWith('/app/help') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
-              }`}
-            >
-              <HelpCircle className="h-5 w-5" />
-              <span className="text-sm">Help</span>
-            </button>
+          <Link
+            href="/app/help"
+            className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+              pathname?.startsWith('/app/help') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+            }`}
+          >
+            <HelpCircle className="h-5 w-5" />
+            <span className="text-sm">Help</span>
           </Link>
-          <Link href="/app/settings">
-            <button
-              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
-                pathname?.startsWith('/app/settings') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
-              }`}
-            >
-              <Settings className="h-5 w-5" />
-              <span className="text-sm">Settings</span>
-            </button>
+          <Link
+            href="/app/settings"
+            className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+              pathname?.startsWith('/app/settings') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+            }`}
+          >
+            <Settings className="h-5 w-5" />
+            <span className="text-sm">Settings</span>
           </Link>
           {(isSuperAdmin || orgAdminOfOrg) && (
-            <Link href={isSuperAdmin ? "/app/organization" : `/app/organization/${orgAdminOfOrg}`}>
-              <button
-                className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
-                  pathname?.includes('/app/organization') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
-                }`}
-              >
-                <Building2 className="h-5 w-5" />
-                <span className="text-sm">Organizations</span>
-              </button>
+            <Link
+              href={isSuperAdmin ? "/app/organization" : `/app/organization/${orgAdminOfOrg}`}
+              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                pathname?.includes('/app/organization') ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+              }`}
+            >
+              <Building2 className="h-5 w-5" />
+              <span className="text-sm">Organizations</span>
             </Link>
           )}
           {(isSuperAdmin || orgAdminOfOrg) && (
-            <Link href={isSuperAdmin ? "/app/admin/analytics" : `/app/organization/${orgAdminOfOrg}`}>
-              <button
-                className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
-                  (pathname?.startsWith('/app/admin') || pathname?.includes('/app/organization/')) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
-                }`}
-              >
-                <BarChart3 className="h-5 w-5" />
-                <span className="text-sm">Admin</span>
-              </button>
+            <Link
+              href={isSuperAdmin ? "/app/admin/analytics" : `/app/organization/${orgAdminOfOrg}`}
+              className={`w-full flex items-center gap-4 px-4 py-2 rounded-r-full hover:bg-accent transition-colors ${
+                (pathname?.startsWith('/app/admin') || pathname?.includes('/app/organization/')) ? 'bg-accent text-accent-foreground font-medium' : 'text-foreground/80'
+              }`}
+            >
+              <BarChart3 className="h-5 w-5" />
+              <span className="text-sm">Admin</span>
             </Link>
           )}
         </div>

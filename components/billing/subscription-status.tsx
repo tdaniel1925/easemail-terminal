@@ -147,7 +147,7 @@ export function SubscriptionStatus({ type, organizationId }: SubscriptionStatusP
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2 text-sm">
-            <Badge variant="secondary" className="bg-blue-500/10 text-blue-500">
+            <Badge variant="secondary" className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-500 dark:text-blue-400">
               Beta User
             </Badge>
             <span className="text-muted-foreground">

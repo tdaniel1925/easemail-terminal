@@ -25,7 +25,19 @@ export async function GET(request: NextRequest) {
 
   try {
     // Decode state to get user ID
-    const { userId } = JSON.parse(Buffer.from(state, 'base64').toString());
+    let userId: string;
+    try {
+      const decoded = JSON.parse(Buffer.from(state, 'base64').toString());
+      userId = decoded.userId;
+      if (!userId) {
+        throw new Error('Missing userId in state');
+      }
+    } catch (parseError) {
+      console.error('Failed to parse state parameter:', parseError);
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_APP_URL}/app/teams?error=invalid_state`
+      );
+    }
 
     const supabase = await createClient();
 

@@ -21,12 +21,15 @@ const environment = process.env.PAYPAL_MODE === 'production'
  * Creates and returns an authenticated PayPal client
  */
 export function getPayPalClient() {
+  // P4-API-001: Add proper timeout to prevent infinite hangs
+  const TIMEOUT_MS = 30000; // 30 seconds
+
   const paypalClient = new Client({
     clientCredentialsAuthCredentials: {
       oAuthClientId: process.env.PAYPAL_CLIENT_ID!,
       oAuthClientSecret: process.env.PAYPAL_CLIENT_SECRET!,
     },
-    timeout: 0,
+    timeout: TIMEOUT_MS,
     environment,
     logging: {
       logLevel: process.env.NODE_ENV === 'development' ? LogLevel.Debug : LogLevel.Error,

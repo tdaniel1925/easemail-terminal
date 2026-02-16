@@ -306,7 +306,7 @@ test.describe('Email Reply Functionality', () => {
       await page.waitForTimeout(2000);
 
       const firstEmail = page.locator('[data-testid="email-item"], .email-item').first();
-      if (await firstEmail.isVisible({ timeout => 3000 }).catch(() => false)) {
+      if (await firstEmail.isVisible({ timeout: 3000 }).catch(() => false)) {
         await firstEmail.click();
         await page.waitForTimeout(1000);
 

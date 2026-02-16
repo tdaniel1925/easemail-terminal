@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 
 // GET - Get single email rule
 export async function GET(
@@ -68,6 +69,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Failed to update email rule' }, { status: 500 });
     }
 
+    // Revalidate settings page
+    revalidatePath('/app/settings/email-rules');
+
     return NextResponse.json({ rule, message: 'Email rule updated successfully' });
   } catch (error) {
     console.error('Update email rule error:', error);
@@ -99,6 +103,9 @@ export async function DELETE(
       console.error('Delete email rule error:', error);
       return NextResponse.json({ error: 'Failed to delete email rule' }, { status: 500 });
     }
+
+    // Revalidate settings page
+    revalidatePath('/app/settings/email-rules');
 
     return NextResponse.json({ message: 'Email rule deleted successfully' });
   } catch (error) {

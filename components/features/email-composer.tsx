@@ -1002,6 +1002,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
                     <Paperclip className="h-3 w-3" />
                     {attachment.name}
                     <button
+                      type="button"
                       onClick={() => setAttachments(attachments.filter(a => a.id !== attachment.id))}
                       className="ml-1 hover:text-destructive"
                     >
@@ -1014,6 +1015,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
                     <Mic className="h-3 w-3" />
                     Voice Message {index + 1}
                     <button
+                      type="button"
                       onClick={() => setVoiceAttachments(voiceAttachments.filter((_, i) => i !== index))}
                       className="ml-1 hover:text-destructive"
                     >
@@ -1310,6 +1312,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
                 templates.map((template) => (
                   <button
                     key={template.id}
+                    type="button"
                     onClick={() => useTemplate(template)}
                     className="w-full text-left p-4 border rounded-lg hover:bg-accent transition-colors"
                   >
@@ -1735,6 +1738,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
                 filteredTemplates.map((template) => (
                   <button
                     key={template.id}
+                    type="button"
                     onClick={() => insertCannedResponse(template)}
                     className="w-full text-left p-4 border rounded-lg hover:bg-accent transition-colors"
                   >
@@ -1779,6 +1783,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
               {DEFAULT_VARIABLES.map((variable) => (
                 <button
                   key={variable.key}
+                  type="button"
                   onClick={() => insertVariable(variable.key)}
                   className="w-full text-left p-3 border rounded-lg hover:bg-accent transition-colors"
                 >
@@ -1831,6 +1836,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
 
               <div className="space-y-3">
                 <button
+                  type="button"
                   onClick={() => setRemixTone('professional')}
                   className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
                     remixTone === 'professional'
@@ -1856,6 +1862,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setRemixTone('casual')}
                   className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
                     remixTone === 'casual'
@@ -1881,6 +1888,7 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setRemixTone('formal')}
                   className={`w-full text-left p-4 border-2 rounded-lg transition-all ${
                     remixTone === 'formal'

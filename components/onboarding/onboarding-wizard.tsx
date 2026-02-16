@@ -51,9 +51,11 @@ export function OnboardingWizard({ initialStep = 0, emailConnected = false }: On
       }
 
       // Clean up URL
-      const url = new URL(window.location.href);
-      url.searchParams.delete('email_connected');
-      window.history.replaceState({}, '', url);
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('email_connected');
+        window.history.replaceState({}, '', url);
+      }
     }
   }, [emailConnected, currentStep]);
 

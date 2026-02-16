@@ -12,6 +12,8 @@ export function OAuthReturnHandler() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     // Check if we just returned from OAuth and should check onboarding status
     const checkOnboarding = searchParams.get('check_onboarding');
     const connected = searchParams.get('connected');

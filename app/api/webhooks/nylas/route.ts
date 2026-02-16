@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
 
 /**
  * Handle Nylas webhook events
+ * P4-WEBHOOK-001: Add idempotency and replay attack prevention
  */
 export async function POST(request: NextRequest) {
   try {
@@ -76,46 +77,83 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const payload: NylasWebhookPayload = JSON.parse(rawBody);
-    const { type, data } = payload;
+    let payload: NylasWebhookPayload;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch (parseError) {
+      console.error('Failed to parse Nylas webhook body:', parseError);
+      return NextResponse.json({ error: 'Invalid JSON in webhook body' }, { status: 400 });
+    }
+
+    const { type, data, id, time } = payload;
+
+    // P4-WEBHOOK-001: Prevent replay attacks - reject old webhooks (>5 minutes old)
+    const webhookAge = Date.now() - (time * 1000);
+    const MAX_WEBHOOK_AGE = 5 * 60 * 1000; // 5 minutes
+    if (webhookAge > MAX_WEBHOOK_AGE) {
+      console.warn('Rejecting old webhook', { id, type, age: webhookAge });
+      return NextResponse.json({ error: 'Webhook too old' }, { status: 400 });
+    }
+
+    // P4-WEBHOOK-002: Check for duplicate webhook using webhook ID (idempotency)
+    const supabase = await createClient();
+    const { data: existingWebhook } = await supabase
+      .from('webhook_events')
+      .select('id')
+      .eq('webhook_id', id)
+      .single();
+
+    if (existingWebhook) {
+      console.log('Duplicate webhook detected (idempotent)', { webhookId: id, type });
+      return NextResponse.json({ success: true, message: 'Already processed' });
+    }
 
     console.log(`Received Nylas webhook: ${type}`, data);
 
     // Handle different webhook types
-    switch (type) {
-      case 'message.created':
-        await handleMessageCreated(data);
-        break;
+    let processingError: any = null;
+    try {
+      switch (type) {
+        case 'message.created':
+          await handleMessageCreated(data, id);
+          break;
 
-      case 'message.updated':
-        await handleMessageUpdated(data);
-        break;
+        case 'message.updated':
+          await handleMessageUpdated(data, id);
+          break;
 
-      case 'message.deleted':
-        await handleMessageDeleted(data);
-        break;
+        case 'message.deleted':
+          await handleMessageDeleted(data, id);
+          break;
 
-      case 'thread.updated':
-        await handleThreadUpdated(data);
-        break;
+        case 'thread.updated':
+          await handleThreadUpdated(data, id);
+          break;
 
-      case 'calendar.created':
-      case 'calendar.updated':
-      case 'calendar.deleted':
-        await handleCalendarEvent(type, data);
-        break;
+        case 'calendar.created':
+        case 'calendar.updated':
+        case 'calendar.deleted':
+          await handleCalendarEvent(type, data, id);
+          break;
 
-      case 'event.created':
-      case 'event.updated':
-      case 'event.deleted':
-        await handleEventChange(type, data);
-        break;
+        case 'event.created':
+        case 'event.updated':
+        case 'event.deleted':
+          await handleEventChange(type, data, id);
+          break;
 
-      default:
-        console.log(`Unhandled webhook type: ${type}`);
+        default:
+          console.log(`Unhandled webhook type: ${type}`);
+      }
+    } catch (handlerError) {
+      processingError = handlerError;
+      console.error('Webhook handler error:', handlerError);
+
+      // P4-WEBHOOK-003: Log webhook failures to database
+      await logWebhookFailure(supabase, id, type, data, handlerError);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: !processingError });
   } catch (error) {
     console.error('Webhook processing error:', error);
     return NextResponse.json(
@@ -126,9 +164,34 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Handle new message created
+ * P4-WEBHOOK-003: Log webhook processing failures
  */
-async function handleMessageCreated(data: NylasWebhookData) {
+async function logWebhookFailure(
+  supabase: any,
+  webhookId: string,
+  eventType: string,
+  data: any,
+  error: any
+) {
+  try {
+    await supabase.from('webhook_failures').insert({
+      webhook_id: webhookId,
+      event_type: eventType,
+      payload: data,
+      error_message: error?.message || String(error),
+      error_stack: error?.stack,
+      created_at: new Date().toISOString(),
+    });
+  } catch (logError) {
+    console.error('Failed to log webhook failure:', logError);
+  }
+}
+
+/**
+ * Handle new message created
+ * P4-WEBHOOK-004: Add webhook ID tracking for idempotency
+ */
+async function handleMessageCreated(data: NylasWebhookData, webhookId: string) {
   const { grant_id, id } = data.attributes;
 
   try {
@@ -199,6 +262,17 @@ async function handleMessageCreated(data: NylasWebhookData) {
       feature: 'email_received',
     });
 
+    // P4-WEBHOOK-004: Mark webhook as processed (idempotency tracking)
+    await supabaseClient.from('webhook_events').insert({
+      webhook_id: webhookId,
+      user_id: account.user_id,
+      event_type: 'message.created',
+      grant_id,
+      object_id: id,
+      payload: data,
+      processed: true,
+    });
+
     console.log(`Message ${id} stored in database for user: ${account.user_id}`);
   } catch (error) {
     console.error('Error handling message.created:', error);
@@ -207,8 +281,9 @@ async function handleMessageCreated(data: NylasWebhookData) {
 
 /**
  * Handle message updated
+ * P4-WEBHOOK-004: Add webhook ID tracking for idempotency
  */
-async function handleMessageUpdated(data: NylasWebhookData) {
+async function handleMessageUpdated(data: NylasWebhookData, webhookId: string) {
   const { grant_id, id } = data.attributes;
 
   try {
@@ -267,6 +342,17 @@ async function handleMessageUpdated(data: NylasWebhookData) {
       })
       .eq('nylas_message_id', msg.id);
 
+    // P4-WEBHOOK-004: Mark webhook as processed
+    await supabaseClient.from('webhook_events').insert({
+      webhook_id: webhookId,
+      user_id: account.user_id,
+      event_type: 'message.updated',
+      grant_id,
+      object_id: id,
+      payload: data,
+      processed: true,
+    });
+
     console.log(`Message ${id} updated in database for user: ${account.user_id}`);
   } catch (error) {
     console.error('Error handling message.updated:', error);
@@ -275,8 +361,9 @@ async function handleMessageUpdated(data: NylasWebhookData) {
 
 /**
  * Handle message deleted
+ * P4-WEBHOOK-004: Add webhook ID tracking for idempotency
  */
-async function handleMessageDeleted(data: NylasWebhookData) {
+async function handleMessageDeleted(data: NylasWebhookData, webhookId: string) {
   const { grant_id, id } = data.attributes;
 
   try {
@@ -296,6 +383,18 @@ async function handleMessageDeleted(data: NylasWebhookData) {
       .delete()
       .eq('nylas_message_id', id);
 
+    // P4-WEBHOOK-004: Mark webhook as processed
+    const supabaseClient: any = supabase;
+    await supabaseClient.from('webhook_events').insert({
+      webhook_id: webhookId,
+      user_id: account.user_id,
+      event_type: 'message.deleted',
+      grant_id,
+      object_id: id,
+      payload: data,
+      processed: true,
+    });
+
     console.log(`Message ${id} deleted from database for user: ${account.user_id}`);
   } catch (error) {
     console.error('Error handling message.deleted:', error);
@@ -304,8 +403,9 @@ async function handleMessageDeleted(data: NylasWebhookData) {
 
 /**
  * Handle thread updated (read/unread, starred, etc.)
+ * P4-WEBHOOK-004: Add webhook ID tracking for idempotency
  */
-async function handleThreadUpdated(data: NylasWebhookData) {
+async function handleThreadUpdated(data: NylasWebhookData, webhookId: string) {
   const { grant_id, id } = data.attributes;
 
   try {
@@ -319,14 +419,16 @@ async function handleThreadUpdated(data: NylasWebhookData) {
 
     if (!account) return;
 
+    // P4-WEBHOOK-004: Mark webhook as processed with webhook ID
     const supabaseClient: any = supabase;
     await supabaseClient.from('webhook_events').insert({
+      webhook_id: webhookId,
       user_id: account.user_id,
       event_type: 'thread.updated',
       grant_id,
       object_id: id,
       payload: data,
-      processed: false,
+      processed: true,
     });
 
     console.log(`Thread updated webhook processed for user: ${account.user_id}`);
@@ -337,8 +439,9 @@ async function handleThreadUpdated(data: NylasWebhookData) {
 
 /**
  * Handle calendar events (created/updated/deleted)
+ * P4-WEBHOOK-004: Add webhook ID tracking for idempotency
  */
-async function handleCalendarEvent(type: string, data: NylasWebhookData) {
+async function handleCalendarEvent(type: string, data: NylasWebhookData, webhookId: string) {
   const { grant_id, id } = data.attributes;
 
   try {
@@ -352,14 +455,16 @@ async function handleCalendarEvent(type: string, data: NylasWebhookData) {
 
     if (!account) return;
 
+    // P4-WEBHOOK-004: Mark webhook as processed with webhook ID
     const supabaseClient: any = supabase;
     await supabaseClient.from('webhook_events').insert({
+      webhook_id: webhookId,
       user_id: account.user_id,
       event_type: type,
       grant_id,
       object_id: id,
       payload: data,
-      processed: false,
+      processed: true,
     });
 
     console.log(`Calendar event ${type} webhook processed for user: ${account.user_id}`);
@@ -370,8 +475,9 @@ async function handleCalendarEvent(type: string, data: NylasWebhookData) {
 
 /**
  * Handle event changes (calendar events)
+ * P4-WEBHOOK-004: Add webhook ID tracking for idempotency
  */
-async function handleEventChange(type: string, data: NylasWebhookData) {
+async function handleEventChange(type: string, data: NylasWebhookData, webhookId: string) {
   const { grant_id, id } = data.attributes;
 
   try {
@@ -385,14 +491,16 @@ async function handleEventChange(type: string, data: NylasWebhookData) {
 
     if (!account) return;
 
+    // P4-WEBHOOK-004: Mark webhook as processed with webhook ID
     const supabaseClient: any = supabase;
     await supabaseClient.from('webhook_events').insert({
+      webhook_id: webhookId,
       user_id: account.user_id,
       event_type: type,
       grant_id,
       object_id: id,
       payload: data,
-      processed: false,
+      processed: true,
     });
 
     console.log(`Event ${type} webhook processed for user: ${account.user_id}`);

@@ -132,6 +132,7 @@ export function Chatbot() {
     <>
       {/* Floating Button */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all hover:scale-110 flex items-center justify-center"
         aria-label="Open chatbot"
@@ -166,6 +167,7 @@ export function Chatbot() {
               </div>
             </div>
             <button
+              type="button"
               onClick={() => setIsOpen(false)}
               className="hover:bg-primary-foreground/10 p-1 rounded transition-colors"
             >
@@ -261,18 +263,21 @@ export function Chatbot() {
                     <p className="text-xs font-medium">Quick Examples:</p>
                     <div className="space-y-1">
                       <button
+                        type="button"
                         onClick={() => setSearchQuery('is:unread')}
                         className="w-full text-left px-3 py-2 bg-accent/30 hover:bg-accent rounded-md text-sm transition-colors"
                       >
                         Unread emails
                       </button>
                       <button
+                        type="button"
                         onClick={() => setSearchQuery('has:attachment')}
                         className="w-full text-left px-3 py-2 bg-accent/30 hover:bg-accent rounded-md text-sm transition-colors"
                       >
                         With attachments
                       </button>
                       <button
+                        type="button"
                         onClick={() => setSearchQuery('is:starred')}
                         className="w-full text-left px-3 py-2 bg-accent/30 hover:bg-accent rounded-md text-sm transition-colors"
                       >

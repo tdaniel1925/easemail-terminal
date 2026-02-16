@@ -190,7 +190,9 @@ export default function AdminUsersPage() {
       if (response.ok) {
         toast.success('Impersonating user...');
         // Redirect to verify the magic link token
-        window.location.href = `/api/auth/callback?token_hash=${data.impersonateToken}&type=magiclink&next=/app/inbox`;
+        if (typeof window !== 'undefined') {
+          window.location.href = `/api/auth/callback?token_hash=${data.impersonateToken}&type=magiclink&next=/app/inbox`;
+        }
       } else {
         toast.error(data.error || 'Failed to impersonate user');
       }
@@ -225,6 +227,8 @@ export default function AdminUsersPage() {
 
   const handleResetPassword = async (userId: string, userEmail: string) => {
     // Confirm before resetting
+    if (typeof window === 'undefined') return;
+
     const confirmed = window.confirm(
       `Are you sure you want to reset the password for ${userEmail}?\n\nA new temporary password will be generated and emailed to the user.`
     );

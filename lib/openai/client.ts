@@ -7,8 +7,11 @@ function getOpenAIClient(): OpenAI {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY environment variable is not set');
     }
+    // P4-API-002: Add timeout to prevent infinite hangs on OpenAI API calls
     openaiInstance = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
+      timeout: 60000, // 60 seconds timeout for AI operations
+      maxRetries: 2, // Retry failed requests twice
     });
   }
   return openaiInstance;
@@ -64,7 +67,17 @@ REMINDER: The blank lines are CRITICAL - use \\n\\n (two newlines) after greetin
     max_tokens: 1000,
   });
 
-  const result = JSON.parse(completion.choices[0].message.content || '{"body":"","suggestedSubject":""}');
+  let result;
+  try {
+    result = JSON.parse(completion.choices[0].message.content || '{"body":"","suggestedSubject":""}');
+  } catch (parseError) {
+    console.error('Failed to parse OpenAI response:', parseError, 'Content:', completion.choices[0].message.content);
+    // Fallback to original text if parsing fails
+    return {
+      body: text,
+      suggestedSubject: '',
+    };
+  }
 
   // Post-process to ensure proper line breaks before signature
   let body = result.body || text;
@@ -125,7 +138,13 @@ export async function generateSmartReplies(emailBody: string, numReplies: number
     response_format: { type: 'json_object' },
   });
 
-  const result = JSON.parse(completion.choices[0].message.content || '{}');
+  let result;
+  try {
+    result = JSON.parse(completion.choices[0].message.content || '{}');
+  } catch (parseError) {
+    console.error('Failed to parse OpenAI response for smart replies:', parseError);
+    return [];
+  }
   return result.replies || [];
 }
 
@@ -161,7 +180,20 @@ Current date/time context: ${new Date().toISOString()}`,
     response_format: { type: 'json_object' },
   });
 
-  return JSON.parse(completion.choices[0].message.content || '{}');
+  try {
+    return JSON.parse(completion.choices[0].message.content || '{}');
+  } catch (parseError) {
+    console.error('Failed to parse OpenAI calendar extraction response:', parseError);
+    // Return empty object as fallback
+    return {
+      title: '',
+      date: '',
+      time: '',
+      duration: null,
+      attendees: [],
+      location: '',
+    };
+  }
 }
 
 export type EmailCategory = 'people' | 'newsletters' | 'notifications';
@@ -193,7 +225,14 @@ Return ONLY a JSON object with a single field "category" containing one of: "peo
     temperature: 0.3, // Lower temperature for more consistent categorization
   });
 
-  const result = JSON.parse(completion.choices[0].message.content || '{"category":"people"}');
+  let result;
+  try {
+    result = JSON.parse(completion.choices[0].message.content || '{"category":"people"}');
+  } catch (parseError) {
+    console.error('Failed to parse OpenAI categorization response:', parseError);
+    // Default to 'people' category as safest fallback
+    return 'people';
+  }
   return result.category as EmailCategory;
 }
 

@@ -5,7 +5,7 @@ export function getWelcomeEmailHtml({
 }: {
   userName: string;
   userEmail: string;
-  initialPassword: string; // REQUIRED - all users get generated passwords
+  initialPassword?: string; // Optional - some contexts don't require password
 }) {
   return `
 <!DOCTYPE html>
@@ -45,7 +45,8 @@ export function getWelcomeEmailHtml({
                 Thanks for joining EaseMail! We're excited to help you transform your email workflow with AI-powered features and intelligent organization.
               </p>
 
-              <!-- Login Credentials Box -->
+              <!-- Login Credentials Box (only if new user with password) -->
+              ${initialPassword ? `
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                 <tr>
                   <td style="padding: 24px; background-color: #dbeafe; border-radius: 12px; border: 2px solid #5b8def;">
@@ -69,6 +70,7 @@ export function getWelcomeEmailHtml({
                   </td>
                 </tr>
               </table>
+              ` : ''}
 
               <!-- Login CTA -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">

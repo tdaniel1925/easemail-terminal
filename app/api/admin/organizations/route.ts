@@ -28,11 +28,23 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Get all organizations with stats
-    const { data: allOrgs } = (await serviceClient
+    // Get pagination parameters from query string
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 500); // Max 500 orgs per request
+    const offset = (page - 1) * limit;
+
+    // Get organizations with pagination
+    const { data: allOrgs, error: orgsError } = (await serviceClient
       .from('organizations')
       .select('*')
-      .order('created_at', { ascending: false })) as { data: any };
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)) as { data: any; error: any };
+
+    if (orgsError) {
+      console.error('Error fetching organizations:', orgsError);
+      return NextResponse.json({ error: 'Failed to fetch organizations' }, { status: 500 });
+    }
 
     // Return empty array if query fails
     if (!allOrgs || !Array.isArray(allOrgs)) {

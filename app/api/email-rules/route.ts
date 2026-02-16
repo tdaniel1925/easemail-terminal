@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 
 // GET - List all email rules for user
 export async function GET(request: NextRequest) {
@@ -89,6 +90,9 @@ export async function POST(request: NextRequest) {
       console.error('Create email rule error:', error);
       return NextResponse.json({ error: 'Failed to create email rule' }, { status: 500 });
     }
+
+    // Revalidate settings page to show new rule
+    revalidatePath('/app/settings/email-rules');
 
     return NextResponse.json({ rule, message: 'Email rule created successfully' });
   } catch (error) {

@@ -304,7 +304,11 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
               duration: 5000,
               action: {
                 label: 'Connect',
-                onClick: () => window.location.href = '/api/teams/auth'
+                onClick: () => {
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/api/teams/auth';
+                  }
+                }
               }
             });
           } else {
@@ -606,7 +610,11 @@ export function CreateEventDialog({ onClose, onCreated, existingEvents = [] }: C
                 size="sm"
                 variant="default"
                 className="bg-purple-600 hover:bg-purple-700"
-                onClick={() => window.location.href = '/api/teams/auth'}
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/api/teams/auth';
+                  }
+                }}
               >
                 Connect Teams
               </Button>

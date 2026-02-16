@@ -26,7 +26,16 @@ export async function getCache<T>(key: string): Promise<T | null> {
   try {
     const redisClient = getRedisClient();
     const data = await redisClient.get<string>(key);
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+
+    try {
+      return JSON.parse(data);
+    } catch (parseError) {
+      console.error('Cache JSON parse error:', parseError, 'Invalid data:', data);
+      // Delete corrupted cache entry
+      await redisClient.del(key);
+      return null;
+    }
   } catch (error) {
     console.error('Cache get error:', error);
     return null;

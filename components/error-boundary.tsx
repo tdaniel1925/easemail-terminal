@@ -40,11 +40,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
   };
 
   handleReload = () => {
-    window.location.reload();
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   };
 
   handleGoHome = () => {
-    window.location.href = '/app/home';
+    if (typeof window !== 'undefined') {
+      window.location.href = '/app/home';
+    }
   };
 
   render() {

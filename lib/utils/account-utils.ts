@@ -44,7 +44,7 @@ export async function getUserEmailAccount(
     query = query.eq('is_primary', true);
   }
 
-  const { data: account, error } = await query.single();
+  const { data: account, error } = (await query.single()) as { data: EmailAccount | null; error: any };
 
   if (error || !account) {
     console.warn(`Account not found: ${accountId || 'primary'} for user ${userId}`);
@@ -57,7 +57,7 @@ export async function getUserEmailAccount(
     return null;
   }
 
-  return account as EmailAccount;
+  return account;
 }
 
 /**

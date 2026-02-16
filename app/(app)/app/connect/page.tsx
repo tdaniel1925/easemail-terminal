@@ -69,7 +69,9 @@ export default function ConnectEmailPage() {
 
       if (data.url) {
         // Redirect to Nylas OAuth URL
-        window.location.href = data.url;
+        if (typeof window !== 'undefined') {
+          window.location.href = data.url;
+        }
       }
     } catch (error) {
       console.error('Failed to connect:', error);

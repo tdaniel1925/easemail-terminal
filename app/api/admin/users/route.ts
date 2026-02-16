@@ -39,11 +39,23 @@ export async function GET(request: NextRequest) {
       return ApiErrors.forbidden('Super admin access required');
     }
 
-    // Get all users with stats
-    const { data: allUsers } = (await serviceClient
+    // Get pagination parameters from query string
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '100', 10), 500); // Max 500 users per request
+    const offset = (page - 1) * limit;
+
+    // Get users with pagination
+    const { data: allUsers, error: usersError } = (await serviceClient
       .from('users')
       .select('id, email, name, two_factor_enabled, created_at')
-      .order('created_at', { ascending: false })) as { data: any };
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)) as { data: any; error: any };
+
+    if (usersError) {
+      console.error('Error fetching users:', usersError);
+      return ApiErrors.internalError('Failed to fetch users');
+    }
 
     // Return empty array if query fails
     if (!allUsers || !Array.isArray(allUsers)) {

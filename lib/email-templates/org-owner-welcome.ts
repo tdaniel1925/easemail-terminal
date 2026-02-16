@@ -13,7 +13,7 @@ export function getOrgOwnerWelcomeEmailHtml({
   organizationId: string;
   plan: string;
   seats: number;
-  temporaryPassword: string; // REQUIRED - all users get generated passwords
+  temporaryPassword?: string; // Optional - existing users don't need new password
 }) {
   return `
 <!DOCTYPE html>
@@ -80,7 +80,8 @@ export function getOrgOwnerWelcomeEmailHtml({
                 </tr>
               </table>
 
-              <!-- Login Credentials Card -->
+              <!-- Login Credentials Card (only if new user with temporary password) -->
+              ${temporaryPassword ? `
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
                 <tr>
                   <td style="padding: 24px; background-color: #fef3c7; border-radius: 12px; border: 2px solid #f59e0b;">
@@ -104,6 +105,7 @@ export function getOrgOwnerWelcomeEmailHtml({
                   </td>
                 </tr>
               </table>
+              ` : ''}
 
               <p style="color: #1e3a8a; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
                 <strong>Here's your quick start checklist:</strong>

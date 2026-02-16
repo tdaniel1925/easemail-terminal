@@ -447,7 +447,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                           variant="ghost"
                           size="sm"
                           onClick={() => removeUser(user.id)}
-                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                          className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -550,13 +550,13 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                 </div>
 
                 {/* Add User Form */}
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-semibold text-gray-700">Add New User</h4>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Add New User</h4>
                     <Button
                       onClick={addUser}
                       size="sm"
-                      className="bg-blue-500 hover:bg-blue-600"
+                      className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
                     >
                       <Plus className="h-4 w-4 mr-1" />
                       Add User
@@ -628,8 +628,8 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                   </p>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-900 flex items-start gap-2">
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <p className="text-sm text-blue-900 dark:text-blue-100 flex items-start gap-2">
                     <Users className="h-5 w-5 flex-shrink-0 mt-0.5" />
                     <span>
                       <strong>{users.length} user(s) will be created.</strong> Each user will be able to login with their email and the password you set.
@@ -660,12 +660,12 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                 </div>
 
                 {apiKeyConfig.usesMasterKey === 'true' ? (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
                     <div className="flex gap-3">
-                      <Key className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <Key className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
                       <div>
-                        <h4 className="font-semibold text-blue-900 mb-1">Master Key Selected</h4>
-                        <p className="text-sm text-blue-700">
+                        <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Master Key Selected</h4>
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
                           AI usage will be billed through your master OpenAI account. The organization can switch to their own key later from their settings.
                         </p>
                       </div>
@@ -806,8 +806,8 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                 )}
 
                 {/* Review Summary */}
-                <div className="border border-gray-200 rounded-lg p-6 space-y-3 bg-gray-50">
-                  <h4 className="font-semibold text-gray-900 mb-3">Review & Confirm</h4>
+                <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 space-y-3 bg-gray-50 dark:bg-gray-900">
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Review & Confirm</h4>
                   <div className="space-y-2.5 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Organization:</span>
@@ -840,7 +840,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                 variant="ghost"
                 onClick={handleBack}
                 disabled={submitting}
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 Back
               </Button>
@@ -849,7 +849,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
                 variant="ghost"
                 onClick={onCancel}
                 disabled={submitting}
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 Cancel
               </Button>
@@ -858,7 +858,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
             {currentStep < 4 ? (
               <Button
                 onClick={handleNext}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-8 h-11 text-base font-medium shadow-lg shadow-blue-500/30"
+                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-8 h-11 text-base font-medium shadow-lg shadow-blue-500/30"
               >
                 Next
               </Button>
@@ -866,7 +866,7 @@ export function CreateOrganizationWizard({ onComplete, onCancel }: CreateOrganiz
               <Button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-8 h-11 text-base font-medium shadow-lg shadow-blue-500/30"
+                className="bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white px-8 h-11 text-base font-medium shadow-lg shadow-blue-500/30"
               >
                 {submitting ? (
                   <>

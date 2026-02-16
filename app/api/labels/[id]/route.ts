@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 
 // GET - Get specific label
 export async function GET(
@@ -77,6 +78,9 @@ export async function PATCH(
       return NextResponse.json({ error: 'Failed to update label' }, { status: 500 });
     }
 
+    // Revalidate inbox to reflect label changes
+    revalidatePath('/app/inbox');
+
     return NextResponse.json({ label, message: 'Label updated successfully' });
   } catch (error) {
     console.error('Update label error:', error);
@@ -119,6 +123,9 @@ export async function DELETE(
       console.error('Delete label error:', error);
       return NextResponse.json({ error: 'Failed to delete label' }, { status: 500 });
     }
+
+    // Revalidate inbox to reflect label deletion
+    revalidatePath('/app/inbox');
 
     return NextResponse.json({ message: 'Label deleted successfully' });
   } catch (error) {
