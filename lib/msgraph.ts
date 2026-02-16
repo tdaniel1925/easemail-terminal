@@ -30,14 +30,12 @@ export const GRAPH_SCOPES = [
  */
 export async function getGraphClient(accessToken: string) {
   try {
+    // P4-API-012: Graph client with error handling
+    // Note: Timeout is handled by the underlying fetch implementation
     return Client.init({
       authProvider: (done) => {
         done(null, accessToken);
       },
-      // Configure middleware with timeout
-      middleware: {
-        timeout: 30000, // 30 seconds timeout for Graph API calls
-      } as any,
     });
   } catch (error) {
     console.error('Failed to initialize Microsoft Graph client:', error);
