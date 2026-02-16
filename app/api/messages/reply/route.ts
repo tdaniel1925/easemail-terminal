@@ -7,6 +7,10 @@ import { ApiErrors } from '@/lib/api-error';
 import { successResponse, safeExternalCall } from '@/lib/api-helpers';
 import { logger } from '@/lib/logger';
 
+// P1-API-005: Request size limits for replies
+const MAX_EMAIL_BODY_SIZE = 10 * 1024 * 1024; // 10MB for email body
+const MAX_SUBJECT_LENGTH = 998; // RFC 5322 recommended max
+
 // Validation schema for reply requests
 const replySchema = z.object({
   messageId: z.string().min(1, 'Message ID is required'),
@@ -22,8 +26,10 @@ const replySchema = z.object({
     z.array(z.string().email()),
     z.undefined()
   ]).optional(),
-  subject: z.string().min(1, 'Subject is required').max(998, 'Subject too long'),
-  body: z.string().min(1, 'Message body is required'),
+  subject: z.string().min(1, 'Subject is required').max(MAX_SUBJECT_LENGTH, 'Subject too long'),
+  body: z.string()
+    .min(1, 'Message body is required')
+    .max(MAX_EMAIL_BODY_SIZE, `Email body too large. Maximum size is ${MAX_EMAIL_BODY_SIZE / 1024 / 1024}MB`),
   replyAll: z.boolean().optional(),
   attachments: z.array(z.any()).optional(),
   readReceipt: z.boolean().optional()

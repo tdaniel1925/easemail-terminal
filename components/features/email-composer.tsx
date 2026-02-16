@@ -22,6 +22,7 @@ import { TiptapEditor } from '@/components/ui/tiptap-editor';
 import { RecipientInput } from '@/components/ui/recipient-input';
 import { DEFAULT_VARIABLES, replaceTemplateVariables, getRecipientVariables, hasTemplateVariables } from '@/lib/template-variables';
 import { hasURLs, detectURLs, highlightURLs } from '@/lib/link-utils';
+import { isValidEmail } from '@/lib/validations/email';
 
 // Dynamically import emoji picker to avoid SSR issues
 const EmojiPicker = dynamic(
@@ -200,7 +201,10 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
       }
     } catch (error) {
       console.error('Save draft error:', error);
-      if (showToast) toast.error('Failed to save draft');
+      toast.error('Failed to save draft. Your changes may not be saved.', {
+        description: 'Please check your connection and try again.'
+      });
+      setLastSaved(null); // Clear the "saved" indicator
     } finally {
       setSaving(false);
     }
@@ -348,8 +352,19 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
 
   const insertSignature = (signatureContent: string) => {
     setBody((currentBody) => {
-      // Remove any existing signature (content after marker)
+      // P1-EMAIL-005: Check if signature already exists to prevent duplication
       const markerIndex = currentBody.indexOf(SIGNATURE_MARKER);
+
+      // If signature marker exists, check if the content is already there
+      if (markerIndex >= 0) {
+        const existingSignature = currentBody.substring(markerIndex);
+        // If the exact signature is already present, don't duplicate it
+        if (existingSignature.includes(signatureContent)) {
+          return currentBody;
+        }
+      }
+
+      // Remove any existing signature (content after marker)
       const bodyWithoutSig = markerIndex >= 0
         ? currentBody.substring(0, markerIndex).trim()
         : currentBody.trim();
@@ -636,11 +651,32 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
 
   const actualSend = async () => {
     try {
+      // P1-UX-001: Add loading toast during actual email send
+      toast.loading('Sending email...', { id: 'send-email' });
 
       // Parse recipients (comma-separated)
       const toArray = to.split(',').map(e => e.trim()).filter(e => e);
       const ccArray = cc ? cc.split(',').map(e => e.trim()).filter(e => e) : [];
       const bccArray = bcc ? bcc.split(',').map(e => e.trim()).filter(e => e) : [];
+
+      // P1-EMAIL-004: Validate all email addresses
+      const allRecipients = [...toArray, ...ccArray, ...bccArray];
+      const invalidEmails: string[] = [];
+
+      for (const email of allRecipients) {
+        if (!isValidEmail(email)) {
+          invalidEmails.push(email);
+        }
+      }
+
+      if (invalidEmails.length > 0) {
+        toast.error('Invalid email address(es)', {
+          description: `Please check: ${invalidEmails.join(', ')}`,
+          id: 'send-email',
+        });
+        setSending(false);
+        return;
+      }
 
       // Replace template variables if present
       let processedSubject = subject || '';
@@ -729,7 +765,10 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
         // Delete draft after successful send
         await deleteDraft();
 
-        toast.success(replyTo?.messageId ? '📧 Reply sent successfully!' : '📧 Email sent successfully!');
+        // P1-UX-001: Update toast to success
+        toast.success(replyTo?.messageId ? '📧 Reply sent successfully!' : '📧 Email sent successfully!', {
+          id: 'send-email',
+        });
         onClose();
       } else {
         // Show specific error messages based on status code
@@ -746,14 +785,16 @@ export function EmailComposer({ onClose, accountId: initialAccountId, replyTo }:
           errorMessage = 'Server error. Please try again in a moment.';
         }
 
-        toast.error(errorMessage);
+        // P1-UX-001: Update toast to error
+        toast.error(errorMessage, { id: 'send-email' });
       }
     } catch (error) {
       console.error('Send error:', error);
       const errorMessage = error instanceof Error
         ? `Failed to send email: ${error.message}`
         : 'Failed to send email. Please check your internet connection and try again.';
-      toast.error(errorMessage);
+      // P1-UX-001: Update toast to error
+      toast.error(errorMessage, { id: 'send-email' });
     } finally {
       setSending(false);
       setUndoSendCountdown(null);

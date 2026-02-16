@@ -8,8 +8,10 @@ import { isString, isArray } from '@/lib/guards';
 import { rateLimit, RateLimitPresets } from '@/lib/rate-limit';
 import { ApiErrors } from '@/lib/api-error';
 
-// Note: Body size limit is configured in next.config.js or vercel.json
-// The App Router handles request body parsing automatically
+// P1-API-001: Request size limits
+const MAX_EMAIL_BODY_SIZE = 10 * 1024 * 1024; // 10MB for email body
+const MAX_SUBJECT_LENGTH = 998; // RFC 5322 recommended max
+const MAX_TOTAL_RECIPIENTS = 100; // Prevent mass email abuse
 
 // Validation schema for email send requests
 const sendEmailSchema = z.object({
@@ -25,8 +27,10 @@ const sendEmailSchema = z.object({
     z.array(z.string().email()),
     z.undefined()
   ]).optional(),
-  subject: z.string().min(1, 'Subject is required').max(998, 'Subject too long'),
-  body: z.string().min(1, 'Email body is required'),
+  subject: z.string().min(1, 'Subject is required').max(MAX_SUBJECT_LENGTH, 'Subject too long'),
+  body: z.string()
+    .min(1, 'Email body is required')
+    .max(MAX_EMAIL_BODY_SIZE, `Email body too large. Maximum size is ${MAX_EMAIL_BODY_SIZE / 1024 / 1024}MB`),
   attachments: z.array(z.any()).optional(),
   readReceipt: z.boolean().optional(),
   accountId: z.string().optional() // Optional account ID to send from specific account
@@ -68,6 +72,18 @@ export async function POST(request: NextRequest) {
     }
 
     const { to, cc, bcc, subject, body: emailBody, attachments: attachmentData, readReceipt, accountId } = validation.data;
+
+    // P1-API-001: Validate total recipient count to prevent abuse
+    const toCount = Array.isArray(to) ? to.length : 1;
+    const ccCount = cc && Array.isArray(cc) ? cc.length : 0;
+    const bccCount = bcc && Array.isArray(bcc) ? bcc.length : 0;
+    const totalRecipients = toCount + ccCount + bccCount;
+
+    if (totalRecipients > MAX_TOTAL_RECIPIENTS) {
+      return ApiErrors.badRequest(
+        `Too many recipients. Maximum ${MAX_TOTAL_RECIPIENTS} recipients allowed per email.`
+      );
+    }
 
     // Get user's email account with proper error handling
     let account: EmailAccount | null;
